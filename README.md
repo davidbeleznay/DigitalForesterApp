@@ -39,6 +39,7 @@ Project has a basic UI framework with navigation between pages. The dashboard an
 - Implemented dashboard with navigation to both tools
 - Created basic form structure for Road Risk Assessment
 - Created basic form structure for Culvert Sizing Tool
+- Added Tailwind CSS via both build process and CDN fallback
 
 ## Next Steps
 
@@ -63,3 +64,14 @@ After pulling the latest changes:
 - Follow mobile-first design principles
 - Keep components small and focused
 - Document code changes in the README changelog
+
+## Downloading Without Git
+
+If you don't have Git installed, you can download the project directly:
+
+1. Go to https://github.com/davidbeleznay/DigitalForesterApp
+2. Click the green "Code" button
+3. Select "Download ZIP"
+4. Extract the ZIP file
+5. Open a command prompt in the extracted folder
+6. Run `npm install` and then `npm start`
