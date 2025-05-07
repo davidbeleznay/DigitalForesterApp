@@ -29,16 +29,37 @@ The Digital Forester App is designed for forestry professionals to perform field
 
 ## Current Status
 
-Project is in initial development. Basic structure and navigation are being implemented.
+Project has a basic UI framework with navigation between pages. The dashboard and form skeletons have been implemented. State management and form functionality will be added next.
 
 ## Changelog
 
 ### 2025-05-07
 - Created initial project setup with React and Tailwind CSS
-- Set up basic folder structure
+- Set up basic folder structure and routing
+- Implemented dashboard with navigation to both tools
+- Created basic form structure for Road Risk Assessment
+- Created basic form structure for Culvert Sizing Tool
 
 ## Next Steps
 
-- Implement dashboard view
-- Create basic form structure for Road Risk Assessment
-- Create basic form structure for Culvert Sizing Tool
+1. Implement form state management for user inputs
+2. Set up local storage for saving draft forms
+3. Add actual form fields for Road Risk Assessment (surface conditions, transportability, climate impact)
+4. Add actual form fields for Culvert Sizing Tool (watershed characteristics)
+5. Develop risk calculation logic for the Road Risk form
+
+## Testing
+
+After pulling the latest changes:
+
+1. Run `npm install` to install dependencies
+2. Start the development server with `npm start`
+3. Verify you can navigate between the dashboard and both forms
+4. Check that the UI is responsive on mobile and desktop viewports
+
+## Development Standards
+
+- Use functional components with React hooks
+- Follow mobile-first design principles
+- Keep components small and focused
+- Document code changes in the README changelog
