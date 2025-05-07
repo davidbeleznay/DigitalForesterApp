@@ -48,7 +48,6 @@ export default function Dashboard() {
           </Link>
         </div>
         
-        {/* Static Recent Assessment placeholders (will be dynamic later) */}
         <div className="mt-8">
           <h3 className="text-sm font-medium text-gray-700 mb-2">Recent Assessments</h3>
           <div className="bg-white shadow rounded-lg divide-y divide-gray-200">
@@ -58,7 +57,7 @@ export default function Dashboard() {
                 <span className="text-xs text-gray-500">Road Risk</span>
               </div>
               <div className="flex justify-between mt-1">
-                <span className="text-xs text-gray-500">May 2, 2025</span>
+                <span className="text-xs text-gray-500">May 7, 2025</span>
                 <span className="text-xs py-0.5 px-2 rounded-full bg-yellow-100 text-yellow-800">Draft</span>
               </div>
             </div>
@@ -69,7 +68,7 @@ export default function Dashboard() {
                 <span className="text-xs text-gray-500">Culvert Sizing</span>
               </div>
               <div className="flex justify-between mt-1">
-                <span className="text-xs text-gray-500">Apr 29, 2025</span>
+                <span className="text-xs text-gray-500">May 5, 2025</span>
                 <span className="text-xs py-0.5 px-2 rounded-full bg-green-100 text-green-800">Complete</span>
               </div>
             </div>
