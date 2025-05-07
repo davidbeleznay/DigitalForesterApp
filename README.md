@@ -31,6 +31,21 @@ The Digital Forester App is designed for forestry professionals to perform field
 
 Project has a basic UI framework with navigation between pages. The dashboard and form skeletons have been implemented. State management and form functionality will be added next.
 
+## Troubleshooting
+
+If you're seeing the default React startup screen ("Edit src/App.js and save to reload"), try these steps:
+
+1. Delete the `node_modules` folder and `package-lock.json` file
+2. Run `npm install` to reinstall all dependencies
+3. Restart the development server with `npm start`
+4. Check browser console (F12) for any errors
+
+If you're still having issues, try:
+
+1. Updating to the latest changes: `git pull`
+2. Clearing your browser cache
+3. Verifying that all dependencies are installed correctly
+
 ## Changelog
 
 ### 2025-05-07
@@ -40,6 +55,8 @@ Project has a basic UI framework with navigation between pages. The dashboard an
 - Created basic form structure for Road Risk Assessment
 - Created basic form structure for Culvert Sizing Tool
 - Added Tailwind CSS via both build process and CDN fallback
+- Added testing components to help troubleshoot rendering
+- Simplified App.js for easier debugging
 
 ## Next Steps
 
@@ -48,15 +65,6 @@ Project has a basic UI framework with navigation between pages. The dashboard an
 3. Add actual form fields for Road Risk Assessment (surface conditions, transportability, climate impact)
 4. Add actual form fields for Culvert Sizing Tool (watershed characteristics)
 5. Develop risk calculation logic for the Road Risk form
-
-## Testing
-
-After pulling the latest changes:
-
-1. Run `npm install` to install dependencies
-2. Start the development server with `npm start`
-3. Verify you can navigate between the dashboard and both forms
-4. Check that the UI is responsive on mobile and desktop viewports
 
 ## Development Standards
 
