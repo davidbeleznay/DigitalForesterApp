@@ -15,30 +15,52 @@ The Digital Forester App is designed for forestry professionals to perform field
 
 ## Current Status
 
-The application has been simplified to ensure it works correctly across different environments. We've removed complex dependencies and styling frameworks temporarily to establish a working foundation.
+The application now has a basic routing structure with three main pages:
+- Dashboard (Home) with links to both tools
+- Road Risk Assessment form
+- Culvert Sizing Tool form
+
+Basic navigation between pages is working, but no form state management or data persistence yet.
+
+## Features Implemented
+
+1. **Basic Navigation**
+   - React Router implementation
+   - Links between all pages
+   - Back buttons
+
+2. **Simple Form UI**
+   - Basic form fields
+   - Consistent styling
+   - Mobile-responsive layout
 
 ## Troubleshooting
 
 If you encounter any issues:
 
 1. Make sure you have the latest version: `git pull origin main`
-2. Delete the node_modules folder: `rm -rf node_modules`
-3. Delete package-lock.json: `rm package-lock.json`
+2. Delete the node_modules folder: `rmdir /s /q node_modules` (Windows) or `rm -rf node_modules` (Mac/Linux)
+3. Delete package-lock.json: `del package-lock.json` (Windows) or `rm package-lock.json` (Mac/Linux)
 4. Reinstall dependencies: `npm install`
 5. Start the server: `npm start`
 
 ## Next Steps
 
-1. Once the basic app is working, we'll incrementally add:
-   - React Router for navigation
-   - Form state management
-   - Road Risk Assessment tool
-   - Culvert Sizing tool
-   - Local storage for saving drafts
+1. Add form state management with React hooks
+2. Implement local storage for saving draft forms
+3. Add more fields to the Road Risk Assessment
+4. Add more fields to the Culvert Sizing tool
+5. Create calculation logic for both tools
 
 ## Changelog
 
 ### 2025-05-07
+- Added basic routing with React Router
+- Created Dashboard, Road Risk Form, and Culvert Sizing Form pages
+- Implemented navigation between pages
+- Added basic form UI with styled inputs
+
+### 2025-05-07 (Earlier)
 - Simplified app to basic structure to resolve formatting issues
 - Removed complex dependencies temporarily
 - Created minimal working example to establish foundation
