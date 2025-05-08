@@ -123,11 +123,12 @@ function RoadRiskForm() {
     return getTotalHazardScore() * getTotalConsequenceScore();
   };
   
+  // Updated distribution with logarithmic approach
   const getRiskCategory = (score) => {
-    if (score > 500) return { category: 'Very High', color: riskColors.veryHigh };
-    if (score >= 200 && score <= 500) return { category: 'High', color: riskColors.high };
-    if (score >= 100 && score < 200) return { category: 'Moderate', color: riskColors.moderate };
-    if (score >= 50 && score < 100) return { category: 'Low', color: riskColors.low };
+    if (score > 1000) return { category: 'Very High', color: riskColors.veryHigh };
+    if (score >= 500 && score <= 1000) return { category: 'High', color: riskColors.high };
+    if (score >= 250 && score < 500) return { category: 'Moderate', color: riskColors.moderate };
+    if (score >= 150 && score < 250) return { category: 'Low', color: riskColors.low };
     return { category: 'Very Low', color: riskColors.veryLow };
   };
   
@@ -155,47 +156,138 @@ function RoadRiskForm() {
       ...basicInfo,
       [name]: value
     });
+    
+    // Auto-save to localStorage on change
+    saveToLocalStorage({
+      basicInfo: {
+        ...basicInfo,
+        [name]: value
+      },
+      hazardFactors,
+      consequenceFactors,
+      showAdditionalFactors,
+      geotechnicalFactors,
+      infrastructureFactors,
+      comments
+    });
   };
   
   // Handle hazard factor changes
   const handleHazardChange = (e) => {
     const { name, value } = e.target;
-    setHazardFactors({
+    const updatedHazardFactors = {
       ...hazardFactors,
       [name]: parseInt(value)
+    };
+    setHazardFactors(updatedHazardFactors);
+    
+    // Auto-save to localStorage on change
+    saveToLocalStorage({
+      basicInfo,
+      hazardFactors: updatedHazardFactors,
+      consequenceFactors,
+      showAdditionalFactors,
+      geotechnicalFactors,
+      infrastructureFactors,
+      comments
     });
   };
   
   // Handle consequence factor changes
   const handleConsequenceChange = (e) => {
     const { name, value } = e.target;
-    setConsequenceFactors({
+    const updatedConsequenceFactors = {
       ...consequenceFactors,
       [name]: parseInt(value)
+    };
+    setConsequenceFactors(updatedConsequenceFactors);
+    
+    // Auto-save to localStorage on change
+    saveToLocalStorage({
+      basicInfo,
+      hazardFactors,
+      consequenceFactors: updatedConsequenceFactors,
+      showAdditionalFactors,
+      geotechnicalFactors,
+      infrastructureFactors,
+      comments
     });
   };
   
   // Handle geotechnical factor changes
   const handleGeotechnicalChange = (e) => {
     const { name, value } = e.target;
-    setGeotechnicalFactors({
+    const updatedGeotechnicalFactors = {
       ...geotechnicalFactors,
       [name]: parseInt(value)
+    };
+    setGeotechnicalFactors(updatedGeotechnicalFactors);
+    
+    // Auto-save to localStorage on change
+    saveToLocalStorage({
+      basicInfo,
+      hazardFactors,
+      consequenceFactors,
+      showAdditionalFactors,
+      geotechnicalFactors: updatedGeotechnicalFactors,
+      infrastructureFactors,
+      comments
     });
   };
   
   // Handle infrastructure factor changes
   const handleInfrastructureChange = (e) => {
     const { name, value } = e.target;
-    setInfrastructureFactors({
+    const updatedInfrastructureFactors = {
       ...infrastructureFactors,
       [name]: parseInt(value)
+    };
+    setInfrastructureFactors(updatedInfrastructureFactors);
+    
+    // Auto-save to localStorage on change
+    saveToLocalStorage({
+      basicInfo,
+      hazardFactors,
+      consequenceFactors,
+      showAdditionalFactors,
+      geotechnicalFactors,
+      infrastructureFactors: updatedInfrastructureFactors,
+      comments
+    });
+  };
+  
+  // Handle additional factors toggle
+  const handleToggleAdditionalFactors = () => {
+    const newValue = !showAdditionalFactors;
+    setShowAdditionalFactors(newValue);
+    
+    // Auto-save to localStorage on change
+    saveToLocalStorage({
+      basicInfo,
+      hazardFactors,
+      consequenceFactors,
+      showAdditionalFactors: newValue,
+      geotechnicalFactors,
+      infrastructureFactors,
+      comments
     });
   };
   
   // Handle comments change
   const handleCommentsChange = (e) => {
-    setComments(e.target.value);
+    const newComments = e.target.value;
+    setComments(newComments);
+    
+    // Auto-save to localStorage on change
+    saveToLocalStorage({
+      basicInfo,
+      hazardFactors,
+      consequenceFactors,
+      showAdditionalFactors,
+      geotechnicalFactors,
+      infrastructureFactors,
+      comments: newComments
+    });
   };
   
   // Mock function to simulate getting current location
@@ -205,43 +297,60 @@ function RoadRiskForm() {
     const lat = (Math.random() * (49.5 - 48.5) + 48.5).toFixed(6);
     const long = (-Math.random() * (123.5 - 122.5) - 122.5).toFixed(6);
     
+    let updatedBasicInfo;
     if (position === 'start') {
-      setBasicInfo({
+      updatedBasicInfo = {
         ...basicInfo,
         startLat: lat,
         startLong: long
-      });
+      };
     } else {
-      setBasicInfo({
+      updatedBasicInfo = {
         ...basicInfo,
         endLat: lat,
         endLong: long
-      });
+      };
     }
+    
+    setBasicInfo(updatedBasicInfo);
+    
+    // Auto-save to localStorage
+    saveToLocalStorage({
+      basicInfo: updatedBasicInfo,
+      hazardFactors,
+      consequenceFactors,
+      showAdditionalFactors,
+      geotechnicalFactors,
+      infrastructureFactors,
+      comments
+    });
     
     setStatusMessage('Location captured successfully!');
     setTimeout(() => setStatusMessage(''), 3000);
   };
   
   // Save form data to localStorage
-  const saveToLocalStorage = () => {
-    const formData = {
+  const saveToLocalStorage = (formData) => {
+    const completeFormData = {
+      ...formData,
+      timestamp: new Date().toISOString()
+    };
+    
+    localStorage.setItem('roadRiskForm', JSON.stringify(completeFormData));
+  };
+  
+  // Save draft explicitly
+  const handleSaveDraft = () => {
+    saveToLocalStorage({
       basicInfo,
       hazardFactors,
       consequenceFactors,
       showAdditionalFactors,
       geotechnicalFactors,
       infrastructureFactors,
-      comments,
-      timestamp: new Date().toISOString()
-    };
+      comments
+    });
     
-    localStorage.setItem('roadRiskForm', JSON.stringify(formData));
-  };
-  
-  // Save draft explicitly
-  const handleSaveDraft = () => {
-    saveToLocalStorage();
     setStatusMessage('Road risk assessment saved successfully!');
     
     // Clear status message after 3 seconds
@@ -511,11 +620,6 @@ function RoadRiskForm() {
           <div style={{marginBottom: '20px'}}>
             <div style={{display: 'flex', justifyContent: 'space-between', marginBottom: '8px'}}>
               <label style={{fontWeight: 'bold'}}>Terrain Stability</label>
-              <div style={{display: 'flex'}}>
-                <span style={{flex: 1, textAlign: 'center', fontSize: '0.8rem'}}>Low</span>
-                <span style={{flex: 3}}></span>
-                <span style={{flex: 1, textAlign: 'center', fontSize: '0.8rem'}}>High</span>
-              </div>
             </div>
             <RiskSelector 
               name="terrainStability"
@@ -534,11 +638,6 @@ function RoadRiskForm() {
           <div style={{marginBottom: '20px'}}>
             <div style={{display: 'flex', justifyContent: 'space-between', marginBottom: '8px'}}>
               <label style={{fontWeight: 'bold'}}>Slope Grade</label>
-              <div style={{display: 'flex'}}>
-                <span style={{flex: 1, textAlign: 'center', fontSize: '0.8rem'}}>Low</span>
-                <span style={{flex: 3}}></span>
-                <span style={{flex: 1, textAlign: 'center', fontSize: '0.8rem'}}>High</span>
-              </div>
             </div>
             <RiskSelector 
               name="slopeGrade"
@@ -557,11 +656,6 @@ function RoadRiskForm() {
           <div style={{marginBottom: '20px'}}>
             <div style={{display: 'flex', justifyContent: 'space-between', marginBottom: '8px'}}>
               <label style={{fontWeight: 'bold'}}>Geology/Soil</label>
-              <div style={{display: 'flex'}}>
-                <span style={{flex: 1, textAlign: 'center', fontSize: '0.8rem'}}>Low</span>
-                <span style={{flex: 3}}></span>
-                <span style={{flex: 1, textAlign: 'center', fontSize: '0.8rem'}}>High</span>
-              </div>
             </div>
             <RiskSelector 
               name="geologySoil"
@@ -580,11 +674,6 @@ function RoadRiskForm() {
           <div style={{marginBottom: '20px'}}>
             <div style={{display: 'flex', justifyContent: 'space-between', marginBottom: '8px'}}>
               <label style={{fontWeight: 'bold'}}>Drainage Conditions</label>
-              <div style={{display: 'flex'}}>
-                <span style={{flex: 1, textAlign: 'center', fontSize: '0.8rem'}}>Low</span>
-                <span style={{flex: 3}}></span>
-                <span style={{flex: 1, textAlign: 'center', fontSize: '0.8rem'}}>High</span>
-              </div>
             </div>
             <RiskSelector 
               name="drainageConditions"
@@ -603,11 +692,6 @@ function RoadRiskForm() {
           <div style={{marginBottom: '10px'}}>
             <div style={{display: 'flex', justifyContent: 'space-between', marginBottom: '8px'}}>
               <label style={{fontWeight: 'bold'}}>Road Failure History</label>
-              <div style={{display: 'flex'}}>
-                <span style={{flex: 1, textAlign: 'center', fontSize: '0.8rem'}}>Low</span>
-                <span style={{flex: 3}}></span>
-                <span style={{flex: 1, textAlign: 'center', fontSize: '0.8rem'}}>High</span>
-              </div>
             </div>
             <RiskSelector 
               name="roadFailureHistory"
@@ -650,11 +734,6 @@ function RoadRiskForm() {
           <div style={{marginBottom: '20px'}}>
             <div style={{display: 'flex', justifyContent: 'space-between', marginBottom: '8px'}}>
               <label style={{fontWeight: 'bold'}}>Proximity to Water</label>
-              <div style={{display: 'flex'}}>
-                <span style={{flex: 1, textAlign: 'center', fontSize: '0.8rem'}}>Low</span>
-                <span style={{flex: 3}}></span>
-                <span style={{flex: 1, textAlign: 'center', fontSize: '0.8rem'}}>High</span>
-              </div>
             </div>
             <RiskSelector 
               name="proximityToWater"
@@ -673,11 +752,6 @@ function RoadRiskForm() {
           <div style={{marginBottom: '20px'}}>
             <div style={{display: 'flex', justifyContent: 'space-between', marginBottom: '8px'}}>
               <label style={{fontWeight: 'bold'}}>Drainage Structure</label>
-              <div style={{display: 'flex'}}>
-                <span style={{flex: 1, textAlign: 'center', fontSize: '0.8rem'}}>Low</span>
-                <span style={{flex: 3}}></span>
-                <span style={{flex: 1, textAlign: 'center', fontSize: '0.8rem'}}>High</span>
-              </div>
             </div>
             <RiskSelector 
               name="drainageStructure"
@@ -696,11 +770,6 @@ function RoadRiskForm() {
           <div style={{marginBottom: '20px'}}>
             <div style={{display: 'flex', justifyContent: 'space-between', marginBottom: '8px'}}>
               <label style={{fontWeight: 'bold'}}>Public/Industrial Use</label>
-              <div style={{display: 'flex'}}>
-                <span style={{flex: 1, textAlign: 'center', fontSize: '0.8rem'}}>Low</span>
-                <span style={{flex: 3}}></span>
-                <span style={{flex: 1, textAlign: 'center', fontSize: '0.8rem'}}>High</span>
-              </div>
             </div>
             <RiskSelector 
               name="publicIndustrialUse"
@@ -719,11 +788,6 @@ function RoadRiskForm() {
           <div style={{marginBottom: '10px'}}>
             <div style={{display: 'flex', justifyContent: 'space-between', marginBottom: '8px'}}>
               <label style={{fontWeight: 'bold'}}>Environmental Value</label>
-              <div style={{display: 'flex'}}>
-                <span style={{flex: 1, textAlign: 'center', fontSize: '0.8rem'}}>Low</span>
-                <span style={{flex: 3}}></span>
-                <span style={{flex: 1, textAlign: 'center', fontSize: '0.8rem'}}>High</span>
-              </div>
             </div>
             <RiskSelector 
               name="environmentalValue"
@@ -823,7 +887,7 @@ function RoadRiskForm() {
               alignItems: 'center',
               cursor: 'pointer'
             }}
-            onClick={() => setShowAdditionalFactors(!showAdditionalFactors)}
+            onClick={handleToggleAdditionalFactors}
           >
             <h2 style={{fontSize: '1.2rem', color: '#1976D2', margin: 0}}>
               Additional Assessment Factors (Optional)
