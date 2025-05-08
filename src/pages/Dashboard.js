@@ -83,7 +83,7 @@ function Dashboard() {
         </Link>
       </div>
       
-      <div>
+      <div style={{marginBottom: '10px'}}>
         <Link to="/culvert-sizing" style={{
           display: 'block',
           background: '#2E7D32',
@@ -95,6 +95,21 @@ function Dashboard() {
           fontWeight: 'bold'
         }}>
           Culvert Sizing Tool
+        </Link>
+      </div>
+      
+      <div style={{marginBottom: '30px'}}>
+        <Link to="/history" style={{
+          display: 'block',
+          background: '#5E35B1',
+          color: 'white',
+          padding: '15px',
+          borderRadius: '5px',
+          textDecoration: 'none',
+          textAlign: 'center',
+          fontWeight: 'bold'
+        }}>
+          Assessment History
         </Link>
       </div>
       
@@ -192,6 +207,18 @@ function Dashboard() {
           </div>
         )}
       </div>
+      
+      <footer style={{
+        marginTop: '40px',
+        padding: '20px 0',
+        borderTop: '1px solid #eee',
+        textAlign: 'center',
+        color: '#666',
+        fontSize: '0.9rem'
+      }}>
+        <p>Digital Forester App v0.2.0</p>
+        <p style={{marginTop: '5px'}}>© 2025 Forest Management Technologies</p>
+      </footer>
     </div>
   );
 }
