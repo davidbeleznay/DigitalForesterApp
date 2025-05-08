@@ -22,6 +22,7 @@ The application now has:
 - Dashboard showing saved drafts
 - Advanced Road Risk Assessment with industry-standard scoring framework
 - Interactive risk factor selection with visual feedback
+- Comprehensive Culvert Sizing Tool with multi-step input process
 - Automatic save functionality for all field changes
 
 ## Features Implemented
@@ -53,6 +54,18 @@ The application now has:
    - Optional additional assessment factors
    - Risk scoring based on industry standards
 
+5. **Culvert Sizing Tool**
+   - Multi-step form with progress indicators
+   - Watershed characteristics input (area, length, slope)
+   - Runoff coefficient selection based on land cover type
+   - Bankfull measurement recording for ecological compliance
+   - Culvert specification selection (material, shape, Manning's n)
+   - Climate change and debris factors for resilient design
+   - Automatic calculations using Rational Method and Manning's equation
+   - Results display with recommended culvert sizes
+   - Warning indicators for high velocity and erosion risks
+   - Detailed notes and recommendations
+
 ## How to Use
 
 1. Start the application and navigate to either the Road Risk Assessment or Culvert Sizing Tool
@@ -64,10 +77,17 @@ The application now has:
    - View the calculated risk score and professional requirements
    - Optionally add geotechnical and infrastructure assessments
    - Add general comments
-4. Changes are automatically saved as you type
-5. Click "Save Assessment" to explicitly save your progress
-6. Return to the Dashboard to see your saved assessments
-7. Click "Continue editing" to resume working on a draft
+4. For Culvert Sizing Tool:
+   - Navigate through the 3-step form process
+   - Enter basic info, watershed characteristics, and culvert specifications
+   - Provide bankfull measurements for ecological compliance
+   - Click "Calculate" to get sizing recommendations
+   - Review velocity and headwater depth results
+   - Read detailed notes and recommendations
+5. Changes are automatically saved as you type
+6. Click "Save Draft" to explicitly save your progress
+7. Return to the Dashboard to see your saved assessments
+8. Click "Continue editing" to resume working on a draft
 
 ## Troubleshooting
 
@@ -81,10 +101,9 @@ If you encounter any issues:
 
 ## Next Steps
 
-1. Enhance the Culvert Sizing Tool with:
-   - Watershed Characteristics
-   - Flow Calculation inputs
-   - Results visualization
+1. Add Culvert Visualization:
+   - Graphic representation of recommended culvert
+   - Comparison of different shapes and materials
    
 2. Add user authentication
 
@@ -95,6 +114,16 @@ If you encounter any issues:
 5. Implement export capabilities (PDF, CSV)
 
 ## Changelog
+
+### 2025-05-08 (Latest)
+- Implemented comprehensive Culvert Sizing Tool with multi-step form process
+- Added watershed characteristics input section with runoff coefficient selection
+- Integrated bankfull measurement inputs for ecological compliance
+- Added culvert specifications section with material, shape, and Manning's n selection
+- Implemented calculation logic using Rational Method and Manning's equation
+- Created results display with recommended culvert sizes and velocity checks
+- Added climate change and debris factors for resilient design
+- Enhanced form with safety factor inputs and design recommendations
 
 ### 2025-05-08
 - Updated risk scoring distribution with logarithmic approach for more accurate risk classification
