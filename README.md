@@ -17,11 +17,11 @@ The Digital Forester App is designed for forestry professionals to perform field
 
 The application now has:
 - A basic routing structure with three main pages
-- Form state management for both tools
+- Comprehensive form state management for both tools
 - Local storage for saving and retrieving form data
 - Dashboard showing saved drafts
-- Improved UI with consistent styling across all pages
-- Better mobile responsiveness
+- Advanced Road Risk Assessment with industry-standard scoring framework
+- Interactive risk factor selection with visual feedback
 
 ## Features Implemented
 
@@ -29,7 +29,6 @@ The application now has:
    - React Router implementation
    - Links between all pages
    - Back buttons
-   - Improved navigation flow
 
 2. **Form Management**
    - Form state using React hooks
@@ -41,23 +40,31 @@ The application now has:
    - Links to both tools
    - Display of saved drafts
    - Continue editing links
-   - Card-based UI design
-   
-4. **UI Improvements**
-   - Consistent color scheme and styling
-   - Responsive design for mobile and desktop
-   - Improved form layout and field spacing
-   - Visual feedback for user actions
-   - CSS Grid for better layouts
-   - Accessibility improvements (focus states, labels)
+
+4. **Road Risk Assessment Tool**
+   - Road and location information capturing
+   - GPS coordinate functionality
+   - Hazard Factors (Likelihood) assessment
+   - Consequence Factors (Severity) assessment
+   - Dynamic risk calculation with color-coded display
+   - Professional requirements based on risk level
+   - Optional additional assessment factors
+   - Risk scoring based on industry standards
 
 ## How to Use
 
 1. Start the application and navigate to either the Road Risk Assessment or Culvert Sizing Tool
 2. Fill out the form fields
-3. Click "Save Draft" to manually save your progress
-4. Return to the Dashboard to see your saved drafts
-5. Click "Continue editing" to resume working on a draft
+3. For Road Risk Assessment:
+   - Enter road information with start/end KM
+   - Use "Get Location" to capture GPS coordinates
+   - Rate each hazard and consequence factor
+   - View the calculated risk score and professional requirements
+   - Optionally add geotechnical and infrastructure assessments
+   - Add general comments
+4. Click "Save Assessment" to save your progress
+5. Return to the Dashboard to see your saved assessments
+6. Click "Continue editing" to resume working on a draft
 
 ## Troubleshooting
 
@@ -71,33 +78,37 @@ If you encounter any issues:
 
 ## Next Steps
 
-1. Add more field sections to the Road Risk Assessment:
-   - Surface Condition evaluation
-   - Transportability metrics
-   - Climate Impact factors
-   
-2. Add more field sections to the Culvert Sizing Tool:
+1. Enhance the Culvert Sizing Tool with:
    - Watershed Characteristics
    - Flow Calculation inputs
    - Results visualization
+   
+2. Add user authentication
 
-3. Add calculation logic for both tools
+3. Create a Results History page
+
+4. Add offline functionality for field use
+
+5. Implement export capabilities (PDF, CSV)
 
 ## Changelog
 
 ### 2025-05-08
-- Implemented improved UI with consistent styling
-- Added shared styles system for maintainability
-- Enhanced mobile responsiveness
-- Improved form layouts
-- Added visual indicators and feedback
-- Created global CSS for consistent look and feel
+- Enhanced Road Risk Assessment with comprehensive field sections
+- Added Hazard Factors (Terrain Stability, Slope Grade, Geology/Soil, Drainage, Road Failure History)
+- Added Consequence Factors (Proximity to Water, Drainage Structure, Public/Industrial Use, Environmental Value)
+- Implemented dynamic risk calculation with color-coded display
+- Added optional additional assessment factors (Geotechnical Considerations, Infrastructure Elements)
+- Added GPS location functionality
+- Improved UI with color-coded risk levels and visual feedback
 
 ### 2025-05-07
 - Added form state management using React hooks
 - Implemented localStorage for saving and retrieving form data
 - Updated Dashboard to display saved drafts
 - Added feedback messages for form actions
+
+### 2025-05-06
 - Added basic routing with React Router
 - Created Dashboard, Road Risk Form, and Culvert Sizing Form pages
 - Implemented navigation between pages
