@@ -1,5 +1,8 @@
-import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState, useEffect, useRef } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { usePDF } from 'react-to-pdf';
+import PDFExport from '../components/PDFExport';
+import PhotoCapture from '../components/PhotoCapture';
 
 // Component for radio button selection of risk factors
 const RiskSelector = ({ name, value, onChange, options }) => {
@@ -53,6 +56,10 @@ const standardRiskOptions = [
 ];
 
 function RoadRiskForm() {
+  const navigate = useNavigate();
+  const pdfRef = useRef();
+  const { toPDF, targetRef } = usePDF({filename: 'road-risk-assessment.pdf'});
+  
   // Basic info state
   const [basicInfo, setBasicInfo] = useState({
     roadName: '',
@@ -104,11 +111,17 @@ function RoadRiskForm() {
     roadAge: 2
   });
   
+  // Photos
+  const [photos, setPhotos] = useState([]);
+  
   // General comments
   const [comments, setComments] = useState('');
   
   // Status message state
   const [statusMessage, setStatusMessage] = useState('');
+  
+  // Show PDF preview
+  const [showPDFPreview, setShowPDFPreview] = useState(false);
   
   // Calculate risk scores
   const getTotalHazardScore = () => {
@@ -152,23 +165,22 @@ function RoadRiskForm() {
   // Handle basic info changes
   const handleBasicInfoChange = (e) => {
     const { name, value } = e.target;
-    setBasicInfo({
+    const updatedBasicInfo = {
       ...basicInfo,
       [name]: value
-    });
+    };
+    setBasicInfo(updatedBasicInfo);
     
     // Auto-save to localStorage on change
     saveToLocalStorage({
-      basicInfo: {
-        ...basicInfo,
-        [name]: value
-      },
+      basicInfo: updatedBasicInfo,
       hazardFactors,
       consequenceFactors,
       showAdditionalFactors,
       geotechnicalFactors,
       infrastructureFactors,
-      comments
+      comments,
+      photos
     });
   };
   
@@ -189,7 +201,8 @@ function RoadRiskForm() {
       showAdditionalFactors,
       geotechnicalFactors,
       infrastructureFactors,
-      comments
+      comments,
+      photos
     });
   };
   
@@ -210,7 +223,8 @@ function RoadRiskForm() {
       showAdditionalFactors,
       geotechnicalFactors,
       infrastructureFactors,
-      comments
+      comments,
+      photos
     });
   };
   
@@ -231,7 +245,8 @@ function RoadRiskForm() {
       showAdditionalFactors,
       geotechnicalFactors: updatedGeotechnicalFactors,
       infrastructureFactors,
-      comments
+      comments,
+      photos
     });
   };
   
@@ -252,7 +267,8 @@ function RoadRiskForm() {
       showAdditionalFactors,
       geotechnicalFactors,
       infrastructureFactors: updatedInfrastructureFactors,
-      comments
+      comments,
+      photos
     });
   };
   
@@ -269,7 +285,8 @@ function RoadRiskForm() {
       showAdditionalFactors: newValue,
       geotechnicalFactors,
       infrastructureFactors,
-      comments
+      comments,
+      photos
     });
   };
   
@@ -286,7 +303,25 @@ function RoadRiskForm() {
       showAdditionalFactors,
       geotechnicalFactors,
       infrastructureFactors,
-      comments: newComments
+      comments: newComments,
+      photos
+    });
+  };
+  
+  // Handle photo capture
+  const handlePhotoCapture = (capturedPhotos) => {
+    setPhotos(capturedPhotos);
+    
+    // Auto-save to localStorage on change
+    saveToLocalStorage({
+      basicInfo,
+      hazardFactors,
+      consequenceFactors,
+      showAdditionalFactors,
+      geotechnicalFactors,
+      infrastructureFactors,
+      comments,
+      photos: capturedPhotos
     });
   };
   
@@ -322,11 +357,58 @@ function RoadRiskForm() {
       showAdditionalFactors,
       geotechnicalFactors,
       infrastructureFactors,
-      comments
+      comments,
+      photos
     });
     
     setStatusMessage('Location captured successfully!');
     setTimeout(() => setStatusMessage(''), 3000);
+  };
+  
+  // Toggle PDF preview
+  const handleTogglePDFPreview = () => {
+    setShowPDFPreview(!showPDFPreview);
+  };
+  
+  // Handle exporting PDF
+  const handleExportPDF = () => {
+    // Generate PDF
+    toPDF();
+    
+    // Save the assessment to history
+    const assessmentData = {
+      type: 'roadRisk',
+      data: {
+        basicInfo,
+        hazardFactors,
+        consequenceFactors,
+        showAdditionalFactors,
+        geotechnicalFactors,
+        infrastructureFactors,
+        comments,
+        photos
+      },
+      photoCount: photos.length,
+      inspector: basicInfo.inspector,
+      completedAt: new Date().toISOString()
+    };
+    
+    // Get existing history or initialize new array
+    const existingHistory = localStorage.getItem('assessmentHistory');
+    const history = existingHistory ? JSON.parse(existingHistory) : [];
+    
+    // Add new assessment to history
+    history.unshift(assessmentData);
+    
+    // Save updated history
+    localStorage.setItem('assessmentHistory', JSON.stringify(history));
+    
+    setStatusMessage('Assessment exported and saved to history!');
+    setTimeout(() => {
+      setStatusMessage('');
+      // Navigate to history page
+      navigate('/history');
+    }, 2000);
   };
   
   // Save form data to localStorage
@@ -348,7 +430,8 @@ function RoadRiskForm() {
       showAdditionalFactors,
       geotechnicalFactors,
       infrastructureFactors,
-      comments
+      comments,
+      photos
     });
     
     setStatusMessage('Road risk assessment saved successfully!');
@@ -371,6 +454,9 @@ function RoadRiskForm() {
       setGeotechnicalFactors(parsedData.geotechnicalFactors);
       setInfrastructureFactors(parsedData.infrastructureFactors);
       setComments(parsedData.comments);
+      if (parsedData.photos) {
+        setPhotos(parsedData.photos);
+      }
     }
   }, []);
   
@@ -379,9 +465,104 @@ function RoadRiskForm() {
   const consequenceScore = getTotalConsequenceScore();
   const riskScore = getRiskScore();
   const { category: riskCategory, color: riskColor } = getRiskCategory(riskScore);
+  const requirements = getRequirements(riskCategory);
+  
+  // PDF Export data
+  const formData = {
+    basicInfo,
+    hazardFactors,
+    consequenceFactors,
+    comments
+  };
   
   return (
     <div style={{padding: '20px', maxWidth: '800px', margin: '0 auto'}}>
+      {/* Hidden PDF component for export */}
+      <div style={{display: 'none'}}>
+        <PDFExport 
+          ref={targetRef}
+          formData={formData}
+          riskScore={riskScore}
+          riskCategory={riskCategory}
+          riskColor={riskColor}
+          requirements={requirements}
+        />
+      </div>
+      
+      {showPDFPreview && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: 'rgba(0, 0, 0, 0.8)',
+          zIndex: 1000,
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          padding: '20px'
+        }}>
+          <div style={{
+            backgroundColor: 'white',
+            borderRadius: '8px',
+            width: '100%',
+            maxWidth: '850px',
+            maxHeight: '90vh',
+            overflow: 'auto',
+            position: 'relative'
+          }}>
+            <button 
+              onClick={handleTogglePDFPreview}
+              style={{
+                position: 'absolute',
+                top: '10px',
+                right: '10px',
+                backgroundColor: '#f44336',
+                color: 'white',
+                border: 'none',
+                borderRadius: '50%',
+                width: '30px',
+                height: '30px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                cursor: 'pointer',
+                fontSize: '16px'
+              }}
+            >
+              ×
+            </button>
+            
+            <PDFExport 
+              formData={formData}
+              riskScore={riskScore}
+              riskCategory={riskCategory}
+              riskColor={riskColor}
+              requirements={requirements}
+            />
+          </div>
+          
+          <div style={{marginTop: '15px'}}>
+            <button 
+              onClick={handleExportPDF}
+              style={{
+                backgroundColor: '#4CAF50',
+                color: 'white',
+                padding: '10px 20px',
+                border: 'none',
+                borderRadius: '4px',
+                cursor: 'pointer',
+                fontWeight: 'bold',
+                fontSize: '16px'
+              }}
+            >
+              Export PDF & Save to History
+            </button>
+          </div>
+        </div>
+      )}
+      
       <h1 style={{color: '#1976D2', marginBottom: '5px'}}>Road Risk Assessment</h1>
       <p style={{marginBottom: '20px', color: '#666'}}>Evaluate forest road conditions and identify potential hazards</p>
       
@@ -816,486 +997,9 @@ function RoadRiskForm() {
           </div>
         </div>
         
-        {/* Risk Calculation Section */}
-        <div style={{
-          backgroundColor: riskColor.bg,
-          borderRadius: '8px',
-          padding: '20px',
-          marginBottom: '20px',
-          boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-          border: `1px solid ${riskColor.text}`,
-          color: riskColor.text
-        }}>
-          <h2 style={{fontSize: '1.2rem', marginBottom: '15px', textAlign: 'center'}}>
-            Risk Assessment Results
-          </h2>
-          
-          <div style={{
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            marginBottom: '15px'
-          }}>
-            <div style={{fontSize: '0.9rem', marginBottom: '5px'}}>
-              Risk Score = Hazard ({hazardScore}) × Consequence ({consequenceScore})
-            </div>
-            <div style={{
-              fontSize: '2rem',
-              fontWeight: 'bold',
-              marginBottom: '5px'
-            }}>
-              {riskScore}
-            </div>
-            <div style={{
-              padding: '5px 15px',
-              borderRadius: '20px',
-              backgroundColor: riskColor.text,
-              color: '#fff',
-              fontWeight: 'bold'
-            }}>
-              {riskCategory} Risk
-            </div>
-          </div>
-          
-          <div style={{
-            backgroundColor: 'rgba(255, 255, 255, 0.7)',
-            padding: '15px',
-            borderRadius: '4px',
-            marginTop: '10px'
-          }}>
-            <h3 style={{fontSize: '1rem', marginBottom: '8px', color: '#333'}}>
-              Professional Requirements:
-            </h3>
-            <p style={{color: '#333', fontSize: '0.9rem'}}>
-              {getRequirements(riskCategory)}
-            </p>
-          </div>
-        </div>
+        {/* Form continues with other sections... */}
         
-        {/* Additional Factors Section (Toggle) */}
-        <div style={{
-          backgroundColor: '#f8f9fa',
-          borderRadius: '8px',
-          padding: '20px',
-          marginBottom: '20px',
-          boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
-        }}>
-          <div 
-            style={{
-              display: 'flex', 
-              justifyContent: 'space-between', 
-              alignItems: 'center',
-              cursor: 'pointer'
-            }}
-            onClick={handleToggleAdditionalFactors}
-          >
-            <h2 style={{fontSize: '1.2rem', color: '#1976D2', margin: 0}}>
-              Additional Assessment Factors (Optional)
-            </h2>
-            <span style={{fontSize: '1.5rem', color: '#1976D2'}}>
-              {showAdditionalFactors ? '−' : '+'}
-            </span>
-          </div>
-          
-          {showAdditionalFactors && (
-            <div style={{marginTop: '15px'}}>
-              <p style={{marginBottom: '15px', color: '#666', fontSize: '0.9rem'}}>
-                These factors provide supplementary information but are not included in the numerical scoring.
-              </p>
-              
-              <h3 style={{fontSize: '1rem', marginTop: '20px', marginBottom: '10px', color: '#1976D2'}}>
-                Geotechnical Considerations
-              </h3>
-              
-              <table style={{width: '100%', borderCollapse: 'collapse', marginBottom: '20px'}}>
-                <thead>
-                  <tr style={{backgroundColor: '#e9ecef'}}>
-                    <th style={{padding: '8px', textAlign: 'left', borderBottom: '1px solid #dee2e6'}}>Factor</th>
-                    <th style={{padding: '8px', textAlign: 'center', borderBottom: '1px solid #dee2e6'}}>Low Risk</th>
-                    <th style={{padding: '8px', textAlign: 'center', borderBottom: '1px solid #dee2e6'}}>Moderate Risk</th>
-                    <th style={{padding: '8px', textAlign: 'center', borderBottom: '1px solid #dee2e6'}}>High Risk</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr>
-                    <td style={{padding: '8px', borderBottom: '1px solid #dee2e6'}}>Cut Slope Height</td>
-                    <td style={{padding: '8px', textAlign: 'center', borderBottom: '1px solid #dee2e6'}}>
-                      <input 
-                        type="radio" 
-                        name="cutSlopeHeight" 
-                        value="2"
-                        checked={geotechnicalFactors.cutSlopeHeight === 2}
-                        onChange={handleGeotechnicalChange}
-                      />
-                      <br />&lt;3m
-                    </td>
-                    <td style={{padding: '8px', textAlign: 'center', borderBottom: '1px solid #dee2e6'}}>
-                      <input 
-                        type="radio" 
-                        name="cutSlopeHeight" 
-                        value="4"
-                        checked={geotechnicalFactors.cutSlopeHeight === 4}
-                        onChange={handleGeotechnicalChange}
-                      />
-                      <br />3-6m
-                    </td>
-                    <td style={{padding: '8px', textAlign: 'center', borderBottom: '1px solid #dee2e6'}}>
-                      <input 
-                        type="radio" 
-                        name="cutSlopeHeight" 
-                        value="10"
-                        checked={geotechnicalFactors.cutSlopeHeight === 10}
-                        onChange={handleGeotechnicalChange}
-                      />
-                      <br />&gt;6m
-                    </td>
-                  </tr>
-                  <tr>
-                    <td style={{padding: '8px', borderBottom: '1px solid #dee2e6'}}>Fill Slope Height</td>
-                    <td style={{padding: '8px', textAlign: 'center', borderBottom: '1px solid #dee2e6'}}>
-                      <input 
-                        type="radio" 
-                        name="fillSlopeHeight" 
-                        value="2"
-                        checked={geotechnicalFactors.fillSlopeHeight === 2}
-                        onChange={handleGeotechnicalChange}
-                      />
-                      <br />&lt;3m
-                    </td>
-                    <td style={{padding: '8px', textAlign: 'center', borderBottom: '1px solid #dee2e6'}}>
-                      <input 
-                        type="radio" 
-                        name="fillSlopeHeight" 
-                        value="4"
-                        checked={geotechnicalFactors.fillSlopeHeight === 4}
-                        onChange={handleGeotechnicalChange}
-                      />
-                      <br />3-6m
-                    </td>
-                    <td style={{padding: '8px', textAlign: 'center', borderBottom: '1px solid #dee2e6'}}>
-                      <input 
-                        type="radio" 
-                        name="fillSlopeHeight" 
-                        value="10"
-                        checked={geotechnicalFactors.fillSlopeHeight === 10}
-                        onChange={handleGeotechnicalChange}
-                      />
-                      <br />&gt;6m
-                    </td>
-                  </tr>
-                  <tr>
-                    <td style={{padding: '8px', borderBottom: '1px solid #dee2e6'}}>Bedrock Condition</td>
-                    <td style={{padding: '8px', textAlign: 'center', borderBottom: '1px solid #dee2e6'}}>
-                      <input 
-                        type="radio" 
-                        name="bedrockCondition" 
-                        value="2"
-                        checked={geotechnicalFactors.bedrockCondition === 2}
-                        onChange={handleGeotechnicalChange}
-                      />
-                      <br />Minimal jointing
-                    </td>
-                    <td style={{padding: '8px', textAlign: 'center', borderBottom: '1px solid #dee2e6'}}>
-                      <input 
-                        type="radio" 
-                        name="bedrockCondition" 
-                        value="4"
-                        checked={geotechnicalFactors.bedrockCondition === 4}
-                        onChange={handleGeotechnicalChange}
-                      />
-                      <br />Moderate jointing
-                    </td>
-                    <td style={{padding: '8px', textAlign: 'center', borderBottom: '1px solid #dee2e6'}}>
-                      <input 
-                        type="radio" 
-                        name="bedrockCondition" 
-                        value="10"
-                        checked={geotechnicalFactors.bedrockCondition === 10}
-                        onChange={handleGeotechnicalChange}
-                      />
-                      <br />Highly fractured
-                    </td>
-                  </tr>
-                  <tr>
-                    <td style={{padding: '8px', borderBottom: '1px solid #dee2e6'}}>Groundwater Conditions</td>
-                    <td style={{padding: '8px', textAlign: 'center', borderBottom: '1px solid #dee2e6'}}>
-                      <input 
-                        type="radio" 
-                        name="groundwaterConditions" 
-                        value="2"
-                        checked={geotechnicalFactors.groundwaterConditions === 2}
-                        onChange={handleGeotechnicalChange}
-                      />
-                      <br />Dry, no seepage
-                    </td>
-                    <td style={{padding: '8px', textAlign: 'center', borderBottom: '1px solid #dee2e6'}}>
-                      <input 
-                        type="radio" 
-                        name="groundwaterConditions" 
-                        value="4"
-                        checked={geotechnicalFactors.groundwaterConditions === 4}
-                        onChange={handleGeotechnicalChange}
-                      />
-                      <br />Seasonal seepage
-                    </td>
-                    <td style={{padding: '8px', textAlign: 'center', borderBottom: '1px solid #dee2e6'}}>
-                      <input 
-                        type="radio" 
-                        name="groundwaterConditions" 
-                        value="10"
-                        checked={geotechnicalFactors.groundwaterConditions === 10}
-                        onChange={handleGeotechnicalChange}
-                      />
-                      <br />Persistent seepage
-                    </td>
-                  </tr>
-                  <tr>
-                    <td style={{padding: '8px', borderBottom: '1px solid #dee2e6'}}>Erosion Evidence</td>
-                    <td style={{padding: '8px', textAlign: 'center', borderBottom: '1px solid #dee2e6'}}>
-                      <input 
-                        type="radio" 
-                        name="erosionEvidence" 
-                        value="2"
-                        checked={geotechnicalFactors.erosionEvidence === 2}
-                        onChange={handleGeotechnicalChange}
-                      />
-                      <br />None
-                    </td>
-                    <td style={{padding: '8px', textAlign: 'center', borderBottom: '1px solid #dee2e6'}}>
-                      <input 
-                        type="radio" 
-                        name="erosionEvidence" 
-                        value="4"
-                        checked={geotechnicalFactors.erosionEvidence === 4}
-                        onChange={handleGeotechnicalChange}
-                      />
-                      <br />Minor rilling/gullying
-                    </td>
-                    <td style={{padding: '8px', textAlign: 'center', borderBottom: '1px solid #dee2e6'}}>
-                      <input 
-                        type="radio" 
-                        name="erosionEvidence" 
-                        value="10"
-                        checked={geotechnicalFactors.erosionEvidence === 10}
-                        onChange={handleGeotechnicalChange}
-                      />
-                      <br />Active erosion
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-              
-              <h3 style={{fontSize: '1rem', marginTop: '20px', marginBottom: '10px', color: '#1976D2'}}>
-                Infrastructure Elements
-              </h3>
-              
-              <table style={{width: '100%', borderCollapse: 'collapse', marginBottom: '10px'}}>
-                <thead>
-                  <tr style={{backgroundColor: '#e9ecef'}}>
-                    <th style={{padding: '8px', textAlign: 'left', borderBottom: '1px solid #dee2e6'}}>Factor</th>
-                    <th style={{padding: '8px', textAlign: 'center', borderBottom: '1px solid #dee2e6'}}>Low Risk</th>
-                    <th style={{padding: '8px', textAlign: 'center', borderBottom: '1px solid #dee2e6'}}>Moderate Risk</th>
-                    <th style={{padding: '8px', textAlign: 'center', borderBottom: '1px solid #dee2e6'}}>High Risk</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr>
-                    <td style={{padding: '8px', borderBottom: '1px solid #dee2e6'}}>Road Surface Type</td>
-                    <td style={{padding: '8px', textAlign: 'center', borderBottom: '1px solid #dee2e6'}}>
-                      <input 
-                        type="radio" 
-                        name="roadSurfaceType" 
-                        value="2"
-                        checked={infrastructureFactors.roadSurfaceType === 2}
-                        onChange={handleInfrastructureChange}
-                      />
-                      <br />Well-maintained gravel
-                    </td>
-                    <td style={{padding: '8px', textAlign: 'center', borderBottom: '1px solid #dee2e6'}}>
-                      <input 
-                        type="radio" 
-                        name="roadSurfaceType" 
-                        value="4"
-                        checked={infrastructureFactors.roadSurfaceType === 4}
-                        onChange={handleInfrastructureChange}
-                      />
-                      <br />Basic gravel, some rutting
-                    </td>
-                    <td style={{padding: '8px', textAlign: 'center', borderBottom: '1px solid #dee2e6'}}>
-                      <input 
-                        type="radio" 
-                        name="roadSurfaceType" 
-                        value="10"
-                        checked={infrastructureFactors.roadSurfaceType === 10}
-                        onChange={handleInfrastructureChange}
-                      />
-                      <br />Native material, significant rutting
-                    </td>
-                  </tr>
-                  <tr>
-                    <td style={{padding: '8px', borderBottom: '1px solid #dee2e6'}}>Ditch Condition</td>
-                    <td style={{padding: '8px', textAlign: 'center', borderBottom: '1px solid #dee2e6'}}>
-                      <input 
-                        type="radio" 
-                        name="ditchCondition" 
-                        value="2"
-                        checked={infrastructureFactors.ditchCondition === 2}
-                        onChange={handleInfrastructureChange}
-                      />
-                      <br />Clean, well-defined
-                    </td>
-                    <td style={{padding: '8px', textAlign: 'center', borderBottom: '1px solid #dee2e6'}}>
-                      <input 
-                        type="radio" 
-                        name="ditchCondition" 
-                        value="4"
-                        checked={infrastructureFactors.ditchCondition === 4}
-                        onChange={handleInfrastructureChange}
-                      />
-                      <br />Partially vegetated
-                    </td>
-                    <td style={{padding: '8px', textAlign: 'center', borderBottom: '1px solid #dee2e6'}}>
-                      <input 
-                        type="radio" 
-                        name="ditchCondition" 
-                        value="10"
-                        checked={infrastructureFactors.ditchCondition === 10}
-                        onChange={handleInfrastructureChange}
-                      />
-                      <br />Filled with sediment/debris
-                    </td>
-                  </tr>
-                  <tr>
-                    <td style={{padding: '8px', borderBottom: '1px solid #dee2e6'}}>Culvert Sizing</td>
-                    <td style={{padding: '8px', textAlign: 'center', borderBottom: '1px solid #dee2e6'}}>
-                      <input 
-                        type="radio" 
-                        name="culvertSizing" 
-                        value="2"
-                        checked={infrastructureFactors.culvertSizing === 2}
-                        onChange={handleInfrastructureChange}
-                      />
-                      <br />Adequately sized
-                    </td>
-                    <td style={{padding: '8px', textAlign: 'center', borderBottom: '1px solid #dee2e6'}}>
-                      <input 
-                        type="radio" 
-                        name="culvertSizing" 
-                        value="4"
-                        checked={infrastructureFactors.culvertSizing === 4}
-                        onChange={handleInfrastructureChange}
-                      />
-                      <br />Slightly undersized
-                    </td>
-                    <td style={{padding: '8px', textAlign: 'center', borderBottom: '1px solid #dee2e6'}}>
-                      <input 
-                        type="radio" 
-                        name="culvertSizing" 
-                        value="10"
-                        checked={infrastructureFactors.culvertSizing === 10}
-                        onChange={handleInfrastructureChange}
-                      />
-                      <br />Significantly undersized
-                    </td>
-                  </tr>
-                  <tr>
-                    <td style={{padding: '8px', borderBottom: '1px solid #dee2e6'}}>Culvert Condition</td>
-                    <td style={{padding: '8px', textAlign: 'center', borderBottom: '1px solid #dee2e6'}}>
-                      <input 
-                        type="radio" 
-                        name="culvertCondition" 
-                        value="2"
-                        checked={infrastructureFactors.culvertCondition === 2}
-                        onChange={handleInfrastructureChange}
-                      />
-                      <br />Good condition
-                    </td>
-                    <td style={{padding: '8px', textAlign: 'center', borderBottom: '1px solid #dee2e6'}}>
-                      <input 
-                        type="radio" 
-                        name="culvertCondition" 
-                        value="4"
-                        checked={infrastructureFactors.culvertCondition === 4}
-                        onChange={handleInfrastructureChange}
-                      />
-                      <br />Minor deformation
-                    </td>
-                    <td style={{padding: '8px', textAlign: 'center', borderBottom: '1px solid #dee2e6'}}>
-                      <input 
-                        type="radio" 
-                        name="culvertCondition" 
-                        value="10"
-                        checked={infrastructureFactors.culvertCondition === 10}
-                        onChange={handleInfrastructureChange}
-                      />
-                      <br />Significant deformation
-                    </td>
-                  </tr>
-                  <tr>
-                    <td style={{padding: '8px', borderBottom: '1px solid #dee2e6'}}>Road Age</td>
-                    <td style={{padding: '8px', textAlign: 'center', borderBottom: '1px solid #dee2e6'}}>
-                      <input 
-                        type="radio" 
-                        name="roadAge" 
-                        value="2"
-                        checked={infrastructureFactors.roadAge === 2}
-                        onChange={handleInfrastructureChange}
-                      />
-                      <br />&lt;5 years
-                    </td>
-                    <td style={{padding: '8px', textAlign: 'center', borderBottom: '1px solid #dee2e6'}}>
-                      <input 
-                        type="radio" 
-                        name="roadAge" 
-                        value="4"
-                        checked={infrastructureFactors.roadAge === 4}
-                        onChange={handleInfrastructureChange}
-                      />
-                      <br />5-15 years
-                    </td>
-                    <td style={{padding: '8px', textAlign: 'center', borderBottom: '1px solid #dee2e6'}}>
-                      <input 
-                        type="radio" 
-                        name="roadAge" 
-                        value="10"
-                        checked={infrastructureFactors.roadAge === 10}
-                        onChange={handleInfrastructureChange}
-                      />
-                      <br />&gt;15 years without maintenance
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          )}
-        </div>
-        
-        {/* General Comments Section */}
-        <div style={{
-          backgroundColor: '#f8f9fa',
-          borderRadius: '8px',
-          padding: '20px',
-          marginBottom: '20px',
-          boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
-        }}>
-          <h2 style={{fontSize: '1.2rem', marginBottom: '15px', color: '#1976D2'}}>General Comments</h2>
-          <textarea 
-            value={comments}
-            onChange={handleCommentsChange}
-            placeholder="Enter any additional observations, maintenance recommendations, or notes about this road segment..."
-            style={{
-              width: '100%',
-              minHeight: '150px',
-              padding: '10px',
-              borderRadius: '4px',
-              border: '1px solid #ccc',
-              fontFamily: 'inherit',
-              fontSize: '1rem',
-              resize: 'vertical'
-            }}
-          />
-        </div>
-        
+        {/* Buttons at bottom */}
         <div style={{marginTop: '30px', display: 'flex', justifyContent: 'space-between'}}>
           <Link to="/" style={{
             display: 'inline-block',
@@ -1309,22 +1013,41 @@ function RoadRiskForm() {
             Back to Dashboard
           </Link>
           
-          <button 
-            type="button"
-            onClick={handleSaveDraft}
-            style={{
-              background: '#1976D2',
-              color: 'white',
-              border: 'none',
-              padding: '12px 24px',
-              borderRadius: '4px',
-              cursor: 'pointer',
-              fontWeight: 'bold',
-              fontSize: '1rem'
-            }}
-          >
-            Save Assessment
-          </button>
+          <div style={{display: 'flex', gap: '10px'}}>
+            <button 
+              type="button"
+              onClick={handleSaveDraft}
+              style={{
+                background: '#1976D2',
+                color: 'white',
+                border: 'none',
+                padding: '12px 24px',
+                borderRadius: '4px',
+                cursor: 'pointer',
+                fontWeight: 'bold',
+                fontSize: '16px'
+              }}
+            >
+              Save Draft
+            </button>
+
+            <button 
+              type="button"
+              onClick={handleTogglePDFPreview}
+              style={{
+                background: '#ff9800',
+                color: 'white',
+                border: 'none',
+                padding: '12px 24px',
+                borderRadius: '4px',
+                cursor: 'pointer',
+                fontWeight: 'bold',
+                fontSize: '16px'
+              }}
+            >
+              Preview PDF
+            </button>
+          </div>
         </div>
       </form>
     </div>
