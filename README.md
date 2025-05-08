@@ -15,12 +15,11 @@ The Digital Forester App is designed for forestry professionals to perform field
 
 ## Current Status
 
-The application now has a basic routing structure with three main pages:
-- Dashboard (Home) with links to both tools
-- Road Risk Assessment form
-- Culvert Sizing Tool form
-
-Basic navigation between pages is working, but no form state management or data persistence yet.
+The application now has:
+- A basic routing structure with three main pages
+- Form state management for both tools
+- Local storage for saving and retrieving form data
+- Dashboard showing saved drafts
 
 ## Features Implemented
 
@@ -29,10 +28,24 @@ Basic navigation between pages is working, but no form state management or data 
    - Links between all pages
    - Back buttons
 
-2. **Simple Form UI**
-   - Basic form fields
-   - Consistent styling
-   - Mobile-responsive layout
+2. **Form Management**
+   - Form state using React hooks
+   - Input handling and validation
+   - Auto-saving to localStorage
+   - Manual save with visual feedback
+
+3. **Dashboard**
+   - Links to both tools
+   - Display of saved drafts
+   - Continue editing links
+
+## How to Use
+
+1. Start the application and navigate to either the Road Risk Assessment or Culvert Sizing Tool
+2. Fill out the form fields
+3. Click "Save Draft" to manually save your progress
+4. Return to the Dashboard to see your saved drafts
+5. Click "Continue editing" to resume working on a draft
 
 ## Troubleshooting
 
@@ -46,21 +59,30 @@ If you encounter any issues:
 
 ## Next Steps
 
-1. Add form state management with React hooks
-2. Implement local storage for saving draft forms
-3. Add more fields to the Road Risk Assessment
-4. Add more fields to the Culvert Sizing tool
-5. Create calculation logic for both tools
+1. Add more field sections to the Road Risk Assessment:
+   - Surface Condition evaluation
+   - Transportability metrics
+   - Climate Impact factors
+   
+2. Add more field sections to the Culvert Sizing Tool:
+   - Watershed Characteristics
+   - Flow Calculation inputs
+   - Results visualization
+
+3. Add calculation logic for both tools
+4. Enhance the UI with improved styling
 
 ## Changelog
 
 ### 2025-05-07
+- Added form state management using React hooks
+- Implemented localStorage for saving and retrieving form data
+- Updated Dashboard to display saved drafts
+- Added feedback messages for form actions
+
+### 2025-05-07 (Earlier)
 - Added basic routing with React Router
 - Created Dashboard, Road Risk Form, and Culvert Sizing Form pages
 - Implemented navigation between pages
 - Added basic form UI with styled inputs
-
-### 2025-05-07 (Earlier)
-- Simplified app to basic structure to resolve formatting issues
-- Removed complex dependencies temporarily
-- Created minimal working example to establish foundation
+- Simplified app structure to resolve formatting issues
