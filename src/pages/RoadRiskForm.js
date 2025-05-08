@@ -53,126 +53,80 @@ function RoadRiskForm() {
   }, []);
   
   return (
-    <div style={{padding: '20px', maxWidth: '600px', margin: '0 auto'}}>
-      <h1 style={{color: 'blue'}}>Road Risk Assessment</h1>
-      <p style={{marginBottom: '20px'}}>Enter road assessment details below:</p>
-      
-      {statusMessage && (
-        <div style={{
-          padding: '10px',
-          backgroundColor: '#d4edda',
-          border: '1px solid #c3e6cb',
-          borderRadius: '4px',
-          color: '#155724',
-          marginBottom: '15px'
-        }}>
-          {statusMessage}
-        </div>
-      )}
-      
-      <form>
-        <div style={{marginBottom: '15px'}}>
-          <label style={{display: 'block', marginBottom: '5px', fontWeight: 'bold'}}>
-            Assessment Title
-          </label>
-          <input 
-            type="text"
-            name="title"
-            value={formData.title}
-            onChange={handleInputChange}
-            placeholder="e.g., Forest Road #137 Assessment"
-            style={{
-              width: '100%',
-              padding: '8px',
-              border: '1px solid #ccc',
-              borderRadius: '4px'
-            }}
-          />
-        </div>
+    <div className="app-container">
+      <div className="card">
+        <h1>Road Risk Assessment</h1>
+        <p style={{marginBottom: '20px'}}>Enter road assessment details below:</p>
         
-        <div style={{marginBottom: '15px'}}>
-          <label style={{display: 'block', marginBottom: '5px', fontWeight: 'bold'}}>
-            Location
-          </label>
-          <input 
-            type="text"
-            name="location"
-            value={formData.location}
-            onChange={handleInputChange}
-            placeholder="e.g., Forest Road #137"
-            style={{
-              width: '100%',
-              padding: '8px',
-              border: '1px solid #ccc',
-              borderRadius: '4px'
-            }}
-          />
-        </div>
+        {statusMessage && (
+          <div className="status-message status-success">
+            {statusMessage}
+          </div>
+        )}
         
-        <div style={{marginBottom: '15px'}}>
-          <label style={{display: 'block', marginBottom: '5px', fontWeight: 'bold'}}>
-            Assessment Date
-          </label>
-          <input 
-            type="date"
-            name="date"
-            value={formData.date}
-            onChange={handleInputChange}
-            style={{
-              width: '100%',
-              padding: '8px',
-              border: '1px solid #ccc',
-              borderRadius: '4px'
-            }}
-          />
-        </div>
-        
-        <div style={{marginBottom: '15px'}}>
-          <label style={{display: 'block', marginBottom: '5px', fontWeight: 'bold'}}>
-            Inspector Name
-          </label>
-          <input 
-            type="text"
-            name="inspector"
-            value={formData.inspector}
-            onChange={handleInputChange}
-            style={{
-              width: '100%',
-              padding: '8px',
-              border: '1px solid #ccc',
-              borderRadius: '4px'
-            }}
-          />
-        </div>
-        
-        <div style={{marginTop: '30px', display: 'flex', justifyContent: 'space-between'}}>
-          <Link to="/" style={{
-            display: 'inline-block',
-            background: '#ccc',
-            color: '#333',
-            padding: '8px 15px',
-            borderRadius: '4px',
-            textDecoration: 'none'
-          }}>
-            Back to Dashboard
-          </Link>
+        <form>
+          <div className="form-group">
+            <label htmlFor="title">Assessment Title</label>
+            <input 
+              type="text"
+              id="title"
+              name="title"
+              value={formData.title}
+              onChange={handleInputChange}
+              placeholder="e.g., Forest Road #137 Assessment"
+            />
+          </div>
           
-          <button 
-            type="button"
-            onClick={handleSaveDraft}
-            style={{
-              background: 'blue',
-              color: 'white',
-              border: 'none',
-              padding: '8px 15px',
-              borderRadius: '4px',
-              cursor: 'pointer'
-            }}
-          >
-            Save Draft
-          </button>
-        </div>
-      </form>
+          <div className="form-group">
+            <label htmlFor="location">Location</label>
+            <input 
+              type="text"
+              id="location"
+              name="location"
+              value={formData.location}
+              onChange={handleInputChange}
+              placeholder="e.g., Forest Road #137"
+            />
+          </div>
+          
+          <div className="form-group">
+            <label htmlFor="date">Assessment Date</label>
+            <input 
+              type="date"
+              id="date"
+              name="date"
+              value={formData.date}
+              onChange={handleInputChange}
+            />
+          </div>
+          
+          <div className="form-group">
+            <label htmlFor="inspector">Inspector Name</label>
+            <input 
+              type="text"
+              id="inspector"
+              name="inspector"
+              value={formData.inspector}
+              onChange={handleInputChange}
+              placeholder="e.g., John Smith"
+            />
+          </div>
+          
+          <div className="actions">
+            <Link to="/" className="btn btn-secondary">
+              Back to Dashboard
+            </Link>
+            
+            <button 
+              type="button"
+              onClick={handleSaveDraft}
+              className="btn btn-primary"
+            >
+              Save Draft
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
   );
 }
