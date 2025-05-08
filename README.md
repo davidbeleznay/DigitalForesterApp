@@ -22,7 +22,8 @@ The application now has:
 - Dashboard showing saved drafts
 - Advanced Road Risk Assessment with industry-standard scoring framework
 - Interactive risk factor selection with visual feedback
-- Comprehensive Culvert Sizing Tool with multi-step input process
+- Comprehensive Culvert Sizing Tool with dual-method sizing approach
+- Regional flow estimation methods (BC, California, Pacific NW)
 - Automatic save functionality for all field changes
 
 ## Features Implemented
@@ -56,15 +57,19 @@ The application now has:
 
 5. **Culvert Sizing Tool**
    - Multi-step form with progress indicators
-   - Watershed characteristics input (area, length, slope)
-   - Runoff coefficient selection based on land cover type
-   - Bankfull measurement recording for ecological compliance
+   - Stream geometry inputs (bankfull width, depth, channel slope)
+   - Watershed characteristics input with regional selection
+   - Fish passage indicators for ecological compliance
+   - Dual sizing methodology:
+     - Hydraulic sizing using Manning's equation
+     - Transportability Matrix sizing based on stream width multipliers
+   - Automatic selection of larger sizing method for final recommendation
    - Culvert specification selection (material, shape, Manning's n)
-   - Climate change and debris factors for resilient design
-   - Automatic calculations using Rational Method and Manning's equation
-   - Results display with recommended culvert sizes
+   - Toggle switches for climate change and transportability factors
+   - Visual comparison of sizing methods in results
+   - Rounding to standard culvert sizes with visual highlighting
    - Warning indicators for high velocity and erosion risks
-   - Detailed notes and recommendations
+   - Detailed design notes based on calculation method
 
 ## How to Use
 
@@ -79,11 +84,15 @@ The application now has:
    - Add general comments
 4. For Culvert Sizing Tool:
    - Navigate through the 3-step form process
-   - Enter basic info, watershed characteristics, and culvert specifications
-   - Provide bankfull measurements for ecological compliance
-   - Click "Calculate" to get sizing recommendations
-   - Review velocity and headwater depth results
-   - Read detailed notes and recommendations
+   - Select the appropriate region (BC, California, Pacific NW) 
+   - Enter stream measurements (width, depth, slope)
+   - Indicate if this is a fish-bearing stream
+   - Enter watershed characteristics based on regional requirements
+   - Configure culvert specifications and design preferences
+   - Toggle climate change and transportability matrix options
+   - Click "Calculate" to get sizing recommendations from both methods
+   - Review the larger of the two recommended sizes
+   - Read detailed notes and design recommendations
 5. Changes are automatically saved as you type
 6. Click "Save Draft" to explicitly save your progress
 7. Return to the Dashboard to see your saved assessments
@@ -103,19 +112,43 @@ If you encounter any issues:
 
 1. Add Culvert Visualization:
    - Graphic representation of recommended culvert
+   - Dynamic cross-section diagram showing water levels
    - Comparison of different shapes and materials
    
-2. Add user authentication
+2. Add Result Export Functionality:
+   - Export calculations as PDF reports
+   - Save culvert designs to local database
+   - Generate QR codes for field reference
 
-3. Create a Results History page
+3. Enhance Offline Capabilities:
+   - Pre-load regional data for offline use
+   - Implement offline map tiles for GPS functionality
+   - Periodic background sync when connectivity returns
 
-4. Add offline functionality for field use
+4. Add Advanced Design Features:
+   - Multi-culvert configurations for wider streams
+   - Scour and headcutting analysis
+   - Energy dissipation structure recommendations
 
-5. Implement export capabilities (PDF, CSV)
+5. Implement User Management:
+   - User profiles with saved preferences
+   - Team sharing of culvert designs
+   - Design approval workflows
 
 ## Changelog
 
 ### 2025-05-08 (Latest)
+- Enhanced Culvert Sizing Tool with dual sizing methodology
+- Added stream geometry inputs (width, depth, slope, fish passage)
+- Implemented transportability matrix sizing alongside hydraulic sizing
+- Added comparison logic to recommend larger of two sizes
+- Added regional calculation methods (BC, California, Pacific NW)
+- Implemented fish passage considerations and debris transport requirements
+- Enhanced results display with sizing method comparison
+- Added toggles for climate change and transportability matrix options
+- Improved UI with additional field validations and tooltips
+
+### 2025-05-08 (Earlier)
 - Implemented comprehensive Culvert Sizing Tool with multi-step form process
 - Added watershed characteristics input section with runoff coefficient selection
 - Integrated bankfull measurement inputs for ecological compliance
