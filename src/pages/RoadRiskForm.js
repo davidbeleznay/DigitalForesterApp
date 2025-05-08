@@ -55,61 +55,72 @@ const standardRiskOptions = [
   { value: 10, label: '10', color: '#F44336', textColor: '#fff', borderColor: '#D32F2F' }
 ];
 
+// Default values for form reset
+const defaultBasicInfo = {
+  roadName: '',
+  startKm: '',
+  endKm: '',
+  startLat: '',
+  startLong: '',
+  endLat: '',
+  endLong: '',
+  date: new Date().toISOString().split('T')[0],
+  inspector: ''
+};
+
+const defaultHazardFactors = {
+  terrainStability: 2,
+  slopeGrade: 2,
+  geologySoil: 2,
+  drainageConditions: 2,
+  roadFailureHistory: 2
+};
+
+const defaultConsequenceFactors = {
+  proximityToWater: 2,
+  drainageStructure: 2,
+  publicIndustrialUse: 2,
+  environmentalValue: 2
+};
+
+const defaultGeotechnicalFactors = {
+  cutSlopeHeight: 2,
+  fillSlopeHeight: 2,
+  bedrockCondition: 2,
+  groundwaterConditions: 2,
+  erosionEvidence: 2
+};
+
+const defaultInfrastructureFactors = {
+  roadSurfaceType: 2,
+  ditchCondition: 2,
+  culvertSizing: 2,
+  culvertCondition: 2,
+  roadAge: 2
+};
+
 function RoadRiskForm() {
   const navigate = useNavigate();
   const pdfRef = useRef();
   const { toPDF, targetRef } = usePDF({filename: 'road-risk-assessment.pdf'});
   
   // Basic info state
-  const [basicInfo, setBasicInfo] = useState({
-    roadName: '',
-    startKm: '',
-    endKm: '',
-    startLat: '',
-    startLong: '',
-    endLat: '',
-    endLong: '',
-    date: new Date().toISOString().split('T')[0],
-    inspector: ''
-  });
+  const [basicInfo, setBasicInfo] = useState({...defaultBasicInfo});
   
   // Hazard factors state
-  const [hazardFactors, setHazardFactors] = useState({
-    terrainStability: 2,
-    slopeGrade: 2,
-    geologySoil: 2,
-    drainageConditions: 2,
-    roadFailureHistory: 2
-  });
+  const [hazardFactors, setHazardFactors] = useState({...defaultHazardFactors});
   
   // Consequence factors state
-  const [consequenceFactors, setConsequenceFactors] = useState({
-    proximityToWater: 2,
-    drainageStructure: 2,
-    publicIndustrialUse: 2,
-    environmentalValue: 2
-  });
+  const [consequenceFactors, setConsequenceFactors] = useState({...defaultConsequenceFactors});
   
   // Additional factors toggle
   const [showAdditionalFactors, setShowAdditionalFactors] = useState(false);
   
   // Geotechnical considerations
-  const [geotechnicalFactors, setGeotechnicalFactors] = useState({
-    cutSlopeHeight: 2,
-    fillSlopeHeight: 2,
-    bedrockCondition: 2,
-    groundwaterConditions: 2,
-    erosionEvidence: 2
-  });
+  const [geotechnicalFactors, setGeotechnicalFactors] = useState({...defaultGeotechnicalFactors});
   
   // Infrastructure elements
-  const [infrastructureFactors, setInfrastructureFactors] = useState({
-    roadSurfaceType: 2,
-    ditchCondition: 2,
-    culvertSizing: 2,
-    culvertCondition: 2,
-    roadAge: 2
-  });
+  const [infrastructureFactors, setInfrastructureFactors] = useState({...defaultInfrastructureFactors});
   
   // Photos
   const [photos, setPhotos] = useState([]);
@@ -375,6 +386,30 @@ function RoadRiskForm() {
     // Generate PDF
     toPDF();
     
+    // Show success message
+    setStatusMessage('PDF exported successfully!');
+    setTimeout(() => setStatusMessage(''), 3000);
+  };
+  
+  // Save form data to localStorage
+  const saveToLocalStorage = (formData) => {
+    const completeFormData = {
+      ...formData,
+      timestamp: new Date().toISOString()
+    };
+    
+    localStorage.setItem('roadRiskForm', JSON.stringify(completeFormData));
+  };
+  
+  // Save assessment to history and clear form
+  const handleSaveAssessment = () => {
+    // Check if road name is provided (minimal validation)
+    if (!basicInfo.roadName) {
+      setStatusMessage('Please provide a road name before saving');
+      setTimeout(() => setStatusMessage(''), 3000);
+      return;
+    }
+    
     // Save the assessment to history
     const assessmentData = {
       type: 'roadRisk',
@@ -403,22 +438,10 @@ function RoadRiskForm() {
     // Save updated history
     localStorage.setItem('assessmentHistory', JSON.stringify(history));
     
-    setStatusMessage('Assessment exported and saved to history!');
+    setStatusMessage('Assessment saved to history!');
     setTimeout(() => {
       setStatusMessage('');
-      // Navigate to history page
-      navigate('/history');
-    }, 2000);
-  };
-  
-  // Save form data to localStorage
-  const saveToLocalStorage = (formData) => {
-    const completeFormData = {
-      ...formData,
-      timestamp: new Date().toISOString()
-    };
-    
-    localStorage.setItem('roadRiskForm', JSON.stringify(completeFormData));
+    }, 3000);
   };
   
   // Save draft explicitly
@@ -434,7 +457,7 @@ function RoadRiskForm() {
       photos
     });
     
-    setStatusMessage('Road risk assessment saved successfully!');
+    setStatusMessage('Road risk assessment draft saved successfully!');
     
     // Clear status message after 3 seconds
     setTimeout(() => {
@@ -442,20 +465,49 @@ function RoadRiskForm() {
     }, 3000);
   };
   
+  // Start a new assessment
+  const handleNewAssessment = () => {
+    // Reset all form fields to defaults
+    setBasicInfo({...defaultBasicInfo});
+    setHazardFactors({...defaultHazardFactors});
+    setConsequenceFactors({...defaultConsequenceFactors});
+    setShowAdditionalFactors(false);
+    setGeotechnicalFactors({...defaultGeotechnicalFactors});
+    setInfrastructureFactors({...defaultInfrastructureFactors});
+    setComments('');
+    setPhotos([]);
+    
+    // Clear the saved draft
+    localStorage.removeItem('roadRiskForm');
+    
+    setStatusMessage('Started new assessment');
+    setTimeout(() => setStatusMessage(''), 3000);
+    
+    // Scroll to top of form
+    window.scrollTo(0, 0);
+  };
+  
   // Load saved data on component mount
   useEffect(() => {
     const savedData = localStorage.getItem('roadRiskForm');
     if (savedData) {
-      const parsedData = JSON.parse(savedData);
-      setBasicInfo(parsedData.basicInfo);
-      setHazardFactors(parsedData.hazardFactors);
-      setConsequenceFactors(parsedData.consequenceFactors);
-      setShowAdditionalFactors(parsedData.showAdditionalFactors);
-      setGeotechnicalFactors(parsedData.geotechnicalFactors);
-      setInfrastructureFactors(parsedData.infrastructureFactors);
-      setComments(parsedData.comments);
-      if (parsedData.photos) {
-        setPhotos(parsedData.photos);
+      try {
+        const parsedData = JSON.parse(savedData);
+        setBasicInfo(parsedData.basicInfo);
+        setHazardFactors(parsedData.hazardFactors);
+        setConsequenceFactors(parsedData.consequenceFactors);
+        setShowAdditionalFactors(parsedData.showAdditionalFactors);
+        setGeotechnicalFactors(parsedData.geotechnicalFactors);
+        setInfrastructureFactors(parsedData.infrastructureFactors);
+        setComments(parsedData.comments);
+        if (parsedData.photos) {
+          setPhotos(parsedData.photos);
+        }
+        
+        setStatusMessage('Loaded saved draft');
+        setTimeout(() => setStatusMessage(''), 3000);
+      } catch (error) {
+        console.error('Error loading saved data:', error);
       }
     }
   }, []);
@@ -472,7 +524,9 @@ function RoadRiskForm() {
     basicInfo,
     hazardFactors,
     consequenceFactors,
-    comments
+    comments,
+    riskScore,
+    riskCategory
   };
   
   return (
@@ -543,7 +597,7 @@ function RoadRiskForm() {
             />
           </div>
           
-          <div style={{marginTop: '15px'}}>
+          <div style={{marginTop: '15px', display: 'flex', gap: '10px'}}>
             <button 
               onClick={handleExportPDF}
               style={{
@@ -557,7 +611,23 @@ function RoadRiskForm() {
                 fontSize: '16px'
               }}
             >
-              Export PDF & Save to History
+              Download PDF
+            </button>
+            
+            <button 
+              onClick={handleTogglePDFPreview}
+              style={{
+                backgroundColor: '#777',
+                color: 'white',
+                padding: '10px 20px',
+                border: 'none',
+                borderRadius: '4px',
+                cursor: 'pointer',
+                fontWeight: 'bold',
+                fontSize: '16px'
+              }}
+            >
+              Close Preview
             </button>
           </div>
         </div>
@@ -592,7 +662,7 @@ function RoadRiskForm() {
           
           <div style={{marginBottom: '15px'}}>
             <label style={{display: 'block', marginBottom: '5px', fontWeight: 'bold'}}>
-              Road Name
+              Road Name <span style={{color: '#dc3545'}}>*</span>
             </label>
             <input 
               type="text"
@@ -997,10 +1067,102 @@ function RoadRiskForm() {
           </div>
         </div>
         
-        {/* Form continues with other sections... */}
+        {/* Risk Calculation Section */}
+        <div style={{
+          backgroundColor: riskColor.bg,
+          borderRadius: '8px',
+          padding: '20px',
+          marginBottom: '20px',
+          boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+          border: `1px solid ${riskColor.text}`,
+          color: riskColor.text
+        }}>
+          <h2 style={{fontSize: '1.2rem', marginBottom: '15px', textAlign: 'center'}}>
+            Risk Assessment Results
+          </h2>
+          
+          <div style={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            marginBottom: '15px'
+          }}>
+            <div style={{fontSize: '0.9rem', marginBottom: '5px'}}>
+              Risk Score = Hazard ({hazardScore}) × Consequence ({consequenceScore})
+            </div>
+            <div style={{
+              fontSize: '2rem',
+              fontWeight: 'bold',
+              marginBottom: '5px'
+            }}>
+              {riskScore}
+            </div>
+            <div style={{
+              padding: '5px 15px',
+              borderRadius: '20px',
+              backgroundColor: riskColor.text,
+              color: '#fff',
+              fontWeight: 'bold'
+            }}>
+              {riskCategory} Risk
+            </div>
+          </div>
+          
+          <div style={{
+            backgroundColor: 'rgba(255, 255, 255, 0.7)',
+            padding: '15px',
+            borderRadius: '4px',
+            marginTop: '10px'
+          }}>
+            <h3 style={{fontSize: '1rem', marginBottom: '8px', color: '#333'}}>
+              Professional Requirements:
+            </h3>
+            <p style={{color: '#333', fontSize: '0.9rem'}}>
+              {requirements}
+            </p>
+          </div>
+        </div>
         
-        {/* Buttons at bottom */}
-        <div style={{marginTop: '30px', display: 'flex', justifyContent: 'space-between'}}>
+        {/* Photo Capture Section */}
+        <div style={{
+          backgroundColor: '#f8f9fa',
+          borderRadius: '8px',
+          padding: '20px',
+          marginBottom: '20px',
+          boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+        }}>
+          <h2 style={{fontSize: '1.2rem', marginBottom: '15px', color: '#1976D2'}}>Photo Documentation</h2>
+          <PhotoCapture onPhotoCapture={handlePhotoCapture} />
+        </div>
+        
+        {/* General Comments Section */}
+        <div style={{
+          backgroundColor: '#f8f9fa',
+          borderRadius: '8px',
+          padding: '20px',
+          marginBottom: '20px',
+          boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+        }}>
+          <h2 style={{fontSize: '1.2rem', marginBottom: '15px', color: '#1976D2'}}>General Comments</h2>
+          <textarea 
+            value={comments}
+            onChange={handleCommentsChange}
+            placeholder="Enter any additional observations, maintenance recommendations, or notes about this road segment..."
+            style={{
+              width: '100%',
+              minHeight: '150px',
+              padding: '10px',
+              borderRadius: '4px',
+              border: '1px solid #ccc',
+              fontFamily: 'inherit',
+              fontSize: '1rem',
+              resize: 'vertical'
+            }}
+          />
+        </div>
+        
+        {/* Action Buttons */}
+        <div style={{marginTop: '30px', display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: '10px'}}>
           <Link to="/" style={{
             display: 'inline-block',
             background: '#ccc',
@@ -1013,7 +1175,7 @@ function RoadRiskForm() {
             Back to Dashboard
           </Link>
           
-          <div style={{display: 'flex', gap: '10px'}}>
+          <div style={{display: 'flex', gap: '10px', flexWrap: 'wrap'}}>
             <button 
               type="button"
               onClick={handleSaveDraft}
@@ -1030,7 +1192,24 @@ function RoadRiskForm() {
             >
               Save Draft
             </button>
-
+            
+            <button 
+              type="button"
+              onClick={handleSaveAssessment}
+              style={{
+                background: '#4CAF50',
+                color: 'white',
+                border: 'none',
+                padding: '12px 24px',
+                borderRadius: '4px',
+                cursor: 'pointer',
+                fontWeight: 'bold',
+                fontSize: '16px'
+              }}
+            >
+              Save Assessment
+            </button>
+            
             <button 
               type="button"
               onClick={handleTogglePDFPreview}
@@ -1046,6 +1225,23 @@ function RoadRiskForm() {
               }}
             >
               Preview PDF
+            </button>
+            
+            <button 
+              type="button"
+              onClick={handleNewAssessment}
+              style={{
+                background: '#9C27B0',
+                color: 'white',
+                border: 'none',
+                padding: '12px 24px',
+                borderRadius: '4px',
+                cursor: 'pointer',
+                fontWeight: 'bold',
+                fontSize: '16px'
+              }}
+            >
+              New Assessment
             </button>
           </div>
         </div>
