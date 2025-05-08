@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import styles from '../styles/sharedStyles';
 
 function Dashboard() {
   const [savedForms, setSavedForms] = useState({
@@ -26,99 +25,125 @@ function Dashboard() {
     return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
   };
   
+  // Get road name or default title for display
+  const getRoadTitle = (formData) => {
+    if (!formData || !formData.basicInfo) return 'Untitled Road Risk Assessment';
+    
+    if (formData.basicInfo.roadName) {
+      return formData.basicInfo.roadName;
+    }
+    
+    return 'Untitled Road Risk Assessment';
+  };
+  
+  // Get location info
+  const getLocationInfo = (formData) => {
+    if (!formData || !formData.basicInfo) return 'No location';
+    
+    if (formData.basicInfo.startKm && formData.basicInfo.endKm) {
+      return `KM ${formData.basicInfo.startKm} - ${formData.basicInfo.endKm}`;
+    }
+    
+    if (formData.basicInfo.startKm) {
+      return `KM ${formData.basicInfo.startKm}`;
+    }
+    
+    return 'No location';
+  };
+  
+  // Get culvert title
+  const getCulvertTitle = (formData) => {
+    if (!formData) return 'Untitled Culvert Sizing';
+    
+    if (formData.title) {
+      return formData.title;
+    }
+    
+    return 'Untitled Culvert Sizing';
+  };
+  
   return (
-    <div style={styles.container}>
-      <h1 style={styles.header}>Digital Forester App</h1>
-      <p style={{marginBottom: '20px', color: '#4b5563'}}>
-        Select a tool to begin your field assessment:
-      </p>
+    <div style={{padding: '20px', maxWidth: '600px', margin: '0 auto'}}>
+      <h1 style={{color: '#1976D2'}}>Digital Forester App</h1>
+      <p style={{marginBottom: '20px'}}>Select a tool to begin:</p>
       
-      <div style={{display: 'grid', gap: '16px', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))'}}>
+      <div style={{marginBottom: '10px'}}>
         <Link to="/road-risk" style={{
-          ...styles.toolButton, 
-          backgroundColor: '#2563eb',
-          hover: {
-            transform: 'translateY(-2px)',
-            boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)'
-          }
+          display: 'block',
+          background: '#1976D2',
+          color: 'white',
+          padding: '15px',
+          borderRadius: '5px',
+          textDecoration: 'none',
+          textAlign: 'center',
+          marginBottom: '10px',
+          fontWeight: 'bold'
         }}>
-          <div style={{fontSize: '1.125rem', marginBottom: '8px'}}>Road Risk Assessment</div>
-          <div style={{fontSize: '0.875rem', opacity: 0.9}}>Evaluate road conditions and climate impact risks</div>
-        </Link>
-        
-        <Link to="/culvert-sizing" style={{
-          ...styles.toolButton,
-          backgroundColor: '#059669'
-        }}>
-          <div style={{fontSize: '1.125rem', marginBottom: '8px'}}>Culvert Sizing Tool</div>
-          <div style={{fontSize: '0.875rem', opacity: 0.9}}>Calculate appropriate culvert dimensions</div>
+          Road Risk Assessment
         </Link>
       </div>
       
-      <div style={styles.section}>
-        <h2 style={{
-          fontSize: '1.25rem', 
-          color: '#1f2937', 
-          marginBottom: '16px',
-          borderBottom: '1px solid #e5e7eb',
-          paddingBottom: '8px'
+      <div>
+        <Link to="/culvert-sizing" style={{
+          display: 'block',
+          background: '#2E7D32',
+          color: 'white',
+          padding: '15px',
+          borderRadius: '5px',
+          textDecoration: 'none',
+          textAlign: 'center',
+          fontWeight: 'bold'
         }}>
+          Culvert Sizing Tool
+        </Link>
+      </div>
+      
+      <div style={{marginTop: '30px'}}>
+        <h2 style={{fontSize: '1.2rem', borderBottom: '1px solid #eee', paddingBottom: '8px', marginBottom: '15px'}}>
           Recent Drafts
         </h2>
         
         {(!savedForms.roadRisk && !savedForms.culvertSizing) ? (
-          <div style={{
-            padding: '24px', 
-            textAlign: 'center', 
-            color: '#6b7280', 
-            backgroundColor: '#f3f4f6',
-            borderRadius: '8px',
-            border: '1px dashed #d1d5db'
-          }}>
-            <p style={{fontSize: '0.875rem', fontStyle: 'italic'}}>No saved drafts found. Start a new assessment above.</p>
-          </div>
+          <p style={{color: '#666', fontStyle: 'italic'}}>No saved drafts found.</p>
         ) : (
-          <div style={{display: 'grid', gap: '12px', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))'}}>
+          <div>
             {savedForms.roadRisk && (
               <div style={{
-                ...styles.card,
-                borderLeft: '4px solid #2563eb'
+                border: '1px solid #ddd',
+                borderRadius: '4px',
+                padding: '12px',
+                marginBottom: '10px'
               }}>
-                <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
-                  <span style={{fontWeight: 'bold', color: '#1f2937'}}>
-                    {savedForms.roadRisk.title || 'Untitled Road Risk Assessment'}
+                <div style={{display: 'flex', justifyContent: 'space-between'}}>
+                  <span style={{fontWeight: 'bold'}}>
+                    {getRoadTitle(savedForms.roadRisk)}
                   </span>
                   <span style={{
-                    ...styles.badge,
-                    backgroundColor: '#dbeafe',
-                    color: '#1e40af'
+                    fontSize: '0.8rem',
+                    backgroundColor: '#e6f7ff',
+                    color: '#0066cc',
+                    padding: '2px 6px',
+                    borderRadius: '4px'
                   }}>
                     Road Risk
                   </span>
                 </div>
-                <div style={{
-                  display: 'flex', 
-                  justifyContent: 'space-between', 
-                  marginTop: '8px', 
-                  fontSize: '0.875rem',
-                  color: '#6b7280'
-                }}>
-                  <span>{savedForms.roadRisk.location || 'No location'}</span>
-                  <span>{formatDate(savedForms.roadRisk.date)}</span>
+                <div style={{display: 'flex', justifyContent: 'space-between', marginTop: '5px', fontSize: '0.9rem'}}>
+                  <span style={{color: '#666'}}>
+                    {getLocationInfo(savedForms.roadRisk)}
+                  </span>
+                  <span style={{color: '#666'}}>
+                    {formatDate(savedForms.roadRisk.basicInfo?.date || savedForms.roadRisk.timestamp)}
+                  </span>
                 </div>
-                <div style={{
-                  marginTop: '12px',
-                  paddingTop: '12px',
-                  borderTop: '1px solid #f3f4f6'
-                }}>
+                <div style={{marginTop: '8px'}}>
                   <Link to="/road-risk" style={{
-                    ...styles.link,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between'
+                    display: 'inline-block',
+                    fontSize: '0.9rem',
+                    color: '#1976D2',
+                    textDecoration: 'none'
                   }}>
-                    <span>Continue editing</span>
-                    <span>→</span>
+                    Continue editing →
                   </Link>
                 </div>
               </div>
@@ -126,45 +151,40 @@ function Dashboard() {
             
             {savedForms.culvertSizing && (
               <div style={{
-                ...styles.card,
-                borderLeft: '4px solid #059669'
+                border: '1px solid #ddd',
+                borderRadius: '4px',
+                padding: '12px'
               }}>
-                <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
-                  <span style={{fontWeight: 'bold', color: '#1f2937'}}>
-                    {savedForms.culvertSizing.title || 'Untitled Culvert Sizing'}
+                <div style={{display: 'flex', justifyContent: 'space-between'}}>
+                  <span style={{fontWeight: 'bold'}}>
+                    {getCulvertTitle(savedForms.culvertSizing)}
                   </span>
                   <span style={{
-                    ...styles.badge,
-                    backgroundColor: '#d1fae5',
-                    color: '#065f46'
+                    fontSize: '0.8rem',
+                    backgroundColor: '#e6ffed',
+                    color: '#006633',
+                    padding: '2px 6px',
+                    borderRadius: '4px'
                   }}>
                     Culvert Sizing
                   </span>
                 </div>
-                <div style={{
-                  display: 'flex', 
-                  justifyContent: 'space-between', 
-                  marginTop: '8px', 
-                  fontSize: '0.875rem',
-                  color: '#6b7280'
-                }}>
-                  <span>{savedForms.culvertSizing.location || 'No location'}</span>
-                  <span>{formatDate(savedForms.culvertSizing.date)}</span>
+                <div style={{display: 'flex', justifyContent: 'space-between', marginTop: '5px', fontSize: '0.9rem'}}>
+                  <span style={{color: '#666'}}>
+                    {savedForms.culvertSizing.location || 'No location'}
+                  </span>
+                  <span style={{color: '#666'}}>
+                    {formatDate(savedForms.culvertSizing.date || savedForms.culvertSizing.timestamp)}
+                  </span>
                 </div>
-                <div style={{
-                  marginTop: '12px',
-                  paddingTop: '12px',
-                  borderTop: '1px solid #f3f4f6'
-                }}>
+                <div style={{marginTop: '8px'}}>
                   <Link to="/culvert-sizing" style={{
-                    ...styles.link,
-                    color: '#059669',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between'
+                    display: 'inline-block',
+                    fontSize: '0.9rem',
+                    color: '#2E7D32',
+                    textDecoration: 'none'
                   }}>
-                    <span>Continue editing</span>
-                    <span>→</span>
+                    Continue editing →
                   </Link>
                 </div>
               </div>
@@ -172,17 +192,6 @@ function Dashboard() {
           </div>
         )}
       </div>
-      
-      <footer style={{
-        marginTop: '48px',
-        paddingTop: '16px',
-        borderTop: '1px solid #e5e7eb',
-        textAlign: 'center',
-        color: '#6b7280',
-        fontSize: '0.875rem'
-      }}>
-        <p>Digital Forester App © 2025 | Field forms for forestry professionals</p>
-      </footer>
     </div>
   );
 }
