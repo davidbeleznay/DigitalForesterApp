@@ -1,11 +1,18 @@
 import React from 'react';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import Dashboard from './pages/Dashboard';
+import RoadRiskForm from './pages/RoadRiskForm';
+import CulvertSizingForm from './pages/CulvertSizingForm';
 
 function App() {
   return (
-    <div>
-      <h1>Digital Forester App</h1>
-      <p>Basic test</p>
-    </div>
+    <Router>
+      <Routes>
+        <Route path="/" element={<Dashboard />} />
+        <Route path="/road-risk" element={<RoadRiskForm />} />
+        <Route path="/culvert-sizing" element={<CulvertSizingForm />} />
+      </Routes>
+    </Router>
   );
 }
 
