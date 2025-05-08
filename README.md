@@ -22,6 +22,7 @@ The application now has:
 - Dashboard showing saved drafts
 - Advanced Road Risk Assessment with industry-standard scoring framework
 - Interactive risk factor selection with visual feedback
+- Automatic save functionality for all field changes
 
 ## Features Implemented
 
@@ -38,7 +39,7 @@ The application now has:
 
 3. **Dashboard**
    - Links to both tools
-   - Display of saved drafts
+   - Display of saved drafts with road name and location
    - Continue editing links
 
 4. **Road Risk Assessment Tool**
@@ -47,6 +48,7 @@ The application now has:
    - Hazard Factors (Likelihood) assessment
    - Consequence Factors (Severity) assessment
    - Dynamic risk calculation with color-coded display
+   - Logarithmic risk score distribution
    - Professional requirements based on risk level
    - Optional additional assessment factors
    - Risk scoring based on industry standards
@@ -62,9 +64,10 @@ The application now has:
    - View the calculated risk score and professional requirements
    - Optionally add geotechnical and infrastructure assessments
    - Add general comments
-4. Click "Save Assessment" to save your progress
-5. Return to the Dashboard to see your saved assessments
-6. Click "Continue editing" to resume working on a draft
+4. Changes are automatically saved as you type
+5. Click "Save Assessment" to explicitly save your progress
+6. Return to the Dashboard to see your saved assessments
+7. Click "Continue editing" to resume working on a draft
 
 ## Troubleshooting
 
@@ -94,6 +97,13 @@ If you encounter any issues:
 ## Changelog
 
 ### 2025-05-08
+- Updated risk scoring distribution with logarithmic approach for more accurate risk classification
+- Fixed issues with saving data when navigating back to Dashboard
+- Improved auto-saving for all form fields
+- Enhanced dashboard draft display with road name and location
+- Removed unnecessary UI elements and improved visual consistency
+
+### 2025-05-08 (Earlier)
 - Enhanced Road Risk Assessment with comprehensive field sections
 - Added Hazard Factors (Terrain Stability, Slope Grade, Geology/Soil, Drainage, Road Failure History)
 - Added Consequence Factors (Proximity to Water, Drainage Structure, Public/Industrial Use, Environmental Value)
