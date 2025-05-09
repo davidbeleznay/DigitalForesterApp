@@ -310,24 +310,6 @@ function CulvertSizingForm() {
     });
   };
   
-  // Calculate time of concentration using California Culvert Practice equation
-  const calculateTimeOfConcentration = () => {
-    // Formula: Tc = (0.87 * L^3 / H)^0.385 / 60
-    // Where: Tc = time of concentration (hours)
-    // L = Length of the watershed (km)
-    // H = Elevation difference (m)
-    
-    const L = parseFloat(formData.watershed.length) / 1000; // Convert to km
-    const H = parseFloat(formData.watershed.elevationDifference);
-    
-    if (L && H) {
-      const tc = (0.87 * Math.pow(L, 3) / H) ** 0.385 / 60;
-      return tc; // In hours
-    }
-    
-    return null;
-  };
-  
   // Calculate Q100 based on region-specific methods
   const calculateQ100 = () => {
     const region = formData.watershed.region;
@@ -615,27 +597,28 @@ function CulvertSizingForm() {
       try {
         const parsed = JSON.parse(savedData);
         // Make sure we maintain the structure if saved data doesn't have all fields
+        const initialFormData = { ...formData };
         setFormData({
-          ...formData,
+          ...initialFormData,
           ...parsed,
           watershed: {
-            ...formData.watershed,
+            ...initialFormData.watershed,
             ...(parsed.watershed || {})
           },
           stream: {
-            ...formData.stream,
+            ...initialFormData.stream,
             ...(parsed.stream || {})
           },
           culvert: {
-            ...formData.culvert,
+            ...initialFormData.culvert,
             ...(parsed.culvert || {})
           },
           bankfull: {
-            ...formData.bankfull,
+            ...initialFormData.bankfull,
             ...(parsed.bankfull || {})
           },
           designPreference: {
-            ...formData.designPreference,
+            ...initialFormData.designPreference,
             ...(parsed.designPreference || {})
           }
         });
@@ -649,6 +632,7 @@ function CulvertSizingForm() {
         console.error('Error parsing saved data', e);
       }
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   
   // Render step content
