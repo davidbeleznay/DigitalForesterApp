@@ -34,170 +34,274 @@ const CulvertResultScreen = () => {
       </div>
     );
   }
+
+  // Determine the governing method and final recommendation
+  const californiaSize = results.selectedPipeSize;
+  const hydraulicSize = results.hydraulicUpsizedPipeSize;
+  const finalSize = hydraulicSize > californiaSize ? hydraulicSize : californiaSize;
+  const governingMethod = hydraulicSize > californiaSize ? 
+    "Hydraulic Calculation (Manning's)" : 
+    "California Method";
   
-  // Handle success case
+  // Extract form values from location state
+  const formValues = location.state?.formValues || {};
+  const topWidth = parseFloat(results.topWidth);
+  const bottomWidth = parseFloat(results.bottomWidth);
+  const avgDepth = parseFloat(location.state?.formValues?.avgStreamDepth || 0);
+  const slopePercent = parseFloat(formValues.slopePercent || 0);
+  const streamArea = parseFloat(results.streamArea);
+  
+  // Handle going back to calculator
+  const handleBack = () => {
+    navigate('/culvert');
+  };
+  
+  // Format numerical values for display
+  const formatValue = (value, unit = '', precision = 2) => {
+    if (typeof value === 'number') {
+      return `${value.toFixed(precision)} ${unit}`;
+    }
+    return `${value} ${unit}`;
+  };
+  
   return (
     <div className="culvert-results-container">
       <div className="page-header">
-        <button onClick={() => navigate('/culvert')} className="back-button">
+        <button onClick={handleBack} className="back-button">
           <span>← Back to Calculator</span>
         </button>
         <h1 className="page-title">Culvert Results</h1>
       </div>
       
+      {/* Recommended Culvert Size - Large Circle Visualization */}
       <div className="card">
-        <div className="card-title">California Sizing Method Results</div>
+        <h2 className="result-section-title">Recommended Culvert Size</h2>
         
-        <div className="status-message success">
-          Recommended culvert size: {results.selectedPipeSize} mm
-        </div>
-        
-        <div className="measurement-section">
-          <div className="measurement-header">
-            <h3>Project Information</h3>
-          </div>
-          
-          <div className="averages-grid">
-            <div className="average-item">
-              <div className="average-label">Project Name</div>
-              <div className="average-value">{location.state?.formValues?.projectName || 'Unnamed Project'}</div>
-            </div>
-            
-            <div className="average-item">
-              <div className="average-label">Location</div>
-              <div className="average-value">{location.state?.formValues?.location || 'Unspecified'}</div>
-            </div>
-            
-            <div className="average-item">
-              <div className="average-label">Fish Passage Required</div>
-              <div className="average-value">{results.fishPassage ? 'Yes' : 'No'}</div>
-            </div>
+        <div className="size-circle-container">
+          <div className="size-circle">
+            <div className="size-value">{finalSize} mm</div>
+            <div className="size-type">Circular</div>
           </div>
         </div>
         
-        <div className="measurement-section">
-          <div className="measurement-header">
-            <h3>Field Measurements</h3>
-          </div>
-          
-          <div className="averages-grid">
-            <div className="average-item">
-              <div className="average-label">Bankfull Width</div>
-              <div className="average-value">{location.state?.formValues?.bankfullWidth} m</div>
-            </div>
-            
-            <div className="average-item">
-              <div className="average-label">Bankfull Depth</div>
-              <div className="average-value">{location.state?.formValues?.bankfullDepth} m</div>
-            </div>
-            
-            <div className="average-item">
-              <div className="average-label">Channel Slope</div>
-              <div className="average-value">{location.state?.formValues?.slopePercent}%</div>
-            </div>
-          </div>
+        <div className="final-recommendation">
+          Final recommendation: {finalSize}mm diameter circular culvert based on {governingMethod}.
         </div>
         
-        <div className="measurement-section">
-          <div className="measurement-header">
-            <h3>Sizing Details</h3>
+        <table className="parameters-table">
+          <tbody>
+            <tr>
+              <td>Governing Method:</td>
+              <td className="parameter-value">{governingMethod}</td>
+            </tr>
+            <tr>
+              <td>Material:</td>
+              <td className="parameter-value">
+                {formValues.pipeRoughness === '0.024' ? 'Corrugated Metal Pipe (CMP)' :
+                formValues.pipeRoughness === '0.012' ? 'Smooth HDPE' :
+                'Concrete'}
+              </td>
+            </tr>
+            <tr>
+              <td>Manning's n:</td>
+              <td className="parameter-value">{formValues.pipeRoughness}</td>
+            </tr>
+            <tr>
+              <td>Headwater Criterion:</td>
+              <td className="parameter-value">HW/D ≤ {results.maxHwdRatio}</td>
+            </tr>
+            <tr>
+              <td>Fish Passage:</td>
+              <td className="parameter-value">{results.fishPassage ? 'Required' : 'Not Required'}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      
+      {/* Sizing Method Comparison */}
+      <div className="card">
+        <h2 className="result-section-title">Sizing Method Comparison</h2>
+        
+        <div className="method-comparison">
+          <div className="method-card california">
+            <h3>California Method</h3>
+            <div className="method-size">{californiaSize} mm</div>
+            <div className="method-detail">3× Bankfull Area: {(streamArea * 3).toFixed(2)} m²</div>
+            <div className="method-note">Size determined using California Method Table.</div>
           </div>
           
-          <div className="culvert-sizing-visual">
-            {/* Simplified culvert visualization */}
-            <div className="culvert-diagram">
-              <div className="stream-bed">
-                <div className="stream-level" style={{ height: '20px' }}></div>
+          <div className="method-card hydraulic">
+            <h3>Hydraulic Calculation</h3>
+            <div className="method-size">{hydraulicSize} mm</div>
+            <div className="method-detail">Design Discharge: {results.bankfullFlow} m³/s</div>
+            {hydraulicSize > californiaSize && (
+              <div className="method-warning">
+                Warning: The hydraulic calculation suggests a larger size than the California Method.
               </div>
-              <div className="culvert-pipe" style={{ 
-                height: `${Math.min(100, results.selectedPipeSize / 20)}px`,
-                width: `${Math.min(300, results.selectedPipeSize / 8)}px`
-              }}>
-                {results.fishPassage && (
-                  <div className="embed-area" style={{ 
-                    height: `${Math.min(100, results.selectedPipeSize / 20) * 0.2}px`
-                  }}></div>
-                )}
-              </div>
-              <div className="stream-bed">
-                <div className="stream-level" style={{ height: '20px' }}></div>
-              </div>
-            </div>
-            
-            <div className="averages-grid">
-              <div className="average-item">
-                <div className="average-label">Required Span (1.2 × W_bf)</div>
-                <div className="average-value">{results.spanRequired} m</div>
-              </div>
+            )}
+          </div>
+        </div>
+      </div>
+      
+      {/* Calculation Details */}
+      <div className="card">
+        <h2 className="result-section-title">Calculation Details</h2>
+        
+        <table className="calculation-table">
+          <thead>
+            <tr>
+              <th>Method</th>
+              <th>Key Parameter</th>
+              <th>Result</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>California Table</td>
+              <td>Width: {topWidth} m Depth: {avgDepth} m</td>
+              <td>{californiaSize} mm</td>
+            </tr>
+            <tr>
+              <td>Cross-Section</td>
+              <td>Area: {streamArea} m² × 3 = {(streamArea * 3).toFixed(2)} m²</td>
+              <td>{californiaSize} mm</td>
+            </tr>
+            <tr>
+              <td>Hydraulic</td>
+              <td>Discharge: {results.bankfullFlow} m³/s HW/D ≤ {results.maxHwdRatio}</td>
+              <td>{hydraulicSize} mm</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      
+      {/* Stream Measurements */}
+      <div className="card">
+        <h2 className="result-section-title">Stream Measurements</h2>
+        
+        <table className="measurements-table">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Top (m)</th>
+              <th>Bottom (m)</th>
+              <th>Depth (m)</th>
+            </tr>
+          </thead>
+          <tbody>
+            {location.state?.topWidthMeasurements?.map((tw, index) => {
+              const bw = location.state.bottomWidthMeasurements && location.state.bottomWidthMeasurements[index] 
+                ? location.state.bottomWidthMeasurements[index]
+                : { value: '-' };
+              const depth = location.state.depthMeasurements && location.state.depthMeasurements[index]
+                ? location.state.depthMeasurements[index]
+                : { value: '-' };
               
-              <div className="average-item">
-                <div className="average-label">Selected Pipe Size</div>
-                <div className="average-value">{results.selectedPipeSize} mm ({results.selectedPipeSizeM} m)</div>
-              </div>
-              
-              <div className="average-item">
-                <div className="average-label">Embed Depth</div>
-                <div className="average-value">{results.embedDepth} m</div>
-              </div>
-            </div>
-          </div>
-        </div>
+              return (
+                <tr key={index}>
+                  <td>{index + 1}</td>
+                  <td>{tw.value}</td>
+                  <td>{bw.value}</td>
+                  <td>{depth.value}</td>
+                </tr>
+              );
+            })}
+            {/* Average row */}
+            <tr className="avg-row">
+              <td>Avg</td>
+              <td>{topWidth}</td>
+              <td>{bottomWidth}</td>
+              <td>{avgDepth}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      
+      {/* Site Information */}
+      <div className="card">
+        <h2 className="result-section-title">Site Information</h2>
         
-        <div className="measurement-section">
-          <div className="measurement-header">
-            <h3>Hydraulic Check</h3>
+        <div className="site-info-grid">
+          <div className="info-item">
+            <div className="info-label">Culvert ID</div>
+            <div className="info-value">{formValues.culvertId}</div>
           </div>
           
-          <div className="averages-grid">
-            <div className="average-item">
-              <div className="average-label">Bankfull Flow</div>
-              <div className="average-value">{results.bankfullFlow} m³/s</div>
-            </div>
-            
-            <div className="average-item">
-              <div className="average-label">Pipe Capacity</div>
-              <div className="average-value">{results.pipeCapacity} m³/s</div>
-            </div>
-            
-            <div className="average-item">
-              <div className="average-label">Hydraulic Check</div>
-              <div className="average-value" style={{ color: results.hydraulicCheck ? 'var(--success-color)' : 'var(--error-color)' }}>
-                {results.hydraulicCheck ? 'PASS' : 'FAIL'}
-              </div>
-            </div>
-            
-            <div className="average-item">
-              <div className="average-label">Headwater Ratio</div>
-              <div className="average-value">{results.headwaterRatio}</div>
-            </div>
+          <div className="info-item">
+            <div className="info-label">Road Name</div>
+            <div className="info-value">{formValues.roadName}</div>
+          </div>
+          
+          <div className="info-item">
+            <div className="info-label">Fish Passage</div>
+            <div className="info-value">{results.fishPassage ? 'Required' : 'Not Required'}</div>
+          </div>
+          
+          <div className="info-item">
+            <div className="info-label">Stream Shape</div>
+            <div className="info-value">{results.streamShape}</div>
           </div>
         </div>
         
-        <div className="card-description">
-          <div className="method-description">
-            <h3>Summary and Recommendations</h3>
-            
-            {results.hydraulicCheck ? (
-              <p>The selected {results.selectedPipeSize} mm culvert meets both the California sizing requirement (1.2 × bankfull width) 
-              and passes the hydraulic capacity check. This size is appropriate for your site conditions.</p>
-            ) : (
-              <p>The selected culvert does not pass the hydraulic capacity check. Consider using a larger size or 
-              adjusting the design parameters.</p>
-            )}
-            
-            {results.fishPassage && (
-              <p>Fish passage requirements are met with a {results.selectedPipeSize} mm culvert embedded {results.embedDepth} m 
-              below the stream bed. Ensure natural substrate accumulates in the culvert bottom.</p>
-            )}
-            
-            {parseFloat(results.headwaterRatio) > 1.5 && (
-              <p className="error-text">Warning: The headwater ratio exceeds 1.5, which may cause upstream ponding or pressure flow. 
-              Consider a larger culvert size to reduce the headwater depth.</p>
-            )}
-            
-            <div className="fish-info">
-              <p><strong>Note:</strong> This sizing is appropriate for most conditions but does not account for debris flows, 
-              large woody debris, or regional requirements. Consult with a qualified engineer for final design approval.</p>
+        <div className="stream-measurements-grid">
+          <div className="measurement-item">
+            <div className="measurement-label">Top Width</div>
+            <div className="measurement-value">{formatValue(topWidth, 'm')}</div>
+          </div>
+          
+          <div className="measurement-item">
+            <div className="measurement-label">Depth</div>
+            <div className="measurement-value">{formatValue(avgDepth, 'm')}</div>
+          </div>
+          
+          <div className="measurement-item">
+            <div className="measurement-label">Channel Slope</div>
+            <div className="measurement-value">{formatValue(slopePercent, '%')}</div>
+          </div>
+          
+          <div className="measurement-item">
+            <div className="measurement-label">Stream Area</div>
+            <div className="measurement-value">{formatValue(streamArea, 'm²')}</div>
+          </div>
+        </div>
+      </div>
+      
+      {/* Hydraulic Check Results */}
+      <div className="card">
+        <h2 className="result-section-title">Hydraulic Check</h2>
+        
+        <div className="hydraulic-grid">
+          <div className="hydraulic-item">
+            <div className="hydraulic-label">Bankfull Flow</div>
+            <div className="hydraulic-value">{formatValue(results.bankfullFlow, 'm³/s')}</div>
+          </div>
+          
+          <div className="hydraulic-item">
+            <div className="hydraulic-label">Pipe Capacity</div>
+            <div className="hydraulic-value">{formatValue(results.pipeCapacity, 'm³/s')}</div>
+          </div>
+          
+          <div className="hydraulic-item">
+            <div className="hydraulic-label">Capacity Check</div>
+            <div className={`hydraulic-value ${results.capacityCheck ? 'pass' : 'fail'}`}>
+              {results.capacityCheck ? 'PASS' : 'FAIL'}
+            </div>
+          </div>
+          
+          <div className="hydraulic-item">
+            <div className="hydraulic-label">Headwater Ratio</div>
+            <div className="hydraulic-value">{formatValue(results.headwaterRatio, '', 2)}</div>
+          </div>
+          
+          <div className="hydraulic-item">
+            <div className="hydraulic-label">Max HW/D Ratio</div>
+            <div className="hydraulic-value">{formatValue(results.maxHwdRatio, '', 2)}</div>
+          </div>
+          
+          <div className="hydraulic-item">
+            <div className="hydraulic-label">Headwater Check</div>
+            <div className={`hydraulic-value ${results.headwaterCheck ? 'pass' : 'fail'}`}>
+              {results.headwaterCheck ? 'PASS' : 'FAIL'}
             </div>
           </div>
         </div>
@@ -217,7 +321,7 @@ const CulvertResultScreen = () => {
             alert('PDF export functionality will be implemented in a future update.');
           }}
         >
-          Export as PDF
+          Export Report
         </button>
       </div>
     </div>
