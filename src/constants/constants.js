@@ -1,17 +1,18 @@
 // src/constants/constants.js
 
+// Colors now reference CSS variables for theme support
 export const colors = {
-  primary: '#4CAF50',    // Forest green
-  primaryDark: '#388E3C', // Darker green for hover states
-  secondary: '#2196F3',  // Blue
-  text: '#212121',       // Near black for main text
-  lightText: '#757575',  // Light gray for secondary text
-  border: '#BDBDBD',     // Medium gray for borders
-  background: '#F5F5F5', // Light gray for backgrounds
-  white: '#FFFFFF',      // White for cards and contrast
-  error: '#F44336',      // Red for errors
-  warning: '#FFC107',    // Amber for warnings
-  success: '#8BC34A',    // Light green for success messages
+  primary: 'var(--primary-color)',
+  primaryDark: 'var(--action-color)',
+  secondary: 'var(--secondary-color)',
+  text: 'var(--text-color)',
+  lightText: 'var(--text-light)',
+  border: 'var(--border-color)',
+  background: 'var(--bg-color)',
+  white: 'var(--card-bg)',
+  error: 'var(--error-color)',
+  warning: 'var(--warning-color)',
+  success: 'var(--success-color)',
 };
 
 export const spacing = {
