@@ -1,11 +1,8 @@
 // src/screens/culvert/InputScreen.js
 
 import React, { useState, useEffect } from 'react';
-import { 
-  useGeolocated 
-} from "react-geolocated";
 import { useNavigate } from 'react-router-dom';
-import { MdGpsFixed, MdAddCircle, MdRemoveCircle } from 'react-icons/md';
+import { MdGpsFixed, MdAddCircle, MdRemoveCircle, MdSave, MdInfo, MdLocationOn } from 'react-icons/md';
 import { determineOptimalCulvertSize } from '../../utils/CulvertCalculator';
 import { colors, culvertMaterials, culvertShapes } from '../../constants/constants';
 import ThemeToggle from '../../components/ThemeToggle';
@@ -19,10 +16,10 @@ const InputScreen = () => {
   const [location, setLocation] = useState(null);
   const [locationError, setLocationError] = useState(null);
 
-  // Stream measurements
-  const [measurements, setMeasurements] = useState([
-    { id: 1, topWidth: '', bottomWidth: '', depth: '' }
-  ]);
+  // Stream measurements - separated by type
+  const [topWidths, setTopWidths] = useState([{ id: 1, value: '' }]);
+  const [bottomWidths, setBottomWidths] = useState([{ id: 1, value: '' }]);
+  const [depths, setDepths] = useState([{ id: 1, value: '' }]);
   
   // Stream properties
   const [streamSlope, setStreamSlope] = useState('');
@@ -38,85 +35,123 @@ const InputScreen = () => {
   // Toggle options
   const [includeClimateChange, setIncludeClimateChange] = useState(true);
   const [useTransportabilityMatrix, setUseTransportabilityMatrix] = useState(true);
+  
+  // Status message
+  const [statusMessage, setStatusMessage] = useState('');
 
-  // Use react-geolocated hook for location services
-  const { coords, isGeolocationAvailable, isGeolocationEnabled, getPosition } = 
-    useGeolocated({
-      positionOptions: {
-        enableHighAccuracy: true,
-      },
-      userDecisionTimeout: 5000,
-    });
-
-  // Update location when coords change
-  useEffect(() => {
-    if (coords) {
-      setLocation({
-        latitude: coords.latitude,
-        longitude: coords.longitude,
-      });
-      setLocationError(null);
-    }
-  }, [coords]);
-
+  // Get current location using Web Geolocation API
   const getLocation = () => {
-    if (!isGeolocationAvailable) {
+    setLocationError(null);
+    setStatusMessage('Getting location...');
+    
+    if (!navigator.geolocation) {
       setLocationError("Your browser does not support geolocation");
+      setStatusMessage('');
       return;
     }
     
-    if (!isGeolocationEnabled) {
-      setLocationError("Geolocation is not enabled");
-      return;
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        setLocation({
+          latitude: position.coords.latitude,
+          longitude: position.coords.longitude,
+        });
+        setStatusMessage('Location captured successfully!');
+        setTimeout(() => setStatusMessage(''), 3000);
+      },
+      (error) => {
+        console.error("Error getting location:", error);
+        setLocationError(`Error getting location: ${error.message}`);
+        setStatusMessage('');
+      },
+      { 
+        enableHighAccuracy: true, 
+        timeout: 15000, 
+        maximumAge: 0 
+      }
+    );
+  };
+
+  // Helper functions for managing measurement arrays
+  const addMeasurement = (type) => {
+    if (type === 'topWidth') {
+      const nextId = Math.max(...topWidths.map(m => m.id), 0) + 1;
+      setTopWidths([...topWidths, { id: nextId, value: '' }]);
+    } else if (type === 'bottomWidth') {
+      const nextId = Math.max(...bottomWidths.map(m => m.id), 0) + 1;
+      setBottomWidths([...bottomWidths, { id: nextId, value: '' }]);
+    } else if (type === 'depth') {
+      const nextId = Math.max(...depths.map(m => m.id), 0) + 1;
+      setDepths([...depths, { id: nextId, value: '' }]);
     }
-    
-    getPosition();
   };
 
-  // Add a new measurement row
-  const addMeasurement = () => {
-    const nextId = Math.max(...measurements.map(m => m.id), 0) + 1;
-    setMeasurements([...measurements, { id: nextId, topWidth: '', bottomWidth: '', depth: '' }]);
-  };
-
-  // Remove a measurement row
-  const removeMeasurement = (id) => {
-    if (measurements.length > 1) {
-      setMeasurements(measurements.filter(m => m.id !== id));
+  const removeMeasurement = (type, id) => {
+    if (type === 'topWidth' && topWidths.length > 1) {
+      setTopWidths(topWidths.filter(m => m.id !== id));
+    } else if (type === 'bottomWidth' && bottomWidths.length > 1) {
+      setBottomWidths(bottomWidths.filter(m => m.id !== id));
+    } else if (type === 'depth' && depths.length > 1) {
+      setDepths(depths.filter(m => m.id !== id));
     } else {
-      alert('Cannot Remove: You must have at least one measurement.');
+      alert(`Cannot Remove: You must have at least one ${type} measurement.`);
     }
   };
 
-  // Update a specific measurement field
-  const updateMeasurement = (id, field, value) => {
-    setMeasurements(measurements.map(m => 
-      m.id === id ? { ...m, [field]: value } : m
-    ));
+  const updateMeasurement = (type, id, value) => {
+    if (type === 'topWidth') {
+      setTopWidths(topWidths.map(m => m.id === id ? { ...m, value } : m));
+    } else if (type === 'bottomWidth') {
+      setBottomWidths(bottomWidths.map(m => m.id === id ? { ...m, value } : m));
+    } else if (type === 'depth') {
+      setDepths(depths.map(m => m.id === id ? { ...m, value } : m));
+    }
   };
 
-  // Calculate average measurements
-  const calculateAverages = () => {
-    if (measurements.length === 0) return { topWidth: 0, bottomWidth: 0, depth: 0 };
+  // Calculate averages for each measurement type
+  const calculateAverage = (measurements) => {
+    if (measurements.length === 0) return 0;
     
-    const sumTopWidth = measurements.reduce((sum, m) => sum + parseFloat(m.topWidth || 0), 0);
-    const sumBottomWidth = measurements.reduce((sum, m) => sum + parseFloat(m.bottomWidth || 0), 0);
-    const sumDepth = measurements.reduce((sum, m) => sum + parseFloat(m.depth || 0), 0);
+    const sum = measurements.reduce((total, m) => total + parseFloat(m.value || 0), 0);
+    return (sum / measurements.length).toFixed(2);
+  };
+
+  // Get averages for display
+  const averages = {
+    topWidth: calculateAverage(topWidths),
+    bottomWidth: calculateAverage(bottomWidths),
+    depth: calculateAverage(depths)
+  };
+
+  // Convert separate measurements to the format expected by the calculator
+  const convertMeasurementsForCalculation = () => {
+    // Create a standard measurements array as expected by the calculator
+    // Use the longest array (likely topWidth) as the base length
+    const maxLength = Math.max(topWidths.length, bottomWidths.length, depths.length);
+    const standardizedMeasurements = [];
     
-    return {
-      topWidth: (sumTopWidth / measurements.length).toFixed(2),
-      bottomWidth: (sumBottomWidth / measurements.length).toFixed(2),
-      depth: (sumDepth / measurements.length).toFixed(2),
-    };
+    for (let i = 0; i < maxLength; i++) {
+      standardizedMeasurements.push({
+        id: i + 1,
+        topWidth: i < topWidths.length ? topWidths[i].value : topWidths[0].value,
+        bottomWidth: i < bottomWidths.length ? bottomWidths[i].value : bottomWidths[0].value,
+        depth: i < depths.length ? depths[i].value : depths[0].value
+      });
+    }
+    
+    return standardizedMeasurements;
   };
 
   // Calculate culvert size
   const calculateCulvertSize = () => {
     // Validate inputs
     if (!validateInputs()) {
-      alert('Invalid Inputs: Please fill in all required fields with valid numbers.');
+      alert('Please fill in all required fields with valid numbers.');
       return;
     }
+
+    // Convert measurements to the format expected by the calculator
+    const standardizedMeasurements = convertMeasurementsForCalculation();
 
     // Parse numeric inputs
     const slope = parseFloat(streamSlope);
@@ -128,9 +163,12 @@ const InputScreen = () => {
     const climateChangeFactor = includeClimateChange ? 1.2 : 1.0; // 20% increase
     const adjustedDischarge = discharge * climateChangeFactor;
 
+    // Save current form data to localStorage
+    saveFormData();
+
     // Calculate the optimal culvert size
     const result = determineOptimalCulvertSize(
-      measurements,
+      standardizedMeasurements,
       slope,
       adjustedDischarge,
       culvertShape,
@@ -142,8 +180,8 @@ const InputScreen = () => {
     navigate('/culvert/result', {
       state: {
         result,
-        measurements,
-        averages: calculateAverages(),
+        measurements: standardizedMeasurements,
+        averages,
         streamProperties: {
           slope,
           discharge,
@@ -165,26 +203,66 @@ const InputScreen = () => {
     });
   };
 
-  // Validate all required inputs
-  const validateInputs = () => {
-    // Check if all measurements have valid values
-    const validMeasurements = measurements.every(m => 
-      !isNaN(parseFloat(m.topWidth)) && 
-      !isNaN(parseFloat(m.bottomWidth)) && 
-      !isNaN(parseFloat(m.depth)) &&
-      parseFloat(m.topWidth) > 0 &&
-      parseFloat(m.bottomWidth) > 0 &&
-      parseFloat(m.depth) > 0
-    );
+  // Save form data to localStorage
+  const saveFormData = () => {
+    const formData = {
+      culvertId,
+      roadName,
+      location,
+      topWidths,
+      bottomWidths,
+      depths,
+      streamSlope,
+      bankfullDischarge,
+      fishBearing,
+      culvertMaterial,
+      culvertShape,
+      manningsN,
+      maxHwD,
+      includeClimateChange,
+      useTransportabilityMatrix,
+      timestamp: new Date().toISOString()
+    };
 
-    // Check if other required fields are valid
-    const validSlope = !isNaN(parseFloat(streamSlope)) && parseFloat(streamSlope) > 0;
-    const validDischarge = !isNaN(parseFloat(bankfullDischarge)) && parseFloat(bankfullDischarge) > 0;
-    const validHwD = !isNaN(parseFloat(maxHwD)) && parseFloat(maxHwD) > 0;
-    const validManningsN = !isNaN(parseFloat(manningsN)) && parseFloat(manningsN) > 0;
-
-    return validMeasurements && validSlope && validDischarge && validHwD && validManningsN;
+    localStorage.setItem('culvertForm', JSON.stringify(formData));
+    
+    setStatusMessage('Data saved successfully!');
+    setTimeout(() => setStatusMessage(''), 3000);
   };
+
+  // Load saved form data if available
+  useEffect(() => {
+    const savedData = localStorage.getItem('culvertForm');
+    if (savedData) {
+      try {
+        const data = JSON.parse(savedData);
+        setCulvertId(data.culvertId || '');
+        setRoadName(data.roadName || '');
+        setLocation(data.location);
+        
+        if (data.topWidths && data.topWidths.length > 0) setTopWidths(data.topWidths);
+        if (data.bottomWidths && data.bottomWidths.length > 0) setBottomWidths(data.bottomWidths);
+        if (data.depths && data.depths.length > 0) setDepths(data.depths);
+        
+        setStreamSlope(data.streamSlope || '');
+        setBankfullDischarge(data.bankfullDischarge || '');
+        setFishBearing(data.fishBearing || false);
+        
+        setCulvertMaterial(data.culvertMaterial || 'cmp');
+        setCulvertShape(data.culvertShape || 'circular');
+        setManningsN(data.manningsN || '0.024');
+        setMaxHwD(data.maxHwD || '0.8');
+        
+        setIncludeClimateChange(data.includeClimateChange !== undefined ? data.includeClimateChange : true);
+        setUseTransportabilityMatrix(data.useTransportabilityMatrix !== undefined ? data.useTransportabilityMatrix : true);
+        
+        setStatusMessage('Loaded saved data.');
+        setTimeout(() => setStatusMessage(''), 3000);
+      } catch (error) {
+        console.error("Error loading saved data:", error);
+      }
+    }
+  }, []);
 
   // Find the Manning's n value for the selected material
   useEffect(() => {
@@ -194,135 +272,173 @@ const InputScreen = () => {
     }
   }, [culvertMaterial]);
 
+  // Validate all required inputs
+  const validateInputs = () => {
+    // Check if at least one measurement of each type has valid values
+    const validTopWidths = topWidths.some(m => !isNaN(parseFloat(m.value)) && parseFloat(m.value) > 0);
+    const validBottomWidths = bottomWidths.some(m => !isNaN(parseFloat(m.value)) && parseFloat(m.value) > 0);
+    const validDepths = depths.some(m => !isNaN(parseFloat(m.value)) && parseFloat(m.value) > 0);
+    
+    // Check if other required fields are valid
+    const validSlope = !isNaN(parseFloat(streamSlope)) && parseFloat(streamSlope) > 0;
+    const validDischarge = !isNaN(parseFloat(bankfullDischarge)) && parseFloat(bankfullDischarge) > 0;
+    const validHwD = !isNaN(parseFloat(maxHwD)) && parseFloat(maxHwD) > 0;
+    const validManningsN = !isNaN(parseFloat(manningsN)) && parseFloat(manningsN) > 0;
+    
+    return validTopWidths && validBottomWidths && validDepths && validSlope && validDischarge && validHwD && validManningsN;
+  };
+
+  // Render measurement input fields
+  const renderMeasurementInputs = (type, measurements, label, placeholder) => {
+    return (
+      <div className="measurement-section">
+        <div className="measurement-header">
+          <h3>{label}</h3>
+          <button 
+            className="add-button"
+            onClick={() => addMeasurement(type)}
+          >
+            <MdAddCircle size={20} color={colors.primary} />
+            <span>Add {label}</span>
+          </button>
+        </div>
+        
+        <div className="measurement-grid">
+          {measurements.map((measurement, index) => (
+            <div key={measurement.id} className="measurement-item">
+              <div className="measurement-item-header">
+                <span className="measurement-number">{index + 1}</span>
+                {measurements.length > 1 && (
+                  <button 
+                    className="remove-button"
+                    onClick={() => removeMeasurement(type, measurement.id)}
+                  >
+                    <MdRemoveCircle size={18} color={colors.error} />
+                  </button>
+                )}
+              </div>
+              <input
+                type="number"
+                className="measurement-input"
+                value={measurement.value}
+                onChange={(e) => updateMeasurement(type, measurement.id, e.target.value)}
+                placeholder={placeholder}
+                step="0.01"
+                min="0"
+              />
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div className="container">
       <ThemeToggle />
+      
+      <h1 className="page-title">Culvert Sizing Tool</h1>
+      
+      {statusMessage && (
+        <div className="status-message">
+          {statusMessage}
+        </div>
+      )}
 
       {/* Culvert ID Section */}
       <div className="card">
-        <h2 style={styles.sectionTitle}>Culvert ID</h2>
+        <h2 className="card-title">Culvert ID</h2>
         
-        <div style={styles.fieldGroup}>
-          <label style={styles.label}>Culvert ID</label>
+        <div className="form-group">
+          <label className="form-label">Culvert ID</label>
           <input
             type="text"
-            style={styles.input}
+            className="form-input"
             value={culvertId}
             onChange={(e) => setCulvertId(e.target.value)}
             placeholder="Enter culvert ID"
           />
         </div>
         
-        <div style={styles.fieldGroup}>
-          <label style={styles.label}>Road Name</label>
+        <div className="form-group">
+          <label className="form-label">Road Name</label>
           <input
             type="text"
-            style={styles.input}
+            className="form-input"
             value={roadName}
             onChange={(e) => setRoadName(e.target.value)}
             placeholder="Enter road name"
           />
         </div>
         
-        <div style={styles.fieldGroup}>
-          <label style={styles.label}>Location</label>
-          <button 
-            style={styles.gpsButton} 
-            onClick={getLocation}
-          >
-            <MdGpsFixed size={24} color="white" />
-            <span style={styles.gpsButtonText}>
-              {location ? 
-                `${location.latitude.toFixed(6)}, ${location.longitude.toFixed(6)}` : 
-                'Get GPS Location'}
-            </span>
-          </button>
-          {locationError && <p style={styles.errorText}>{locationError}</p>}
+        <div className="form-group">
+          <label className="form-label">Location</label>
+          <div className="location-container">
+            {location ? (
+              <div className="location-display">
+                <MdLocationOn size={20} color={colors.primary} />
+                <span className="location-text">
+                  {location.latitude.toFixed(6)}, {location.longitude.toFixed(6)}
+                </span>
+              </div>
+            ) : null}
+            <button 
+              className="gps-button"
+              onClick={getLocation}
+            >
+              <MdGpsFixed size={20} color="white" />
+              <span>{location ? 'Update Location' : 'Get GPS Location'}</span>
+            </button>
+          </div>
+          {locationError && <p className="error-text">{locationError}</p>}
         </div>
       </div>
 
       {/* Stream Measurements Section */}
       <div className="card">
-        <h2 style={styles.sectionTitle}>Stream Measurements</h2>
-        <p style={styles.description}>
-          Measure the stream at representative locations to determine average dimensions. The California Method uses average width × average height × 3 to calculate the required end area.
+        <h2 className="card-title">Stream Measurements</h2>
+        <p className="card-description">
+          Take measurements at representative locations. The calculator will use averages to determine required culvert size. You can add multiple measurements for each dimension.
         </p>
         
-        {measurements.map((measurement, index) => (
-          <div key={measurement.id} style={styles.measurementRow}>
-            <div style={styles.measurementHeader}>
-              <h3 style={styles.measurementTitle}>Measurement {index + 1}</h3>
-              {measurements.length > 1 && (
-                <button 
-                  onClick={() => removeMeasurement(measurement.id)}
-                  style={styles.removeButton}
-                >
-                  <MdRemoveCircle size={24} color={colors.error} />
-                </button>
-              )}
-            </div>
-            
-            <div style={styles.fieldRow}>
-              <div style={{...styles.fieldGroup, ...styles.fieldHalf}}>
-                <label style={styles.label}>Top Width (m)</label>
-                <input
-                  type="number"
-                  style={styles.input}
-                  value={measurement.topWidth}
-                  onChange={(e) => updateMeasurement(measurement.id, 'topWidth', e.target.value)}
-                  placeholder="0.0"
-                />
-              </div>
-              
-              <div style={{...styles.fieldGroup, ...styles.fieldHalf}}>
-                <label style={styles.label}>Bottom Width (m)</label>
-                <input
-                  type="number"
-                  style={styles.input}
-                  value={measurement.bottomWidth}
-                  onChange={(e) => updateMeasurement(measurement.id, 'bottomWidth', e.target.value)}
-                  placeholder="0.0"
-                />
-              </div>
-            </div>
-            
-            <div style={styles.fieldRow}>
-              <div style={{...styles.fieldGroup, ...styles.fieldHalf}}>
-                <label style={styles.label}>Depth (m)</label>
-                <input
-                  type="number"
-                  style={styles.input}
-                  value={measurement.depth}
-                  onChange={(e) => updateMeasurement(measurement.id, 'depth', e.target.value)}
-                  placeholder="0.0"
-                />
-              </div>
-            </div>
-          </div>
-        ))}
+        {/* Top Width Measurements */}
+        {renderMeasurementInputs(
+          'topWidth', 
+          topWidths, 
+          'Top Width (m)', 
+          'e.g., 2.5'
+        )}
         
-        <button 
-          style={styles.addButton}
-          onClick={addMeasurement}
-        >
-          <MdAddCircle size={20} color={colors.primary} />
-          <span style={styles.addButtonText}>Add Measurement</span>
-        </button>
+        {/* Bottom Width Measurements */}
+        {renderMeasurementInputs(
+          'bottomWidth', 
+          bottomWidths, 
+          'Bottom Width (m)', 
+          'e.g., 2.0'
+        )}
         
-        <div style={styles.averageSection}>
-          <h3 style={styles.averageTitle}>Calculated Averages:</h3>
-          <div style={styles.averageRow}>
-            <div style={styles.averageItem}>
-              <p style={styles.averageLabel}>Avg. Top Width:</p>
-              <p style={styles.averageValue}>{calculateAverages().topWidth} m</p>
+        {/* Depth Measurements */}
+        {renderMeasurementInputs(
+          'depth', 
+          depths, 
+          'Depth (m)', 
+          'e.g., 0.5'
+        )}
+        
+        <div className="averages-container">
+          <h3>Calculated Averages</h3>
+          <div className="averages-grid">
+            <div className="average-item">
+              <span className="average-label">Avg. Top Width:</span>
+              <span className="average-value">{averages.topWidth} m</span>
             </div>
-            <div style={styles.averageItem}>
-              <p style={styles.averageLabel}>Avg. Bottom Width:</p>
-              <p style={styles.averageValue}>{calculateAverages().bottomWidth} m</p>
+            <div className="average-item">
+              <span className="average-label">Avg. Bottom Width:</span>
+              <span className="average-value">{averages.bottomWidth} m</span>
             </div>
-            <div style={styles.averageItem}>
-              <p style={styles.averageLabel}>Avg. Depth:</p>
-              <p style={styles.averageValue}>{calculateAverages().depth} m</p>
+            <div className="average-item">
+              <span className="average-label">Avg. Depth:</span>
+              <span className="average-value">{averages.depth} m</span>
             </div>
           </div>
         </div>
@@ -330,40 +446,41 @@ const InputScreen = () => {
 
       {/* Stream Properties Section */}
       <div className="card">
-        <h2 style={styles.sectionTitle}>Stream Properties</h2>
+        <h2 className="card-title">Stream Properties</h2>
         
-        <div style={styles.fieldGroup}>
-          <label style={styles.label}>Stream Slope (m/m)</label>
+        <div className="form-group">
+          <label className="form-label">Stream Slope (m/m)</label>
           <input
             type="number"
-            style={styles.input}
+            className="form-input"
             value={streamSlope}
             onChange={(e) => setStreamSlope(e.target.value)}
             placeholder="e.g., 0.02"
+            step="0.001"
+            min="0"
           />
         </div>
         
-        <div style={styles.fieldGroup}>
-          <label style={styles.label}>Bankfull Discharge (m³/s)</label>
+        <div className="form-group">
+          <label className="form-label">Bankfull Discharge (m³/s)</label>
           <input
             type="number"
-            style={styles.input}
+            className="form-input"
             value={bankfullDischarge}
             onChange={(e) => setBankfullDischarge(e.target.value)}
             placeholder="e.g., 1.5"
+            step="0.1"
+            min="0"
           />
         </div>
         
-        <div style={styles.fieldGroup}>
-          <label style={styles.label}>Fish Passage Required</label>
+        <div className="form-group">
+          <label className="form-label">Fish Passage Required</label>
           <button 
-            style={{
-              ...styles.toggleButton,
-              ...(fishBearing ? styles.toggleActive : styles.toggleInactive)
-            }}
+            className={`toggle-button ${fishBearing ? 'active' : 'inactive'}`}
             onClick={() => setFishBearing(!fishBearing)}
           >
-            <span style={fishBearing ? styles.toggleActiveText : styles.toggleInactiveText}>
+            <span>
               {fishBearing ? 'Yes' : 'No'}
             </span>
           </button>
@@ -372,21 +489,18 @@ const InputScreen = () => {
 
       {/* Culvert Specifications Section */}
       <div className="card">
-        <h2 style={styles.sectionTitle}>Culvert Specifications</h2>
+        <h2 className="card-title">Culvert Specifications</h2>
         
-        <div style={styles.fieldGroup}>
-          <label style={styles.label}>Culvert Material</label>
-          <div style={styles.optionsContainer}>
+        <div className="form-group">
+          <label className="form-label">Culvert Material</label>
+          <div className="options-container">
             {culvertMaterials.map(material => (
               <button 
                 key={material.value}
-                style={{
-                  ...styles.optionButton,
-                  ...(culvertMaterial === material.value ? styles.optionActive : styles.optionInactive)
-                }}
+                className={`option-button ${culvertMaterial === material.value ? 'active' : 'inactive'}`}
                 onClick={() => setCulvertMaterial(material.value)}
               >
-                <span style={culvertMaterial === material.value ? styles.optionActiveText : styles.optionInactiveText}>
+                <span>
                   {material.label}
                 </span>
               </button>
@@ -394,19 +508,16 @@ const InputScreen = () => {
           </div>
         </div>
         
-        <div style={styles.fieldGroup}>
-          <label style={styles.label}>Culvert Shape</label>
-          <div style={styles.optionsContainer}>
+        <div className="form-group">
+          <label className="form-label">Culvert Shape</label>
+          <div className="options-container">
             {culvertShapes.map(shape => (
               <button 
                 key={shape.value}
-                style={{
-                  ...styles.optionButton,
-                  ...(culvertShape === shape.value ? styles.optionActive : styles.optionInactive)
-                }}
+                className={`option-button ${culvertShape === shape.value ? 'active' : 'inactive'}`}
                 onClick={() => setCulvertShape(shape.value)}
               >
-                <span style={culvertShape === shape.value ? styles.optionActiveText : styles.optionInactiveText}>
+                <span>
                   {shape.label}
                 </span>
               </button>
@@ -414,30 +525,35 @@ const InputScreen = () => {
           </div>
         </div>
         
-        <div style={styles.fieldGroup}>
-          <label style={styles.label}>Manning's n Value</label>
+        <div className="form-group">
+          <label className="form-label">Manning's n Value</label>
           <input
             type="number"
-            style={styles.input}
+            className="form-input"
             value={manningsN}
             onChange={(e) => setManningsN(e.target.value)}
             placeholder="e.g., 0.024"
+            step="0.001"
+            min="0"
           />
-          <p style={styles.helperText}>
+          <p className="helper-text">
             Auto-filled based on material selection. Can be manually adjusted.
           </p>
         </div>
         
-        <div style={styles.fieldGroup}>
-          <label style={styles.label}>Maximum Headwater Depth Ratio (HW/D)</label>
+        <div className="form-group">
+          <label className="form-label">Maximum Headwater Depth Ratio (HW/D)</label>
           <input
             type="number"
-            style={styles.input}
+            className="form-input"
             value={maxHwD}
             onChange={(e) => setMaxHwD(e.target.value)}
             placeholder="e.g., 0.8"
+            step="0.1"
+            min="0"
+            max="2"
           />
-          <p style={styles.helperText}>
+          <p className="helper-text">
             Standard design criterion is 0.8 (headwater depth = 0.8 × culvert diameter/height)
           </p>
         </div>
@@ -445,245 +561,53 @@ const InputScreen = () => {
 
       {/* Design Options Section */}
       <div className="card">
-        <h2 style={styles.sectionTitle}>Design Options</h2>
+        <h2 className="card-title">Design Options</h2>
         
-        <div style={styles.fieldGroup}>
-          <label style={styles.label}>Include Climate Change Factor (20% increase)</label>
+        <div className="form-group">
+          <label className="form-label">Include Climate Change Factor (20% increase)</label>
           <button 
-            style={{
-              ...styles.toggleButton,
-              ...(includeClimateChange ? styles.toggleActive : styles.toggleInactive)
-            }}
+            className={`toggle-button ${includeClimateChange ? 'active' : 'inactive'}`}
             onClick={() => setIncludeClimateChange(!includeClimateChange)}
           >
-            <span style={includeClimateChange ? styles.toggleActiveText : styles.toggleInactiveText}>
+            <span>
               {includeClimateChange ? 'Yes' : 'No'}
             </span>
           </button>
         </div>
         
-        <div style={styles.fieldGroup}>
-          <label style={styles.label}>Use Transportability Matrix (3x Bankfull Method)</label>
+        <div className="form-group">
+          <label className="form-label">Use Transportability Matrix (3x Bankfull Method)</label>
           <button 
-            style={{
-              ...styles.toggleButton,
-              ...(useTransportabilityMatrix ? styles.toggleActive : styles.toggleInactive)
-            }}
+            className={`toggle-button ${useTransportabilityMatrix ? 'active' : 'inactive'}`}
             onClick={() => setUseTransportabilityMatrix(!useTransportabilityMatrix)}
           >
-            <span style={useTransportabilityMatrix ? styles.toggleActiveText : styles.toggleInactiveText}>
+            <span>
               {useTransportabilityMatrix ? 'Yes' : 'No'}
             </span>
           </button>
         </div>
       </div>
 
-      {/* Calculate Button */}
-      <button 
-        className="btn btn-primary"
-        style={{width: '100%', marginBottom: '32px'}}
-        onClick={calculateCulvertSize}
-      >
-        <span>Calculate Culvert Size</span>
-      </button>
+      {/* Action Buttons */}
+      <div className="action-buttons">
+        <button 
+          className="btn-secondary"
+          onClick={saveFormData}
+        >
+          <MdSave size={18} />
+          <span>Save Draft</span>
+        </button>
+        
+        <button 
+          className="btn-primary"
+          onClick={calculateCulvertSize}
+        >
+          <MdInfo size={18} />
+          <span>Calculate Culvert Size</span>
+        </button>
+      </div>
     </div>
   );
-};
-
-const styles = {
-  sectionTitle: {
-    fontSize: '18px',
-    fontWeight: 'bold',
-    marginBottom: '16px',
-    color: colors.primary,
-  },
-  description: {
-    fontSize: '14px',
-    color: colors.lightText,
-    marginBottom: '16px',
-  },
-  fieldGroup: {
-    marginBottom: '16px',
-  },
-  fieldRow: {
-    display: 'flex',
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-  fieldHalf: {
-    width: '48%',
-  },
-  label: {
-    fontSize: '16px',
-    marginBottom: '8px',
-    color: colors.text,
-    display: 'block',
-  },
-  input: {
-    borderWidth: '1px',
-    borderStyle: 'solid',
-    borderColor: colors.border,
-    borderRadius: '4px',
-    padding: '12px',
-    fontSize: '16px',
-    width: '100%',
-    boxSizing: 'border-box',
-    backgroundColor: 'var(--bg-color)',
-    color: 'var(--text-color)',
-  },
-  helperText: {
-    fontSize: '12px',
-    color: colors.lightText,
-    marginTop: '4px',
-  },
-  gpsButton: {
-    display: 'flex',
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: colors.primary,
-    padding: '12px',
-    borderRadius: '4px',
-    border: 'none',
-    cursor: 'pointer',
-    width: '100%',
-  },
-  gpsButtonText: {
-    color: 'white',
-    fontSize: '16px',
-    marginLeft: '8px',
-  },
-  errorText: {
-    color: colors.error,
-    marginTop: '4px',
-  },
-  measurementRow: {
-    border: `1px solid ${colors.border}`,
-    borderRadius: '4px',
-    padding: '12px',
-    marginBottom: '16px',
-  },
-  measurementHeader: {
-    display: 'flex',
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: '12px',
-  },
-  measurementTitle: {
-    fontSize: '16px',
-    fontWeight: 'bold',
-    color: colors.text,
-    margin: 0,
-  },
-  removeButton: {
-    padding: '4px',
-    background: 'none',
-    border: 'none',
-    cursor: 'pointer',
-  },
-  addButton: {
-    display: 'flex',
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: '12px',
-    marginBottom: '16px',
-    border: 'none',
-    background: 'none',
-    cursor: 'pointer',
-  },
-  addButtonText: {
-    color: colors.primary,
-    fontSize: '16px',
-    marginLeft: '8px',
-    fontWeight: 'bold',
-  },
-  averageSection: {
-    backgroundColor: colors.background,
-    borderRadius: '4px',
-    padding: '12px',
-  },
-  averageTitle: {
-    fontSize: '16px',
-    fontWeight: 'bold',
-    marginBottom: '8px',
-    color: colors.text,
-    margin: 0,
-  },
-  averageRow: {
-    display: 'flex',
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-  },
-  averageItem: {
-    marginRight: '16px',
-    marginBottom: '8px',
-  },
-  averageLabel: {
-    fontSize: '14px',
-    color: colors.lightText,
-    margin: 0,
-  },
-  averageValue: {
-    fontSize: '16px',
-    fontWeight: 'bold',
-    color: colors.primary,
-    margin: 0,
-  },
-  optionsContainer: {
-    display: 'flex',
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    marginTop: '8px',
-  },
-  optionButton: {
-    border: '1px solid',
-    borderRadius: '4px',
-    padding: '10px',
-    marginRight: '8px',
-    marginBottom: '8px',
-    cursor: 'pointer',
-    background: 'none',
-  },
-  optionActive: {
-    backgroundColor: colors.primary,
-    borderColor: colors.primary,
-  },
-  optionInactive: {
-    backgroundColor: 'transparent',
-    borderColor: colors.border,
-  },
-  optionActiveText: {
-    color: colors.white,
-  },
-  optionInactiveText: {
-    color: colors.text,
-  },
-  toggleButton: {
-    border: '1px solid',
-    borderRadius: '4px',
-    padding: '12px',
-    width: '80px',
-    cursor: 'pointer',
-    background: 'none',
-    textAlign: 'center',
-  },
-  toggleActive: {
-    backgroundColor: colors.primary,
-    borderColor: colors.primary,
-  },
-  toggleInactive: {
-    backgroundColor: 'transparent',
-    borderColor: colors.border,
-  },
-  toggleActiveText: {
-    color: colors.white,
-    fontWeight: 'bold',
-  },
-  toggleInactiveText: {
-    color: colors.text,
-  },
 };
 
 export default InputScreen;
