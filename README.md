@@ -21,21 +21,22 @@ Navigation structure is fully implemented with consistent routing for all tools.
 - **Multi-stage process**:
   - Site Information (Culvert ID, Road Name, GPS Location)
   - Stream Measurements (high water width, bottom width, depth measurements with automatic averaging)
-  - Culvert Settings (slope, materials, fish passage, HW/D ratio)
+  - Culvert Settings (slope, materials, fish passage, HW/D ratio, climate factor)
   - Results Display (visualization and detailed metrics)
 - **California Method implementation**:
   - Primary sizing based on lookup table for width and depth combinations
   - Detailed descriptions and visualizations for high water width measurement
   - Automatic 20% embedding when fish passage is required
-- **Conservative hydraulic approach**:
-  - Default 0.8 HW/D ratio (configurable)
-  - Separate capacity and headwater checks
-  - Detailed explanation when California Method and hydraulic check disagree
-- **Improved UI/UX**:
-  - Field card design for tool selection
-  - Stream cross-section diagram to help with measurements
-  - Enhanced GPS location with better error handling
-  - Visual feedback for all calculation results
+  - Climate change factor adjustment for flow calculations
+- **Method comparison**:
+  - Clear side-by-side comparison of California Method and Hydraulic Calculation results
+  - Detailed explanation of any discrepancies between methods
+  - Visual representation of sizing recommendations
+- **Enhanced results display**:
+  - Large circle visualization of recommended culvert size
+  - Detailed calculation tables with key parameters
+  - Comparative method analysis
+  - Stream measurement summaries
 
 ### Road Risk Assessment
 - Form-based tool for evaluating forest road risk factors (in progress)
@@ -49,14 +50,14 @@ Navigation structure is fully implemented with consistent routing for all tools.
 ## Changelog
 
 ### 2025-05-13
-- Implemented California Method lookup table as primary sizing method
-- Added detailed high water width measurement instructions
-- Updated home screen with field card design for tool selection
-- Improved stream measurements screen with better descriptions
-- Added proper handling for assessment history
-- Created comprehensive California Method table component
-- Enhanced high water width measurement descriptions
-- Updated UI for all screens to be more consistent and user-friendly
+- Enhanced result screen with large circular size visualization
+- Added side-by-side method comparison section
+- Implemented climate change factor adjustment for flow calculations
+- Updated calculations to show detailed comparisons between methods
+- Improved results layout with tabular format for measurements and calculations
+- Added comprehensive capacity and headwater checks
+- Created more detailed stream measurement summary in results
+- Enhanced hydraulic calculation to determine final culvert size when appropriate
 
 ### 2025-05-04
 - Created fresh project with Expo
