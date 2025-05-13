@@ -62,7 +62,7 @@ The application now has:
    - Fish passage indicators for ecological compliance
    - Dual sizing methodology:
      - Hydraulic sizing using Manning's equation
-     - Transportability Matrix sizing based on stream width multipliers
+     - California Method sizing using 3× bankfull cross-sectional area
    - Automatic selection of larger sizing method for final recommendation
    - Culvert specification selection (material, shape, Manning's n)
    - Toggle switches for climate change and transportability factors
@@ -84,15 +84,16 @@ The application now has:
    - Add general comments
 4. For Culvert Sizing Tool:
    - Navigate through the 3-step form process
-   - Select the appropriate region (BC, California, Pacific NW) 
-   - Enter stream measurements (width, depth, slope)
-   - Indicate if this is a fish-bearing stream
-   - Enter watershed characteristics based on regional requirements
+   - Enter stream measurements (top width, bottom width, depth)
+   - Add multiple measurement points for increased accuracy
+   - View calculated averages and cross-sectional area
+   - Enter stream slope, bankfull discharge, and fish passage requirements
    - Configure culvert specifications and design preferences
-   - Toggle climate change and transportability matrix options
+   - Toggle climate change option for future-proofing
    - Click "Calculate" to get sizing recommendations from both methods
-   - Review the larger of the two recommended sizes
-   - Read detailed notes and design recommendations
+   - Review the comparison between California Method and hydraulic sizing
+   - View professional design warnings when stream exceeds standard culvert sizes
+   - Read detailed design recommendations
 5. Changes are automatically saved as you type
 6. Click "Save Draft" to explicitly save your progress
 7. Return to the Dashboard to see your saved assessments
@@ -138,6 +139,16 @@ If you encounter any issues:
 ## Changelog
 
 ### 2025-05-13 (Latest)
+- Implemented California Method culvert sizing with 3x bankfull area calculation
+- Added multiple measurement inputs for top width, bottom width, and depth
+- Added automatic calculation of cross-sectional area and required culvert size
+- Implemented Q100 handling with professional design recommendations
+- Created comprehensive results screen with detailed calculation breakdowns
+- Added formula display and comparison tables for sizing methods
+- Enhanced culvert sizing calculator with headwater criterion checks
+- Added warning banner for streams requiring professional design
+
+### 2025-05-13 (Earlier)
 - Simplified Culvert ID section by removing Assessment title
 - Replaced Location field with GPS button for automatic coordinate capture
 - Removed Region field from Culvert ID section
