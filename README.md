@@ -25,6 +25,8 @@ The application now has:
 - Professional design recommendation system based on culvert sizing results
 - Detailed result visualization with comparison tables and warnings
 - Improved field card design for better user experience
+- Enhanced culvert form with separate top width, bottom width, and depth measurement inputs
+- Improved GPS location capture
 
 ## Features Implemented
 
@@ -54,8 +56,11 @@ The application now has:
    - PDF export functionality
 
 5. **Culvert Sizing Tool**
-   - Multi-step form with stream measurements
-   - Support for multiple measurement points with averaging
+   - Multi-section form with separate measurement inputs for different dimensions:
+     - Individual top width measurements with averaging
+     - Individual bottom width measurements with averaging
+     - Individual depth measurements with averaging
+   - Enhanced GPS location capture with visual confirmation
    - Trapezoid cross-sectional area calculations
    - Dual sizing methodology:
      - Hydraulic sizing using Manning's equation
@@ -65,6 +70,7 @@ The application now has:
    - Culvert specification selection (material, shape, Manning's n)
    - Toggle switches for climate change factors
    - Comprehensive results display with method comparison
+   - Auto-save functionality for draft recovery
 
 ## How to Use
 
@@ -78,14 +84,17 @@ The application now has:
 
 3. For Culvert Sizing:
    - Enter culvert ID and road information
-   - Use Geolocation button to capture coordinates (requires location permissions)
-   - Add stream measurements (top width, bottom width, depth)
-   - Add multiple measurement points for increased accuracy
+   - Use the GPS button to capture coordinates (requires location permissions)
+   - Add multiple stream measurements:
+     - Add multiple top width measurements to capture variation
+     - Add multiple bottom width measurements if needed
+     - Add multiple depth measurements at different locations
    - View calculated averages automatically
-   - Enter stream slope, bankfull discharge, and fish passage requirements
+   - Enter stream properties (slope, discharge, fish passage requirements)
    - Configure culvert specifications and design preferences
    - Toggle climate change option for future-proofing
-   - Click "Calculate" to get sizing recommendations from both methods
+   - Save your draft at any time
+   - Click "Calculate Culvert Size" to get sizing recommendations from both methods
 
 4. Review History:
    - Access previously saved assessments and drafts
@@ -137,6 +146,15 @@ npm install --legacy-peer-deps
 ## Changelog
 
 ### 2025-05-13 (Latest)
+- Enhanced Culvert Sizing Tool with separate measurement input sections
+- Added ability to capture multiple measurements for top width, bottom width, and depth independently
+- Improved GPS location capturing with better visual feedback and error handling
+- Updated measurement grid layout for more intuitive data entry
+- Added draft saving functionality with status messages
+- Enhanced form validation for better user experience
+- Updated form styling and component organization for clarity
+
+### 2025-05-13 
 - Redesigned HomeScreen with improved field card layout
 - Updated navigation to create new assessments when clicking on tool cards
 - Enhanced draft card styling with better visual hierarchy
