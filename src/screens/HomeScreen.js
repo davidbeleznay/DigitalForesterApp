@@ -76,27 +76,36 @@ const HomeScreen = () => {
       <div className="tool-section">
         <p className="section-label">Select a tool to begin:</p>
         
-        <div className="tool-buttons">
-          <button 
-            className="tool-button road-risk"
-            onClick={navigateToRoadRisk}
-          >
-            Road Risk Assessment
-          </button>
+        <div className="field-card-grid">
+          <div className="field-card primary" onClick={navigateToRoadRisk}>
+            <div className="field-card-content">
+              <div className="field-card-title">Road Risk Assessment</div>
+              <div className="field-card-description">
+                Evaluate forest road risk factors including terrain, drainage, and maintenance conditions.
+              </div>
+            </div>
+            <div className="field-card-icon">🛣️</div>
+          </div>
           
-          <button 
-            className="tool-button culvert-sizing"
-            onClick={navigateToCulvertTool}
-          >
-            Culvert Sizing Tool
-          </button>
+          <div className="field-card success" onClick={navigateToCulvertTool}>
+            <div className="field-card-content">
+              <div className="field-card-title">Culvert Sizing Tool</div>
+              <div className="field-card-description">
+                Calculate appropriate culvert dimensions based on stream measurements.
+              </div>
+            </div>
+            <div className="field-card-icon">🌊</div>
+          </div>
           
-          <button 
-            className="tool-button assessment-history"
-            onClick={navigateToHistory}
-          >
-            Assessment History
-          </button>
+          <div className="field-card secondary" onClick={navigateToHistory}>
+            <div className="field-card-content">
+              <div className="field-card-title">Assessment History</div>
+              <div className="field-card-description">
+                View and manage all saved assessments and calculations.
+              </div>
+            </div>
+            <div className="field-card-icon">📋</div>
+          </div>
         </div>
       </div>
       
