@@ -1,6 +1,6 @@
 # Digital Forester App
 
-A mobile application for forestry professionals to perform field calculations and collect data.
+A web application for forestry professionals to perform field calculations and collect data.
 
 ## Project Overview
 
@@ -16,88 +16,66 @@ The Digital Forester App is designed for forestry professionals to perform field
 ## Current Status
 
 The application now has:
-- A basic routing structure with three main pages
-- Comprehensive form state management for both tools
-- Local storage for saving and retrieving form data
-- Dashboard showing saved drafts
-- Advanced Road Risk Assessment with industry-standard scoring framework
-- Interactive risk factor selection with visual feedback
-- Comprehensive Culvert Sizing Tool with dual-method sizing approach
-- Regional flow estimation methods (BC, California, Pacific NW)
-- Automatic save functionality for all field changes
+- A responsive web interface optimized for both desktop and mobile use
+- React Router-based navigation system
+- Comprehensive form state management
+- Culvert Sizing Tool with dual-method calculation approach
+- Advanced California Method implementation with multiple measurements
+- Professional design recommendation system based on culvert sizing results
+- Detailed result visualization with comparison tables and warnings
 
 ## Features Implemented
 
-1. **Basic Navigation**
-   - React Router implementation
-   - Links between all pages
-   - Back buttons
+1. **React Web Application**
+   - Single-page application architecture
+   - Responsive design for mobile and desktop
+   - Modern UI components
+   - React Router for navigation
 
 2. **Form Management**
    - Form state using React hooks
    - Input handling and validation
-   - Auto-saving to localStorage
-   - Manual save with visual feedback
+   - Step-by-step data entry process
+   - Dynamic field calculations
 
-3. **Dashboard**
-   - Links to both tools
-   - Display of saved drafts with road name and location
-   - Continue editing links
+3. **Home Dashboard**
+   - Tool selection cards
+   - Feature highlights
+   - Navigation to specific tools
+   - Coming soon indicators for future tools
 
-4. **Road Risk Assessment Tool**
-   - Road and location information capturing
-   - GPS coordinate functionality
-   - Hazard Factors (Likelihood) assessment
-   - Consequence Factors (Severity) assessment
-   - Dynamic risk calculation with color-coded display
-   - Logarithmic risk score distribution
-   - Professional requirements based on risk level
-   - Optional additional assessment factors
-   - Risk scoring based on industry standards
-
-5. **Culvert Sizing Tool**
-   - Multi-step form with progress indicators
-   - Stream geometry inputs (bankfull width, depth, channel slope)
-   - Watershed characteristics input with regional selection
-   - Fish passage indicators for ecological compliance
+4. **Culvert Sizing Tool**
+   - Multi-step form with stream measurements
+   - Support for multiple measurement points with averaging
+   - Trapezoid cross-sectional area calculations
    - Dual sizing methodology:
      - Hydraulic sizing using Manning's equation
      - California Method sizing using 3× bankfull cross-sectional area
-   - Automatic selection of larger sizing method for final recommendation
+   - Q100 detection and professional design recommendations
+   - Headwater criterion (HW/D) validation
    - Culvert specification selection (material, shape, Manning's n)
-   - Toggle switches for climate change and transportability factors
-   - Visual comparison of sizing methods in results
-   - Rounding to standard culvert sizes with visual highlighting
-   - Warning indicators for high velocity and erosion risks
-   - Detailed design notes based on calculation method
+   - Toggle switches for climate change factors
+   - Comprehensive results display with method comparison
 
 ## How to Use
 
-1. Start the application and navigate to either the Road Risk Assessment or Culvert Sizing Tool
-2. Fill out the form fields
-3. For Road Risk Assessment:
-   - Enter road information with start/end KM
-   - Use "Get Location" to capture GPS coordinates
-   - Rate each hazard and consequence factor
-   - View the calculated risk score and professional requirements
-   - Optionally add geotechnical and infrastructure assessments
-   - Add general comments
-4. For Culvert Sizing Tool:
-   - Navigate through the 3-step form process
-   - Enter stream measurements (top width, bottom width, depth)
+1. Start the application and navigate to the Culvert Sizing Tool from the Home page
+2. Fill out the form fields in the Culvert Tool:
+   - Enter culvert ID and road information
+   - Use Geolocation button to capture coordinates (requires location permissions)
+   - Add stream measurements (top width, bottom width, depth)
    - Add multiple measurement points for increased accuracy
-   - View calculated averages and cross-sectional area
+   - View calculated averages automatically
    - Enter stream slope, bankfull discharge, and fish passage requirements
    - Configure culvert specifications and design preferences
    - Toggle climate change option for future-proofing
    - Click "Calculate" to get sizing recommendations from both methods
+3. Review the results:
+   - See the final culvert size recommendation
    - Review the comparison between California Method and hydraulic sizing
    - View professional design warnings when stream exceeds standard culvert sizes
-   - Read detailed design recommendations
-5. Changes are automatically saved as you type
-6. Click "Save Draft" to explicitly save your progress
-7. Return to the Dashboard to see your saved assessments
-8. Click "Continue editing" to resume working on a draft
+   - Examine detailed stream measurements and calculation data
+   - Read design recommendations based on your inputs
 
 ## Troubleshooting
 
@@ -108,6 +86,11 @@ If you encounter any issues:
 3. Delete package-lock.json: `del package-lock.json` (Windows) or `rm package-lock.json` (Mac/Linux)
 4. Reinstall dependencies: `npm install`
 5. Start the server: `npm start`
+
+If you encounter any dependency conflicts:
+```
+npm install --legacy-peer-deps
+```
 
 ## Next Steps
 
@@ -139,6 +122,15 @@ If you encounter any issues:
 ## Changelog
 
 ### 2025-05-13 (Latest)
+- Converted application to React web app from React Native
+- Fixed dependency conflicts and package structure
+- Updated navigation to use React Router instead of React Navigation
+- Modified GPS functionality to use web Geolocation API
+- Updated UI components to use web-compatible styling
+- Created modern responsive HomeScreen with tool navigation cards
+- Fixed React error handling and validation
+
+### 2025-05-13 (Earlier)
 - Implemented California Method culvert sizing with 3x bankfull area calculation
 - Added multiple measurement inputs for top width, bottom width, and depth
 - Added automatic calculation of cross-sectional area and required culvert size
@@ -174,22 +166,6 @@ If you encounter any issues:
 - Created results display with recommended culvert sizes and velocity checks
 - Added climate change and debris factors for resilient design
 - Enhanced form with safety factor inputs and design recommendations
-
-### 2025-05-08
-- Updated risk scoring distribution with logarithmic approach for more accurate risk classification
-- Fixed issues with saving data when navigating back to Dashboard
-- Improved auto-saving for all form fields
-- Enhanced dashboard draft display with road name and location
-- Removed unnecessary UI elements and improved visual consistency
-
-### 2025-05-08 (Earlier)
-- Enhanced Road Risk Assessment with comprehensive field sections
-- Added Hazard Factors (Terrain Stability, Slope Grade, Geology/Soil, Drainage, Road Failure History)
-- Added Consequence Factors (Proximity to Water, Drainage Structure, Public/Industrial Use, Environmental Value)
-- Implemented dynamic risk calculation with color-coded display
-- Added optional additional assessment factors (Geotechnical Considerations, Infrastructure Elements)
-- Added GPS location functionality
-- Improved UI with color-coded risk levels and visual feedback
 
 ### 2025-05-07
 - Added form state management using React hooks
