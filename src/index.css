@@ -254,6 +254,332 @@ input, button {
   color: var(--primary-color);
 }
 
+/* New Culvert Tool Styles */
+.page-title {
+  color: var(--primary-color);
+  font-size: 28px;
+  margin-bottom: 24px;
+  text-align: center;
+}
+
+.card {
+  background-color: var(--card-bg);
+  border-radius: 12px;
+  box-shadow: var(--shadow);
+  padding: 24px;
+  margin-bottom: 20px;
+}
+
+.card-title {
+  color: var(--primary-color);
+  font-size: 20px;
+  margin-bottom: 16px;
+  font-weight: 600;
+}
+
+.card-description {
+  font-size: 14px;
+  color: var(--text-light);
+  margin-bottom: 20px;
+}
+
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-label {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 8px;
+  font-size: 16px;
+}
+
+.form-input {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  font-size: 16px;
+  background-color: var(--bg-color);
+  color: var(--text-color);
+}
+
+.helper-text {
+  font-size: 12px;
+  color: var(--text-light);
+  margin-top: 4px;
+}
+
+.error-text {
+  color: var(--error-color);
+  font-size: 14px;
+  margin-top: 4px;
+}
+
+.gps-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--primary-color);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 12px 20px;
+  font-weight: 500;
+  transition: background-color 0.2s ease;
+}
+
+.gps-button:hover {
+  background-color: var(--action-color);
+}
+
+.gps-button span {
+  margin-left: 8px;
+}
+
+.location-container {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.location-display {
+  display: flex;
+  align-items: center;
+  padding: 10px;
+  background-color: rgba(0, 0, 0, 0.05);
+  border-radius: 6px;
+}
+
+.location-text {
+  margin-left: 8px;
+  font-family: monospace;
+  font-size: 14px;
+}
+
+/* Measurement sections */
+.measurement-section {
+  margin-bottom: 24px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.measurement-section:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.measurement-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.measurement-header h3 {
+  font-size: 18px;
+  margin: 0;
+}
+
+.add-button {
+  display: flex;
+  align-items: center;
+  background: none;
+  border: none;
+  color: var(--primary-color);
+  font-weight: 500;
+  padding: 4px 8px;
+}
+
+.add-button span {
+  margin-left: 6px;
+}
+
+.measurement-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+  gap: 12px;
+}
+
+.measurement-item {
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.measurement-item-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: rgba(0, 0, 0, 0.03);
+  padding: 4px 8px;
+}
+
+.measurement-number {
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.remove-button {
+  background: none;
+  border: none;
+  padding: 2px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.measurement-input {
+  width: 100%;
+  padding: 12px 8px;
+  border: none;
+  border-top: 1px solid var(--border-color);
+  font-size: 16px;
+  background-color: var(--card-bg);
+  color: var(--text-color);
+  text-align: center;
+}
+
+/* Averages section */
+.averages-container {
+  background-color: rgba(0, 0, 0, 0.03);
+  padding: 16px;
+  border-radius: 8px;
+  margin-top: 20px;
+}
+
+.averages-container h3 {
+  font-size: 16px;
+  margin-bottom: 12px;
+}
+
+.averages-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 16px;
+}
+
+.average-item {
+  display: flex;
+  flex-direction: column;
+}
+
+.average-label {
+  font-size: 14px;
+  color: var(--text-light);
+}
+
+.average-value {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--primary-color);
+}
+
+/* Toggle buttons */
+.toggle-button {
+  background-color: var(--bg-color);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  padding: 10px 20px;
+  min-width: 80px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.toggle-button.active {
+  background-color: var(--primary-color);
+  color: white;
+  border-color: var(--primary-color);
+}
+
+/* Option buttons */
+.options-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.option-button {
+  background-color: var(--bg-color);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  padding: 10px 16px;
+  transition: all 0.2s ease;
+}
+
+.option-button.active {
+  background-color: var(--primary-color);
+  color: white;
+  border-color: var(--primary-color);
+}
+
+/* Action buttons */
+.action-buttons {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 40px;
+}
+
+@media (max-width: 640px) {
+  .action-buttons {
+    flex-direction: column;
+  }
+}
+
+.btn-primary, .btn-secondary {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 24px;
+  border-radius: 6px;
+  border: none;
+  font-size: 16px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.btn-primary {
+  background-color: var(--primary-color);
+  color: white;
+}
+
+.btn-primary:hover {
+  background-color: var(--action-color);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.btn-secondary {
+  background-color: var(--bg-color);
+  color: var(--text-color);
+  border: 1px solid var(--border-color);
+}
+
+.btn-secondary:hover {
+  background-color: var(--border-color);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Status message */
+.status-message {
+  background-color: var(--success-color);
+  color: white;
+  padding: 12px 20px;
+  border-radius: 6px;
+  margin-bottom: 20px;
+  animation: fadeIn 0.3s ease;
+  font-weight: 500;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
 /* Original CSS below */
 .card {
   background-color: var(--card-bg);
