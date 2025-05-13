@@ -5,6 +5,7 @@ import './styles/culvert-form.css';
 import './styles/home.css';
 import './styles/progress-steps.css';
 import './styles/info-components.css';
+import './styles/culvert-results.css';
 
 function App() {
   return (
