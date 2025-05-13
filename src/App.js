@@ -1,12 +1,13 @@
 import React from 'react';
 import AppRouter from './navigation/AppRouter';
-import { ThemeProvider } from './contexts/ThemeContext';
+import './styles/index.css';
+import './styles/culvert-form.css';
 
 function App() {
   return (
-    <ThemeProvider>
+    <div className="app-container">
       <AppRouter />
-    </ThemeProvider>
+    </div>
   );
 }
 
