@@ -19,6 +19,7 @@ The application now has:
 - A responsive web interface optimized for both desktop and mobile use
 - React Router-based navigation system
 - Comprehensive form state management
+- Road Risk Assessment tool for evaluation of forest road hazards
 - Culvert Sizing Tool with dual-method calculation approach
 - Advanced California Method implementation with multiple measurements
 - Professional design recommendation system based on culvert sizing results
@@ -57,10 +58,27 @@ The application now has:
    - Toggle switches for climate change factors
    - Comprehensive results display with method comparison
 
+5. **Road Risk Assessment Tool**
+   - Detailed road condition evaluation
+   - Multiple risk factor inputs:
+     - Hazard factors (likelihood of failure)
+     - Consequence factors (impact severity)
+   - Interactive risk scoring matrix
+   - Photo documentation
+   - PDF export capability
+   - Automatic risk category calculation
+
 ## How to Use
 
-1. Start the application and navigate to the Culvert Sizing Tool from the Home page
-2. Fill out the form fields in the Culvert Tool:
+1. Start the application and navigate to either the Road Risk Assessment or Culvert Sizing Tool from the Home page
+2. For Road Risk Assessment:
+   - Enter road name and location information
+   - Rate hazard and consequence factors
+   - View calculated risk score and professional requirements
+   - Add photos and comments
+   - Save assessment or export as PDF
+
+3. For Culvert Sizing:
    - Enter culvert ID and road information
    - Use Geolocation button to capture coordinates (requires location permissions)
    - Add stream measurements (top width, bottom width, depth)
@@ -70,12 +88,11 @@ The application now has:
    - Configure culvert specifications and design preferences
    - Toggle climate change option for future-proofing
    - Click "Calculate" to get sizing recommendations from both methods
-3. Review the results:
-   - See the final culvert size recommendation
-   - Review the comparison between California Method and hydraulic sizing
-   - View professional design warnings when stream exceeds standard culvert sizes
-   - Examine detailed stream measurements and calculation data
-   - Read design recommendations based on your inputs
+
+4. Review History:
+   - Access previously saved assessments and drafts
+   - Continue editing existing drafts
+   - View completed assessments
 
 ## Troubleshooting
 
@@ -122,6 +139,13 @@ npm install --legacy-peer-deps
 ## Changelog
 
 ### 2025-05-13 (Latest)
+- Fixed Road Risk Assessment routing issues
+- Added proper navigation link to Road Risk Assessment from HomeScreen
+- Added route for History page
+- Ensured proper connectivity between all application components
+- Updated README with comprehensive documentation on all tools
+
+### 2025-05-13
 - Converted application to React web app from React Native
 - Fixed dependency conflicts and package structure
 - Updated navigation to use React Router instead of React Navigation
