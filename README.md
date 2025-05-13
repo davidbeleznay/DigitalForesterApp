@@ -13,17 +13,29 @@ A mobile application for forestry professionals to perform field calculations an
 
 We've rebuilt the application from scratch to resolve persistent issues with React Native Gesture Handler and TypeScript.
 
-Navigation structure is fully implemented with consistent routing for all tools. The Culvert Sizing Tool is now functional with California sizing method and integrated fish passage requirements. Road Risk Assessment navigation is fixed.
+Navigation structure is fully implemented with consistent routing for all tools. The Culvert Sizing Tool now features a multi-stage process with support for multiple stream measurements and detailed visualization. The California Method is implemented as the primary sizing approach with hydraulic checks for validation.
 
 ## Features
 
 ### Culvert Sizing Tool
-- Calculates appropriate culvert dimensions based on:
-  - California Sizing Method (primary): Sizes culverts based on 1.2 × bankfull width
-  - Hydraulic Capacity Check (secondary): Verifies culvert can pass bankfull flow
-- Automatic embedding integration for fish passage requirements
-- Visual results showing culvert dimensions and embedding
-- Option to save calculations as drafts for later reference
+- **Multi-stage process**:
+  - Site Information (Culvert ID, Road Name, GPS Location)
+  - Stream Measurements (multiple width/depth measurements with automatic averaging)
+  - Culvert Settings (slope, materials, fish passage)
+  - Results Display (visualization and detailed metrics)
+- **California Method implementation**:
+  - Primary sizing based on width × depth × 3 formula
+  - Alternative sizing based on 1.2 × bankfull width
+  - Lookup table for standard sizing based on California Method
+- **Fish passage integration**:
+  - Automatic 20% embedding when fish passage is required
+  - Detailed recommendations for fish-bearing streams
+- **Hydraulic validation**:
+  - Manning's equation check for flow capacity
+  - Headwater ratio calculation and warnings
+- **Save and export**:
+  - Draft saving functionality
+  - Future PDF export capability
 
 ### Road Risk Assessment
 - Form-based tool for evaluating forest road risk factors (in progress)
@@ -37,12 +49,13 @@ Navigation structure is fully implemented with consistent routing for all tools.
 ## Changelog
 
 ### 2025-05-13
-- Added comprehensive CulvertCalculator utility with bankfull width method and fish passage support
-- Created CulvertSizingForm component with integration of California sizing method
-- Implemented ResultScreen with visual representation of culvert dimensions
-- Updated navigation structure for consistent routing
-- Fixed Road Risk routing in AppRouter and HomeScreen
-- Enhanced styling with fish passage and culvert visualization components
+- Implemented multi-stage process for Culvert Sizing Tool with progress indicator
+- Added support for multiple stream width and depth measurements with automatic averaging
+- Integrated GPS location capture functionality
+- Updated form fields to use Culvert ID and Road Name instead of project information
+- Enhanced California Method implementation with proper width × depth × 3 formula
+- Added detailed culvert visualization with embedding for fish passage
+- Created custom styles for improved user experience
 
 ### 2025-05-04
 - Created fresh project with Expo
@@ -55,5 +68,5 @@ Navigation structure is fully implemented with consistent routing for all tools.
 - Complete Road Risk Assessment form functionality
 - Implement PDF export for completed calculations
 - Add offline data synchronization
-- Integrate GPS location capture
+- Enhance GPS location capture with map integration
 - Develop reporting functionality
