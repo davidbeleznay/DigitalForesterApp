@@ -1,0 +1,276 @@
+/* Styles for the culvert results screen */
+
+/* Result section title */
+.result-section-title {
+  color: #4CAF50;
+  font-size: 22px;
+  font-weight: 600;
+  margin: 0 0 20px 0;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #E8F5E9;
+}
+
+/* Size circle visualization */
+.size-circle-container {
+  display: flex;
+  justify-content: center;
+  margin: 30px 0;
+}
+
+.size-circle {
+  width: 180px;
+  height: 180px;
+  background-color: #4CAF50;
+  border-radius: 50%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  color: white;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.size-value {
+  font-size: 32px;
+  font-weight: 700;
+  margin-bottom: 5px;
+}
+
+.size-type {
+  font-size: 16px;
+  font-weight: 500;
+}
+
+/* Final recommendation text */
+.final-recommendation {
+  text-align: center;
+  font-size: 16px;
+  font-weight: 500;
+  margin-bottom: 25px;
+  color: #424242;
+}
+
+/* Parameters table */
+.parameters-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 20px;
+}
+
+.parameters-table td {
+  padding: 10px;
+  border-bottom: 1px solid #e0e0e0;
+  color: #424242;
+}
+
+.parameters-table tr:last-child td {
+  border-bottom: none;
+}
+
+.parameter-value {
+  font-weight: 500;
+  color: #1976D2;
+  text-align: right;
+}
+
+/* Method comparison cards */
+.method-comparison {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+.method-card {
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.method-card.california {
+  border: 2px solid #4CAF50;
+  background-color: #F1F8E9;
+}
+
+.method-card.hydraulic {
+  border: 2px solid #2196F3;
+  background-color: #E3F2FD;
+}
+
+.method-card h3 {
+  margin: 0 0 15px 0;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.method-card.california h3 {
+  color: #2E7D32;
+}
+
+.method-card.hydraulic h3 {
+  color: #1565C0;
+}
+
+.method-size {
+  font-size: 28px;
+  font-weight: 700;
+  margin-bottom: 10px;
+}
+
+.method-card.california .method-size {
+  color: #2E7D32;
+}
+
+.method-card.hydraulic .method-size {
+  color: #1565C0;
+}
+
+.method-detail {
+  font-size: 14px;
+  color: #424242;
+  margin-bottom: 10px;
+}
+
+.method-note, .method-warning {
+  font-size: 13px;
+  margin-top: 10px;
+  padding: 8px;
+  border-radius: 4px;
+}
+
+.method-note {
+  color: #2E7D32;
+  background-color: #E8F5E9;
+}
+
+.method-warning {
+  color: #D84315;
+  background-color: #FBE9E7;
+}
+
+/* Calculation table */
+.calculation-table {
+  width: 100%;
+  border-collapse: collapse;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.calculation-table th {
+  background-color: #4CAF50;
+  color: white;
+  font-weight: 600;
+  text-align: left;
+  padding: 12px 15px;
+}
+
+.calculation-table td {
+  padding: 12px 15px;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.calculation-table tr:last-child td {
+  border-bottom: none;
+}
+
+.calculation-table tr:nth-child(even) {
+  background-color: #f5f5f5;
+}
+
+/* Measurements table */
+.measurements-table {
+  width: 100%;
+  border-collapse: collapse;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.measurements-table th {
+  background-color: #4CAF50;
+  color: white;
+  font-weight: 600;
+  text-align: center;
+  padding: 12px 10px;
+}
+
+.measurements-table td {
+  padding: 10px;
+  border-bottom: 1px solid #e0e0e0;
+  text-align: center;
+}
+
+.measurements-table .avg-row {
+  background-color: #E8F5E9;
+  font-weight: 600;
+}
+
+.measurements-table .avg-row td {
+  color: #2E7D32;
+}
+
+/* Site info and stream measurements grids */
+.site-info-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px;
+  margin-bottom: 30px;
+}
+
+.stream-measurements-grid, .hydraulic-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px;
+}
+
+.info-item, .measurement-item, .hydraulic-item {
+  padding: 15px;
+  border-radius: 6px;
+  background-color: #f5f5f5;
+}
+
+.info-label, .measurement-label, .hydraulic-label {
+  font-size: 14px;
+  color: #757575;
+  margin-bottom: 5px;
+}
+
+.info-value, .measurement-value, .hydraulic-value {
+  font-size: 18px;
+  font-weight: 600;
+  color: #424242;
+}
+
+.hydraulic-value.pass {
+  color: #4CAF50;
+}
+
+.hydraulic-value.fail {
+  color: #F44336;
+}
+
+/* Card layout */
+.card {
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  padding: 20px;
+  margin-bottom: 20px;
+}
+
+/* Response adjustments */
+@media (max-width: 768px) {
+  .method-comparison {
+    grid-template-columns: 1fr;
+  }
+  
+  .site-info-grid, .stream-measurements-grid, .hydraulic-grid {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+  
+  .size-circle {
+    width: 150px;
+    height: 150px;
+  }
+  
+  .size-value {
+    font-size: 28px;
+  }
+}
