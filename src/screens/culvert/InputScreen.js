@@ -1,10 +1,10 @@
-// src/screens/culvert/InputScreen.js
+// src/screens/culvert/InputScreen.js - Updated to use the new Bankfull Width culvert sizing method
 
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { MdGpsFixed, MdAddCircle, MdRemoveCircle, MdSave, MdInfo, MdLocationOn, MdArrowBack } from 'react-icons/md';
-import { determineOptimalCulvertSize } from '../../utils/CulvertCalculator';
-import { colors, culvertMaterials, culvertShapes, formatCoordinates } from '../../constants/constants';
+import { MdGpsFixed, MdAddCircle, MdRemoveCircle, MdSave, MdInfo, MdLocationOn, MdArrowBack, MdCalculate } from 'react-icons/md';
+import { determineOptimalCulvertSize, MANNINGS_COEFFICIENTS } from '../../utils/CulvertCalculator';
+import { colors, culvertMaterials, culvertShapes } from '../../constants/constants';
 import ThemeToggle from '../../components/ThemeToggle';
 
 const InputScreen = () => {
@@ -30,12 +30,11 @@ const InputScreen = () => {
   // Culvert specifications
   const [culvertMaterial, setCulvertMaterial] = useState('cmp');
   const [culvertShape, setCulvertShape] = useState('circular');
-  const [manningsN, setManningsN] = useState('0.024');
+  const [manningsN, setManningsN] = useState(MANNINGS_COEFFICIENTS.cmp.toString());
   const [maxHwD, setMaxHwD] = useState('0.8');
   
   // Toggle options
   const [includeClimateChange, setIncludeClimateChange] = useState(true);
-  const [useTransportabilityMatrix, setUseTransportabilityMatrix] = useState(true);
   
   // Status message
   const [statusMessage, setStatusMessage] = useState('');
@@ -169,32 +168,7 @@ const InputScreen = () => {
     depth: calculateAverage(depths)
   };
 
-  // Convert separate measurements to the format expected by the calculator
-  const convertMeasurementsForCalculation = () => {
-    // Create a standard measurements array as expected by the calculator
-    // Use the longest array (likely topWidth) as the base length
-    const maxLength = Math.max(topWidths.length, bottomWidths.length, depths.length);
-    const standardizedMeasurements = [];
-    
-    for (let i = 0; i < maxLength; i++) {
-      standardizedMeasurements.push({
-        id: i + 1,
-        topWidth: i < topWidths.length && !isNaN(parseFloat(topWidths[i].value)) 
-          ? topWidths[i].value 
-          : averages.topWidth,
-        bottomWidth: i < bottomWidths.length && !isNaN(parseFloat(bottomWidths[i].value)) 
-          ? bottomWidths[i].value 
-          : averages.bottomWidth,
-        depth: i < depths.length && !isNaN(parseFloat(depths[i].value)) 
-          ? depths[i].value 
-          : averages.depth
-      });
-    }
-    
-    return standardizedMeasurements;
-  };
-
-  // Calculate culvert size
+  // Calculate culvert size using the new Bankfull Width method
   const calculateCulvertSize = () => {
     // Validate inputs
     if (!validateInputs()) {
@@ -203,8 +177,19 @@ const InputScreen = () => {
       return;
     }
 
-    // Convert measurements to the format expected by the calculator
-    const standardizedMeasurements = convertMeasurementsForCalculation();
+    // Create measurements array for the calculation
+    const measurements = [];
+    
+    // Add all valid measurements
+    for (let i = 0; i < Math.max(topWidths.length, bottomWidths.length, depths.length); i++) {
+      const measurement = {
+        id: i + 1,
+        topWidth: i < topWidths.length && !isNaN(parseFloat(topWidths[i].value)) ? topWidths[i].value : averages.topWidth,
+        bottomWidth: i < bottomWidths.length && !isNaN(parseFloat(bottomWidths[i].value)) ? bottomWidths[i].value : averages.bottomWidth,
+        depth: i < depths.length && !isNaN(parseFloat(depths[i].value)) ? depths[i].value : averages.depth
+      };
+      measurements.push(measurement);
+    }
 
     // Parse numeric inputs
     const slope = parseFloat(streamSlope);
@@ -219,21 +204,22 @@ const InputScreen = () => {
     // Save current form data to localStorage
     saveFormData();
 
-    // Calculate the optimal culvert size
+    // Calculate the optimal culvert size using the new method
     const result = determineOptimalCulvertSize(
-      standardizedMeasurements,
+      measurements,
       slope,
       adjustedDischarge,
       culvertShape,
       manningsValue,
-      hwD
+      hwD,
+      fishBearing // Pass fish passage requirement to use for embedding
     );
 
     // Navigate to the results screen with the calculation results
     navigate('/culvert/result', {
       state: {
         result,
-        measurements: standardizedMeasurements,
+        measurements,
         averages,
         streamProperties: {
           slope,
@@ -249,7 +235,6 @@ const InputScreen = () => {
         },
         options: {
           includeClimateChange,
-          useTransportabilityMatrix,
           climateChangeFactor,
         }
       }
@@ -273,7 +258,6 @@ const InputScreen = () => {
       manningsN,
       maxHwD,
       includeClimateChange,
-      useTransportabilityMatrix,
       timestamp: new Date().toISOString()
     };
 
@@ -308,11 +292,10 @@ const InputScreen = () => {
         
         setCulvertMaterial(data.culvertMaterial || 'cmp');
         setCulvertShape(data.culvertShape || 'circular');
-        setManningsN(data.manningsN || '0.024');
+        setManningsN(data.manningsN || MANNINGS_COEFFICIENTS.cmp.toString());
         setMaxHwD(data.maxHwD || '0.8');
         
         setIncludeClimateChange(data.includeClimateChange !== undefined ? data.includeClimateChange : true);
-        setUseTransportabilityMatrix(data.useTransportabilityMatrix !== undefined ? data.useTransportabilityMatrix : true);
         
         setStatusMessage('Loaded saved data.');
         setStatusType('info');
@@ -327,10 +310,10 @@ const InputScreen = () => {
     }
   }, []);
 
-  // Find the Manning's n value for the selected material
+  // Update Manning's n value when material changes
   useEffect(() => {
     const material = culvertMaterials.find(m => m.value === culvertMaterial);
-    if (material) {
+    if (material && material.manningsN) {
       setManningsN(material.manningsN.toString());
     }
   }, [culvertMaterial]);
@@ -342,13 +325,19 @@ const InputScreen = () => {
     const validBottomWidths = bottomWidths.some(m => !isNaN(parseFloat(m.value)) && parseFloat(m.value) > 0);
     const validDepths = depths.some(m => !isNaN(parseFloat(m.value)) && parseFloat(m.value) > 0);
     
-    // Check if other required fields are valid
+    // Check if stream slope is valid
     const validSlope = !isNaN(parseFloat(streamSlope)) && parseFloat(streamSlope) > 0;
-    const validDischarge = !isNaN(parseFloat(bankfullDischarge)) && parseFloat(bankfullDischarge) > 0;
-    const validHwD = !isNaN(parseFloat(maxHwD)) && parseFloat(maxHwD) > 0;
+    
+    // Check if Manning's n is valid
     const validManningsN = !isNaN(parseFloat(manningsN)) && parseFloat(manningsN) > 0;
     
-    return validTopWidths && validBottomWidths && validDepths && validSlope && validDischarge && validHwD && validManningsN;
+    // Check if max headwater ratio is valid
+    const validHwD = !isNaN(parseFloat(maxHwD)) && parseFloat(maxHwD) > 0;
+    
+    // Note: bankfull discharge is calculated using Manning's equation if not provided
+    const validDischarge = true;
+    
+    return validTopWidths && validBottomWidths && validDepths && validSlope && validManningsN && validHwD && validDischarge;
   };
 
   // Render measurement input fields
@@ -415,6 +404,21 @@ const InputScreen = () => {
           {statusMessage}
         </div>
       )}
+
+      {/* Method Information Section */}
+      <div className="card info-card">
+        <h2 className="card-title">Sizing Method Information</h2>
+        <p className="method-description">
+          This tool uses the <strong>Bankfull Width Method</strong> (1.2 × Bankfull Width) to size culverts, 
+          followed by a hydraulic capacity check to ensure the culvert can pass bankfull flow.
+        </p>
+        {fishBearing && (
+          <div className="fish-info">
+            <span className="fish-badge">Fish Passage</span>
+            <p>Culvert will be embedded 20% of diameter to accommodate fish passage.</p>
+          </div>
+        )}
+      </div>
 
       {/* Culvert ID Section */}
       <div className="card">
@@ -501,7 +505,8 @@ const InputScreen = () => {
       <div className="card">
         <h2 className="card-title">Stream Measurements</h2>
         <p className="card-description">
-          Take measurements at representative locations. The calculator will use averages to determine required culvert size. You can add multiple measurements for each dimension.
+          Take measurements at representative locations across the bankfull width. The calculator will use the 1.2 × bankfull width rule
+          to determine required culvert size.
         </p>
         
         {/* Top Width Measurements */}
@@ -543,6 +548,12 @@ const InputScreen = () => {
               <span className="average-label">Avg. Depth:</span>
               <span className="average-value">{averages.depth} m</span>
             </div>
+            <div className="average-item">
+              <span className="average-label">Bankfull Width:</span>
+              <span className="average-value">
+                {((parseFloat(averages.topWidth) + parseFloat(averages.bottomWidth)) / 2).toFixed(2)} m
+              </span>
+            </div>
           </div>
         </div>
       </div>
@@ -562,10 +573,13 @@ const InputScreen = () => {
             step="0.001"
             min="0"
           />
+          <p className="helper-text">
+            Measure as rise/run. For example, 2% slope = 0.02 m/m
+          </p>
         </div>
         
         <div className="form-group">
-          <label className="form-label">Bankfull Discharge (m³/s)</label>
+          <label className="form-label">Bankfull Discharge (m³/s) <span className="optional-label">(optional)</span></label>
           <input
             type="number"
             className="form-input"
@@ -575,9 +589,12 @@ const InputScreen = () => {
             step="0.1"
             min="0"
           />
+          <p className="helper-text">
+            If not provided, discharge will be estimated using Manning's equation.
+          </p>
         </div>
         
-        <div className="form-group">
+        <div className="form-group fish-passage-group">
           <label className="form-label">Fish Passage Required</label>
           <button 
             className={`toggle-button ${fishBearing ? 'active' : 'inactive'}`}
@@ -587,6 +604,12 @@ const InputScreen = () => {
               {fishBearing ? 'Yes' : 'No'}
             </span>
           </button>
+          
+          {fishBearing && (
+            <div className="fish-passage-note">
+              Selecting fish passage will embed the culvert by 20% of its diameter.
+            </div>
+          )}
         </div>
       </div>
 
@@ -676,18 +699,9 @@ const InputScreen = () => {
               {includeClimateChange ? 'Yes' : 'No'}
             </span>
           </button>
-        </div>
-        
-        <div className="form-group">
-          <label className="form-label">Use Transportability Matrix (3x Bankfull Method)</label>
-          <button 
-            className={`toggle-button ${useTransportabilityMatrix ? 'active' : 'inactive'}`}
-            onClick={() => setUseTransportabilityMatrix(!useTransportabilityMatrix)}
-          >
-            <span>
-              {useTransportabilityMatrix ? 'Yes' : 'No'}
-            </span>
-          </button>
+          <p className="helper-text">
+            Increases the bankfull discharge by 20% to account for future climate change impacts.
+          </p>
         </div>
       </div>
 
@@ -705,7 +719,7 @@ const InputScreen = () => {
           className="btn-primary"
           onClick={calculateCulvertSize}
         >
-          <MdInfo size={18} />
+          <MdCalculate size={18} />
           <span>Calculate Culvert Size</span>
         </button>
       </div>
