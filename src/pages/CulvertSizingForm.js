@@ -21,20 +21,26 @@ const CulvertSizingForm = () => {
     slopePercent: '',
     streamRoughness: '0.04',
     pipeRoughness: '0.024',
+    maxHwdRatio: '0.8', // Default to conservative 0.8 HW/D ratio
     fishPassage: false,
     latitude: '',
     longitude: ''
   });
   
-  // Measurements state
-  const [widthMeasurements, setWidthMeasurements] = useState([{ id: 1, value: '' }]);
+  // Measurements state - now for top width, bottom width, and depth
+  const [topWidthMeasurements, setTopWidthMeasurements] = useState([{ id: 1, value: '' }]);
+  const [bottomWidthMeasurements, setBottomWidthMeasurements] = useState([{ id: 1, value: '' }]);
   const [depthMeasurements, setDepthMeasurements] = useState([{ id: 1, value: '' }]);
+  
+  // Track if bottom width is being used
+  const [useBottomWidth, setUseBottomWidth] = useState(false);
   
   // Results state
   const [results, setResults] = useState(null);
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
   const [isGettingLocation, setIsGettingLocation] = useState(false);
+  const [locationError, setLocationError] = useState('');
   
   // Get standard pipe sizes and roughness coefficients
   const standardPipeSizes = getStandardPipeSizes();
@@ -57,32 +63,32 @@ const CulvertSizingForm = () => {
     }
   };
   
-  // Handle adding a new width measurement
-  const addWidthMeasurement = () => {
-    const newId = widthMeasurements.length > 0 
-      ? Math.max(...widthMeasurements.map(m => m.id)) + 1 
-      : 1;
-    setWidthMeasurements([...widthMeasurements, { id: newId, value: '' }]);
+  // Toggle bottom width measurements
+  const toggleBottomWidth = () => {
+    setUseBottomWidth(!useBottomWidth);
+    
+    // If turning off bottom width, clear the measurements
+    if (useBottomWidth) {
+      setBottomWidthMeasurements([{ id: 1, value: '' }]);
+    }
   };
   
-  // Handle adding a new depth measurement
-  const addDepthMeasurement = () => {
-    const newId = depthMeasurements.length > 0 
-      ? Math.max(...depthMeasurements.map(m => m.id)) + 1 
-      : 1;
-    setDepthMeasurements([...depthMeasurements, { id: newId, value: '' }]);
+  // Handle adding a new measurement
+  const addMeasurement = (setMeasurements) => {
+    setMeasurements(prev => {
+      const newId = prev.length > 0 
+        ? Math.max(...prev.map(m => m.id)) + 1 
+        : 1;
+      return [...prev, { id: newId, value: '' }];
+    });
   };
   
-  // Handle removing a width measurement
-  const removeWidthMeasurement = (id) => {
-    if (widthMeasurements.length <= 1) return; // Keep at least one measurement
-    setWidthMeasurements(widthMeasurements.filter(m => m.id !== id));
-  };
-  
-  // Handle removing a depth measurement
-  const removeDepthMeasurement = (id) => {
-    if (depthMeasurements.length <= 1) return; // Keep at least one measurement
-    setDepthMeasurements(depthMeasurements.filter(m => m.id !== id));
+  // Handle removing a measurement
+  const removeMeasurement = (id, setMeasurements) => {
+    setMeasurements(prev => {
+      if (prev.length <= 1) return prev; // Keep at least one measurement
+      return prev.filter(m => m.id !== id);
+    });
   };
   
   // Handle changing measurement value
@@ -94,23 +100,34 @@ const CulvertSizingForm = () => {
   
   // Calculate averages from measurements
   const calculateAverages = () => {
-    const validWidths = widthMeasurements
+    const validTopWidths = topWidthMeasurements
       .filter(m => m.value && !isNaN(parseFloat(m.value)))
       .map(m => parseFloat(m.value));
+    
+    // Only use valid bottom widths if they exist and the feature is enabled
+    const validBottomWidths = useBottomWidth 
+      ? bottomWidthMeasurements
+          .filter(m => m.value && !isNaN(parseFloat(m.value)))
+          .map(m => parseFloat(m.value))
+      : [];
     
     const validDepths = depthMeasurements
       .filter(m => m.value && !isNaN(parseFloat(m.value)))
       .map(m => parseFloat(m.value));
     
-    const avgWidth = validWidths.length > 0 
-      ? validWidths.reduce((sum, val) => sum + val, 0) / validWidths.length 
+    const avgTopWidth = validTopWidths.length > 0 
+      ? validTopWidths.reduce((sum, val) => sum + val, 0) / validTopWidths.length 
       : 0;
+    
+    const avgBottomWidth = validBottomWidths.length > 0 
+      ? validBottomWidths.reduce((sum, val) => sum + val, 0) / validBottomWidths.length 
+      : useBottomWidth ? 0 : avgTopWidth * 0.7; // Default to 70% of top width if not provided
     
     const avgDepth = validDepths.length > 0 
       ? validDepths.reduce((sum, val) => sum + val, 0) / validDepths.length 
       : 0;
     
-    return { avgWidth, avgDepth };
+    return { avgTopWidth, avgBottomWidth, avgDepth };
   };
   
   // Toggle fish passage requirement
@@ -124,6 +141,7 @@ const CulvertSizingForm = () => {
   // Get current location using GPS
   const getCurrentLocation = () => {
     setIsGettingLocation(true);
+    setLocationError('');
     
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
@@ -137,19 +155,30 @@ const CulvertSizingForm = () => {
         },
         (error) => {
           console.error('Error getting location:', error);
-          setErrors(prev => ({
-            ...prev,
-            location: 'Unable to get current location. Please enter coordinates manually.'
-          }));
+          let errorMessage = 'Unable to get current location.';
+          
+          switch(error.code) {
+            case error.PERMISSION_DENIED:
+              errorMessage = 'Location access was denied. Please check your browser settings.';
+              break;
+            case error.POSITION_UNAVAILABLE:
+              errorMessage = 'Location information is unavailable.';
+              break;
+            case error.TIMEOUT:
+              errorMessage = 'Location request timed out.';
+              break;
+            case error.UNKNOWN_ERROR:
+              errorMessage = 'An unknown error occurred getting location.';
+              break;
+          }
+          
+          setLocationError(errorMessage);
           setIsGettingLocation(false);
         },
-        { enableHighAccuracy: true }
+        { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
       );
     } else {
-      setErrors(prev => ({
-        ...prev,
-        location: 'Geolocation is not supported by this browser.'
-      }));
+      setLocationError('Geolocation is not supported by this browser.');
       setIsGettingLocation(false);
     }
   };
@@ -169,14 +198,22 @@ const CulvertSizingForm = () => {
     }
     
     if (stage === STAGES.MEASUREMENTS) {
-      const { avgWidth, avgDepth } = calculateAverages();
+      const { avgTopWidth, avgBottomWidth, avgDepth } = calculateAverages();
       
-      if (avgWidth <= 0) {
-        newErrors.widthMeasurements = 'At least one valid width measurement is required';
+      if (avgTopWidth <= 0) {
+        newErrors.topWidthMeasurements = 'At least one valid top width measurement is required';
+      }
+      
+      if (useBottomWidth && avgBottomWidth <= 0) {
+        newErrors.bottomWidthMeasurements = 'At least one valid bottom width measurement is required';
       }
       
       if (avgDepth <= 0) {
         newErrors.depthMeasurements = 'At least one valid depth measurement is required';
+      }
+      
+      if (useBottomWidth && avgBottomWidth >= avgTopWidth) {
+        newErrors.bottomWidthMeasurements = 'Bottom width should be less than top width for typical stream channels';
       }
     }
     
@@ -185,6 +222,12 @@ const CulvertSizingForm = () => {
         newErrors.slopePercent = 'Channel slope is required';
       } else if (isNaN(formValues.slopePercent) || parseFloat(formValues.slopePercent) <= 0) {
         newErrors.slopePercent = 'Must be a positive number';
+      }
+      
+      if (!formValues.maxHwdRatio) {
+        newErrors.maxHwdRatio = 'Headwater ratio is required';
+      } else if (isNaN(formValues.maxHwdRatio) || parseFloat(formValues.maxHwdRatio) <= 0 || parseFloat(formValues.maxHwdRatio) > 1.5) {
+        newErrors.maxHwdRatio = 'Must be a positive number between 0 and 1.5';
       }
     }
     
@@ -222,14 +265,16 @@ const CulvertSizingForm = () => {
     
     setIsLoading(true);
     
-    const { avgWidth, avgDepth } = calculateAverages();
+    const { avgTopWidth, avgBottomWidth, avgDepth } = calculateAverages();
     
     const params = {
-      avgStreamWidth: avgWidth,
+      topWidth: avgTopWidth,
+      bottomWidth: useBottomWidth ? avgBottomWidth : undefined, // Only pass if using bottom width
       avgStreamDepth: avgDepth,
       slopePercent: parseFloat(formValues.slopePercent),
       streamRoughness: parseFloat(formValues.streamRoughness),
       pipeRoughness: parseFloat(formValues.pipeRoughness),
+      maxHwdRatio: parseFloat(formValues.maxHwdRatio),
       fishPassage: formValues.fishPassage
     };
     
@@ -261,8 +306,10 @@ const CulvertSizingForm = () => {
         longitude: formValues.longitude
       },
       formValues,
-      widthMeasurements,
+      topWidthMeasurements,
+      bottomWidthMeasurements,
       depthMeasurements,
+      useBottomWidth,
       results
     };
     
@@ -347,7 +394,9 @@ const CulvertSizingForm = () => {
             {isGettingLocation ? 'Getting Location...' : 'Get GPS Location'}
           </button>
           
-          {errors.location && <div className="error-text">{errors.location}</div>}
+          {locationError && (
+            <div className="error-text location-error">{locationError}</div>
+          )}
           
           {(formValues.latitude && formValues.longitude) && (
             <div className="location-display">
@@ -385,32 +434,55 @@ const CulvertSizingForm = () => {
   
   // Render Measurements stage
   const renderMeasurementsStage = () => {
-    const { avgWidth, avgDepth } = calculateAverages();
+    const { avgTopWidth, avgBottomWidth, avgDepth } = calculateAverages();
     
     return (
       <div className="card">
         <div className="card-title">Stream Measurements</div>
         <div className="card-description">
-          Measure the bankfull width and depth at multiple representative cross-sections of the stream.
+          Measure the stream at multiple representative cross-sections.
+        </div>
+        
+        <div className="stream-diagram">
+          <div className="diagram-header">Stream Cross-Section</div>
+          <div className="diagram-visual">
+            <div className="top-width-label">Top Width</div>
+            <div className="bottom-width-label">Bottom Width</div>
+            <div className="depth-label">Depth</div>
+          </div>
+        </div>
+        
+        <div className="form-group">
+          <label className="form-label">
+            <input
+              type="checkbox"
+              checked={useBottomWidth}
+              onChange={toggleBottomWidth}
+            />
+            {" "}Include Bottom Width (for incised streams)
+          </label>
+          <div className="helper-text">
+            If the channel is incised or has a distinct bottom width different from the top width, enable this option.
+          </div>
         </div>
         
         <div className="measurement-section">
           <div className="measurement-header">
-            <h3>Width Measurements (m)</h3>
-            <button className="add-button" onClick={addWidthMeasurement}>
+            <h3>Top Width Measurements (m)</h3>
+            <button className="add-button" onClick={() => addMeasurement(setTopWidthMeasurements)}>
               <span>Add Measurement</span>
             </button>
           </div>
           
           <div className="measurement-grid">
-            {widthMeasurements.map(measurement => (
+            {topWidthMeasurements.map(measurement => (
               <div className="measurement-item" key={measurement.id}>
                 <div className="measurement-item-header">
                   <span className="measurement-number">#{measurement.id}</span>
                   <button 
                     className="remove-button"
-                    onClick={() => removeWidthMeasurement(measurement.id)}
-                    disabled={widthMeasurements.length <= 1}
+                    onClick={() => removeMeasurement(measurement.id, setTopWidthMeasurements)}
+                    disabled={topWidthMeasurements.length <= 1}
                   >
                     ✕
                   </button>
@@ -419,7 +491,11 @@ const CulvertSizingForm = () => {
                   type="number"
                   className="measurement-input"
                   value={measurement.value}
-                  onChange={(e) => handleMeasurementChange(measurement.id, e.target.value, setWidthMeasurements)}
+                  onChange={(e) => handleMeasurementChange(
+                    measurement.id, 
+                    e.target.value, 
+                    setTopWidthMeasurements
+                  )}
                   placeholder="Width"
                   step="0.01"
                   min="0"
@@ -428,13 +504,60 @@ const CulvertSizingForm = () => {
             ))}
           </div>
           
-          {errors.widthMeasurements && <div className="error-text">{errors.widthMeasurements}</div>}
+          {errors.topWidthMeasurements && (
+            <div className="error-text">{errors.topWidthMeasurements}</div>
+          )}
         </div>
+        
+        {useBottomWidth && (
+          <div className="measurement-section">
+            <div className="measurement-header">
+              <h3>Bottom Width Measurements (m)</h3>
+              <button className="add-button" onClick={() => addMeasurement(setBottomWidthMeasurements)}>
+                <span>Add Measurement</span>
+              </button>
+            </div>
+            
+            <div className="measurement-grid">
+              {bottomWidthMeasurements.map(measurement => (
+                <div className="measurement-item" key={measurement.id}>
+                  <div className="measurement-item-header">
+                    <span className="measurement-number">#{measurement.id}</span>
+                    <button 
+                      className="remove-button"
+                      onClick={() => removeMeasurement(measurement.id, setBottomWidthMeasurements)}
+                      disabled={bottomWidthMeasurements.length <= 1}
+                    >
+                      ✕
+                    </button>
+                  </div>
+                  <input
+                    type="number"
+                    className="measurement-input"
+                    value={measurement.value}
+                    onChange={(e) => handleMeasurementChange(
+                      measurement.id, 
+                      e.target.value, 
+                      setBottomWidthMeasurements
+                    )}
+                    placeholder="Width"
+                    step="0.01"
+                    min="0"
+                  />
+                </div>
+              ))}
+            </div>
+            
+            {errors.bottomWidthMeasurements && (
+              <div className="error-text">{errors.bottomWidthMeasurements}</div>
+            )}
+          </div>
+        )}
         
         <div className="measurement-section">
           <div className="measurement-header">
             <h3>Depth Measurements (m)</h3>
-            <button className="add-button" onClick={addDepthMeasurement}>
+            <button className="add-button" onClick={() => addMeasurement(setDepthMeasurements)}>
               <span>Add Measurement</span>
             </button>
           </div>
@@ -446,7 +569,7 @@ const CulvertSizingForm = () => {
                   <span className="measurement-number">#{measurement.id}</span>
                   <button 
                     className="remove-button"
-                    onClick={() => removeDepthMeasurement(measurement.id)}
+                    onClick={() => removeMeasurement(measurement.id, setDepthMeasurements)}
                     disabled={depthMeasurements.length <= 1}
                   >
                     ✕
@@ -456,7 +579,11 @@ const CulvertSizingForm = () => {
                   type="number"
                   className="measurement-input"
                   value={measurement.value}
-                  onChange={(e) => handleMeasurementChange(measurement.id, e.target.value, setDepthMeasurements)}
+                  onChange={(e) => handleMeasurementChange(
+                    measurement.id, 
+                    e.target.value, 
+                    setDepthMeasurements
+                  )}
                   placeholder="Depth"
                   step="0.01"
                   min="0"
@@ -472,13 +599,30 @@ const CulvertSizingForm = () => {
           <h3>Average Measurements</h3>
           <div className="averages-grid">
             <div className="average-item">
-              <div className="average-label">Average Width</div>
-              <div className="average-value">{avgWidth.toFixed(2)} m</div>
+              <div className="average-label">Average Top Width</div>
+              <div className="average-value">{avgTopWidth.toFixed(2)} m</div>
             </div>
+            
+            {useBottomWidth && (
+              <div className="average-item">
+                <div className="average-label">Average Bottom Width</div>
+                <div className="average-value">{avgBottomWidth.toFixed(2)} m</div>
+              </div>
+            )}
+            
             <div className="average-item">
               <div className="average-label">Average Depth</div>
               <div className="average-value">{avgDepth.toFixed(2)} m</div>
             </div>
+            
+            {useBottomWidth && (
+              <div className="average-item">
+                <div className="average-label">Incision Ratio (T/B)</div>
+                <div className="average-value">
+                  {avgBottomWidth > 0 ? (avgTopWidth / avgBottomWidth).toFixed(2) : 'N/A'}
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -508,6 +652,23 @@ const CulvertSizingForm = () => {
           />
           {errors.slopePercent && <div className="error-text">{errors.slopePercent}</div>}
           <div className="helper-text">Measure between points 10-20× bankfull width apart</div>
+        </div>
+        
+        <div className="form-group">
+          <label className="form-label">Maximum Headwater Ratio (HW/D)</label>
+          <input
+            type="number"
+            name="maxHwdRatio"
+            className={`form-input ${errors.maxHwdRatio ? 'error' : ''}`}
+            value={formValues.maxHwdRatio}
+            onChange={handleInputChange}
+            placeholder="e.g., 0.8"
+            step="0.1"
+            min="0"
+            max="1.5"
+          />
+          {errors.maxHwdRatio && <div className="error-text">{errors.maxHwdRatio}</div>}
+          <div className="helper-text">Conservative value is 0.8. Maximum recommended is 1.5.</div>
         </div>
         
         <div className="form-group">
@@ -579,20 +740,25 @@ const CulvertSizingForm = () => {
       );
     }
     
-    const { avgWidth, avgDepth } = calculateAverages();
+    const { avgTopWidth, avgBottomWidth, avgDepth } = calculateAverages();
     
     return (
       <div className="card">
         <div className="card-title">California Method Results</div>
         
-        <div className="status-message success">
+        <div className={`status-message ${results.hydraulicCheck ? 'success' : 'warning'}`}>
           Recommended culvert size: {results.selectedPipeSize} mm
+          {!results.hydraulicCheck && ' (Warning: Hydraulic check failed)'}
         </div>
         
         <div className="culvert-sizing-visual">
-          {/* Simplified culvert visualization */}
+          {/* Enhanced culvert visualization */}
           <div className="culvert-diagram">
             <div className="stream-bed">
+              <div className="stream-top-width" style={{ width: '100%' }}></div>
+              <div className="stream-bottom-width" style={{ 
+                width: `${useBottomWidth ? (avgBottomWidth / avgTopWidth) * 100 : 70}%` 
+              }}></div>
               <div className="stream-level" style={{ height: '20px' }}></div>
             </div>
             <div className="culvert-pipe" style={{ 
@@ -606,6 +772,10 @@ const CulvertSizingForm = () => {
               )}
             </div>
             <div className="stream-bed">
+              <div className="stream-top-width" style={{ width: '100%' }}></div>
+              <div className="stream-bottom-width" style={{ 
+                width: `${useBottomWidth ? (avgBottomWidth / avgTopWidth) * 100 : 70}%` 
+              }}></div>
               <div className="stream-level" style={{ height: '20px' }}></div>
             </div>
           </div>
@@ -631,6 +801,11 @@ const CulvertSizingForm = () => {
               <div className="average-label">Fish Passage</div>
               <div className="average-value">{formValues.fishPassage ? 'Required' : 'Not Required'}</div>
             </div>
+            
+            <div className="average-item">
+              <div className="average-label">Stream Shape</div>
+              <div className="average-value">{results.streamShape}</div>
+            </div>
           </div>
         </div>
         
@@ -641,12 +816,19 @@ const CulvertSizingForm = () => {
           
           <div className="averages-grid">
             <div className="average-item">
-              <div className="average-label">Average Width</div>
-              <div className="average-value">{avgWidth.toFixed(2)} m</div>
+              <div className="average-label">Top Width</div>
+              <div className="average-value">{results.topWidth} m</div>
             </div>
             
+            {useBottomWidth && (
+              <div className="average-item">
+                <div className="average-label">Bottom Width</div>
+                <div className="average-value">{results.bottomWidth} m</div>
+              </div>
+            )}
+            
             <div className="average-item">
-              <div className="average-label">Average Depth</div>
+              <div className="average-label">Depth</div>
               <div className="average-value">{avgDepth.toFixed(2)} m</div>
             </div>
             
@@ -659,6 +841,13 @@ const CulvertSizingForm = () => {
               <div className="average-label">Stream Area</div>
               <div className="average-value">{results.streamArea} m²</div>
             </div>
+            
+            {useBottomWidth && (
+              <div className="average-item">
+                <div className="average-label">Incision Ratio</div>
+                <div className="average-value">{results.incisionRatio}</div>
+              </div>
+            )}
           </div>
         </div>
         
@@ -679,6 +868,11 @@ const CulvertSizingForm = () => {
             </div>
             
             <div className="average-item">
+              <div className="average-label">Alternate Required Width</div>
+              <div className="average-value">{results.altSpanRequiredM} m</div>
+            </div>
+            
+            <div className="average-item">
               <div className="average-label">Selected Pipe Size</div>
               <div className="average-value">{results.selectedPipeSize} mm</div>
             </div>
@@ -686,6 +880,11 @@ const CulvertSizingForm = () => {
             <div className="average-item">
               <div className="average-label">Embed Depth</div>
               <div className="average-value">{results.embedDepth} m</div>
+            </div>
+            
+            <div className="average-item">
+              <div className="average-label">Sizing Comparison</div>
+              <div className="average-value">{results.sizingComparison}</div>
             </div>
           </div>
         </div>
@@ -707,15 +906,27 @@ const CulvertSizingForm = () => {
             </div>
             
             <div className="average-item">
-              <div className="average-label">Hydraulic Check</div>
-              <div className="average-value" style={{ color: results.hydraulicCheck ? 'var(--success-color)' : 'var(--error-color)' }}>
-                {results.hydraulicCheck ? 'PASS' : 'FAIL'}
+              <div className="average-label">Capacity Check</div>
+              <div className="average-value" style={{ color: results.capacityCheck ? 'var(--success-color)' : 'var(--error-color)' }}>
+                {results.capacityCheck ? 'PASS' : 'FAIL'}
               </div>
             </div>
             
             <div className="average-item">
               <div className="average-label">Headwater Ratio</div>
               <div className="average-value">{results.headwaterRatio}</div>
+            </div>
+            
+            <div className="average-item">
+              <div className="average-label">Max HW/D Ratio</div>
+              <div className="average-value">{results.maxHwdRatio}</div>
+            </div>
+            
+            <div className="average-item">
+              <div className="average-label">Headwater Check</div>
+              <div className="average-value" style={{ color: results.headwaterCheck ? 'var(--success-color)' : 'var(--error-color)' }}>
+                {results.headwaterCheck ? 'PASS' : 'FAIL'}
+              </div>
             </div>
           </div>
         </div>
@@ -725,11 +936,12 @@ const CulvertSizingForm = () => {
             <h3>Summary and Recommendations</h3>
             
             {results.hydraulicCheck ? (
-              <p>The selected {results.selectedPipeSize} mm culvert meets both the California Method requirements (width × depth × 3) 
-              and passes the hydraulic capacity check. This size is appropriate for your site conditions.</p>
+              <p>The selected {results.selectedPipeSize} mm culvert meets both the California Method sizing requirements 
+              and passes the hydraulic checks. This size is appropriate for your site conditions.</p>
             ) : (
-              <p>The selected culvert does not pass the hydraulic capacity check. Consider using a larger size or 
-              adjusting the design parameters.</p>
+              <p>The selected culvert does not meet all hydraulic requirements. 
+              {!results.capacityCheck && ' The culvert may not have sufficient capacity to pass the design flow.'} 
+              {!results.headwaterCheck && ' The headwater depth exceeds the conservative maximum ratio.'}</p>
             )}
             
             {results.fishPassage && (
@@ -737,9 +949,9 @@ const CulvertSizingForm = () => {
               below the stream bed. Ensure natural substrate accumulates in the culvert bottom.</p>
             )}
             
-            {parseFloat(results.headwaterRatio) > 1.5 && (
-              <p className="error-text">Warning: The headwater ratio exceeds 1.5, which may cause upstream ponding or pressure flow. 
-              Consider a larger culvert size to reduce the headwater depth.</p>
+            {parseFloat(results.headwaterRatio) > parseFloat(results.maxHwdRatio) && (
+              <p className="error-text">Warning: The headwater ratio exceeds the maximum of {results.maxHwdRatio}. 
+              Consider using a larger culvert size to reduce the headwater depth.</p>
             )}
           </div>
         </div>
