@@ -13,29 +13,30 @@ A mobile application for forestry professionals to perform field calculations an
 
 We've rebuilt the application from scratch to resolve persistent issues with React Native Gesture Handler and TypeScript.
 
-Navigation structure is fully implemented with consistent routing for all tools. The Culvert Sizing Tool now features a multi-stage process with support for multiple stream measurements and detailed visualization. The California Method is implemented as the primary sizing approach with hydraulic checks for validation.
+Navigation structure is fully implemented with consistent routing for all tools. The Culvert Sizing Tool now features a multi-stage process with support for multiple stream measurements and detailed visualization. The California Method is implemented with proper trapezoidal channel geometry support and a more conservative hydraulic check approach.
 
 ## Features
 
 ### Culvert Sizing Tool
 - **Multi-stage process**:
   - Site Information (Culvert ID, Road Name, GPS Location)
-  - Stream Measurements (multiple width/depth measurements with automatic averaging)
-  - Culvert Settings (slope, materials, fish passage)
+  - Stream Measurements (top width, bottom width, depth measurements with automatic averaging)
+  - Culvert Settings (slope, materials, fish passage, HW/D ratio)
   - Results Display (visualization and detailed metrics)
-- **California Method implementation**:
+- **Enhanced California Method implementation**:
   - Primary sizing based on width × depth × 3 formula
-  - Alternative sizing based on 1.2 × bankfull width
-  - Lookup table for standard sizing based on California Method
-- **Fish passage integration**:
+  - Support for trapezoidal channel geometry (top width and bottom width)
   - Automatic 20% embedding when fish passage is required
-  - Detailed recommendations for fish-bearing streams
-- **Hydraulic validation**:
-  - Manning's equation check for flow capacity
-  - Headwater ratio calculation and warnings
-- **Save and export**:
-  - Draft saving functionality
-  - Future PDF export capability
+- **Conservative hydraulic approach**:
+  - Default 0.8 HW/D ratio (configurable)
+  - Separate capacity and headwater checks
+  - Detailed explanation when California Method and hydraulic check disagree
+  - Automatic upsizing when conservative criteria aren't met
+- **Improved UI/UX**:
+  - Stream cross-section diagram to help with measurements
+  - Enhanced GPS location with better error handling
+  - Incision ratio calculation for incised streams
+  - Visual feedback for all calculation results
 
 ### Road Risk Assessment
 - Form-based tool for evaluating forest road risk factors (in progress)
@@ -49,13 +50,13 @@ Navigation structure is fully implemented with consistent routing for all tools.
 ## Changelog
 
 ### 2025-05-13
-- Implemented multi-stage process for Culvert Sizing Tool with progress indicator
-- Added support for multiple stream width and depth measurements with automatic averaging
-- Integrated GPS location capture functionality
-- Updated form fields to use Culvert ID and Road Name instead of project information
-- Enhanced California Method implementation with proper width × depth × 3 formula
-- Added detailed culvert visualization with embedding for fish passage
-- Created custom styles for improved user experience
+- Added support for trapezoidal channel geometry with top/bottom width measurements
+- Implemented conservative hydraulic checks with configurable HW/D ratio (default 0.8)
+- Added stream cross-section visualization to help with measurements
+- Improved GPS location handling with better error messages
+- Enhanced the culvert sizing algorithm to better handle incised streams
+- Added detailed explanation when California Method and hydraulic check disagree
+- Updated visualization to show trapezoidal channel shape
 
 ### 2025-05-04
 - Created fresh project with Expo
