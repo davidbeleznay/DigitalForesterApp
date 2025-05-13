@@ -8,6 +8,7 @@ import { useNavigate } from 'react-router-dom';
 import { MdGpsFixed, MdAddCircle, MdRemoveCircle } from 'react-icons/md';
 import { determineOptimalCulvertSize } from '../../utils/CulvertCalculator';
 import { colors, culvertMaterials, culvertShapes } from '../../constants/constants';
+import ThemeToggle from '../../components/ThemeToggle';
 
 const InputScreen = () => {
   const navigate = useNavigate();
@@ -194,9 +195,11 @@ const InputScreen = () => {
   }, [culvertMaterial]);
 
   return (
-    <div className="container" style={styles.container}>
+    <div className="container">
+      <ThemeToggle />
+
       {/* Culvert ID Section */}
-      <div className="card" style={styles.card}>
+      <div className="card">
         <h2 style={styles.sectionTitle}>Culvert ID</h2>
         
         <div style={styles.fieldGroup}>
@@ -239,7 +242,7 @@ const InputScreen = () => {
       </div>
 
       {/* Stream Measurements Section */}
-      <div className="card" style={styles.card}>
+      <div className="card">
         <h2 style={styles.sectionTitle}>Stream Measurements</h2>
         <p style={styles.description}>
           Measure the stream at representative locations to determine average dimensions. The California Method uses average width × average height × 3 to calculate the required end area.
@@ -326,7 +329,7 @@ const InputScreen = () => {
       </div>
 
       {/* Stream Properties Section */}
-      <div className="card" style={styles.card}>
+      <div className="card">
         <h2 style={styles.sectionTitle}>Stream Properties</h2>
         
         <div style={styles.fieldGroup}>
@@ -368,7 +371,7 @@ const InputScreen = () => {
       </div>
 
       {/* Culvert Specifications Section */}
-      <div className="card" style={styles.card}>
+      <div className="card">
         <h2 style={styles.sectionTitle}>Culvert Specifications</h2>
         
         <div style={styles.fieldGroup}>
@@ -441,7 +444,7 @@ const InputScreen = () => {
       </div>
 
       {/* Design Options Section */}
-      <div className="card" style={styles.card}>
+      <div className="card">
         <h2 style={styles.sectionTitle}>Design Options</h2>
         
         <div style={styles.fieldGroup}>
@@ -477,30 +480,17 @@ const InputScreen = () => {
 
       {/* Calculate Button */}
       <button 
-        style={styles.calculateButton}
+        className="btn btn-primary"
+        style={{width: '100%', marginBottom: '32px'}}
         onClick={calculateCulvertSize}
       >
-        <span style={styles.calculateButtonText}>Calculate Culvert Size</span>
+        <span>Calculate Culvert Size</span>
       </button>
     </div>
   );
 };
 
 const styles = {
-  container: {
-    padding: '20px',
-    maxWidth: '1200px',
-    margin: '0 auto',
-    backgroundColor: colors.background,
-  },
-  card: {
-    backgroundColor: colors.white,
-    borderRadius: '8px',
-    padding: '16px',
-    margin: '16px 0',
-    marginBottom: '8px',
-    boxShadow: '0px 2px 4px rgba(0, 0, 0, 0.1)',
-  },
   sectionTitle: {
     fontSize: '18px',
     fontWeight: 'bold',
@@ -538,6 +528,8 @@ const styles = {
     fontSize: '16px',
     width: '100%',
     boxSizing: 'border-box',
+    backgroundColor: 'var(--bg-color)',
+    color: 'var(--text-color)',
   },
   helperText: {
     fontSize: '12px',
@@ -691,23 +683,6 @@ const styles = {
   },
   toggleInactiveText: {
     color: colors.text,
-  },
-  calculateButton: {
-    backgroundColor: colors.primary,
-    padding: '16px',
-    borderRadius: '8px',
-    margin: '16px 0',
-    alignItems: 'center',
-    boxShadow: '0px 2px 4px rgba(0, 0, 0, 0.25)',
-    cursor: 'pointer',
-    border: 'none',
-    width: '100%',
-    textAlign: 'center',
-  },
-  calculateButtonText: {
-    color: colors.white,
-    fontSize: '18px',
-    fontWeight: 'bold',
   },
 };
 
