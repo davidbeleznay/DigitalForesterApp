@@ -4,6 +4,7 @@ import './styles/index.css';
 import './styles/culvert-form.css';
 import './styles/home.css';
 import './styles/progress-steps.css';
+import './styles/info-components.css';
 
 function App() {
   return (
