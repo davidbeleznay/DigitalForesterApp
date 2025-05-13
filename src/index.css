@@ -1,4 +1,4 @@
-/* src/index.css */
+/* src/index.css - Adding styles for new location features */
 
 :root {
   /* Light theme colors */
@@ -13,6 +13,7 @@
   --error-color: #F44336;
   --warning-color: #FFC107;
   --success-color: #8BC34A;
+  --info-color: #03A9F4;
   --shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
@@ -29,6 +30,7 @@
   --error-color: #EF5350;
   --warning-color: #FFCA28;
   --success-color: #9CCC65;
+  --info-color: #29B6F6;
   --shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
 }
 
@@ -64,6 +66,40 @@ button {
 
 input, button {
   font-family: inherit;
+}
+
+/* New Page Header with Back Button */
+.page-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 24px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.back-button {
+  display: flex;
+  align-items: center;
+  color: var(--action-color);
+  text-decoration: none;
+  font-size: 16px;
+  margin-right: 16px;
+}
+
+.back-button:hover {
+  color: var(--primary-color);
+}
+
+.back-button span {
+  margin-left: 4px;
+}
+
+.page-title {
+  color: var(--primary-color);
+  font-size: 24px;
+  margin: 0;
+  flex: 1;
+  text-align: center;
 }
 
 /* Field Cards - New Section */
@@ -255,13 +291,6 @@ input, button {
 }
 
 /* New Culvert Tool Styles */
-.page-title {
-  color: var(--primary-color);
-  font-size: 28px;
-  margin-bottom: 24px;
-  text-align: center;
-}
-
 .card {
   background-color: var(--card-bg);
   border-radius: 12px;
@@ -316,6 +345,7 @@ input, button {
   margin-top: 4px;
 }
 
+/* Improved GPS and location handling */
 .gps-button {
   display: flex;
   align-items: center;
@@ -327,10 +357,42 @@ input, button {
   padding: 12px 20px;
   font-weight: 500;
   transition: background-color 0.2s ease;
+  width: 100%;
 }
 
-.gps-button:hover {
+.gps-button:hover:not(:disabled) {
   background-color: var(--action-color);
+}
+
+.gps-button:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.gps-button.loading {
+  background-color: var(--action-color);
+  position: relative;
+  overflow: hidden;
+}
+
+.gps-button.loading:after {
+  content: '';
+  position: absolute;
+  left: -45%;
+  width: 45%;
+  height: 100%;
+  background: linear-gradient(
+    to right,
+    rgba(255, 255, 255, 0.1),
+    rgba(255, 255, 255, 0.3),
+    rgba(255, 255, 255, 0.1)
+  );
+  animation: loading 1s infinite;
+}
+
+@keyframes loading {
+  0% { left: -45%; }
+  100% { left: 100%; }
 }
 
 .gps-button span {
@@ -355,6 +417,58 @@ input, button {
   margin-left: 8px;
   font-family: monospace;
   font-size: 14px;
+}
+
+/* Manual location entry */
+.manual-location {
+  background-color: var(--bg-color);
+  border-radius: 6px;
+  padding: 12px;
+  margin-top: 10px;
+  border: 1px dashed var(--border-color);
+}
+
+.manual-coords {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+/* Status message with types */
+.status-message {
+  padding: 12px 20px;
+  border-radius: 6px;
+  margin-bottom: 20px;
+  animation: fadeIn 0.3s ease;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+}
+
+.status-message.success {
+  background-color: var(--success-color);
+  color: white;
+}
+
+.status-message.error {
+  background-color: var(--error-color);
+  color: white;
+}
+
+.status-message.info {
+  background-color: var(--info-color);
+  color: white;
+}
+
+.status-message.warning {
+  background-color: var(--warning-color);
+  color: #212121;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 /* Measurement sections */
@@ -564,94 +678,7 @@ input, button {
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
-/* Status message */
-.status-message {
-  background-color: var(--success-color);
-  color: white;
-  padding: 12px 20px;
-  border-radius: 6px;
-  margin-bottom: 20px;
-  animation: fadeIn 0.3s ease;
-  font-weight: 500;
-}
-
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(-10px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
 /* Original CSS below */
-.card {
-  background-color: var(--card-bg);
-  border-radius: 8px;
-  box-shadow: var(--shadow);
-  padding: 24px;
-  margin-bottom: 16px;
-  transition: background-color 0.3s ease, box-shadow 0.3s ease;
-}
-
-.btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 12px 24px;
-  border-radius: 4px;
-  border: none;
-  font-weight: 500;
-  font-size: 16px;
-  text-decoration: none;
-  transition: background-color 0.2s ease, transform 0.1s ease;
-  cursor: pointer;
-}
-
-.btn:hover {
-  transform: translateY(-2px);
-}
-
-.btn:active {
-  transform: translateY(0);
-}
-
-.btn-primary {
-  background-color: var(--primary-color);
-  color: white;
-}
-
-.btn-secondary {
-  background-color: var(--secondary-color);
-  color: white;
-}
-
-.btn-outline {
-  background-color: transparent;
-  border: 1px solid var(--border-color);
-  color: var(--text-color);
-}
-
-.theme-toggle {
-  background: none;
-  border: none;
-  color: var(--text-color);
-  font-size: 24px;
-  padding: 8px;
-  position: fixed;
-  top: 16px;
-  right: 16px;
-  z-index: 1000;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 48px;
-  height: 48px;
-  transition: background-color 0.2s ease;
-}
-
-.theme-toggle:hover {
-  background-color: rgba(128, 128, 128, 0.1);
-}
-
-/* Containers */
 .container {
   max-width: 1200px;
   margin: 0 auto;
@@ -729,7 +756,7 @@ input, button {
   }
   
   h1 {
-    font-size: 28px;
+    font-size: 24px;
   }
   
   .draft-card {
@@ -738,5 +765,15 @@ input, button {
   
   .card {
     padding: 16px;
+  }
+  
+  .manual-coords {
+    grid-template-columns: 1fr;
+  }
+  
+  .page-header {
+    flex-direction: column;
+    gap: 8px;
+    align-items: flex-start;
   }
 }
