@@ -1,10 +1,10 @@
 // src/screens/culvert/InputScreen.js
 
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { MdGpsFixed, MdAddCircle, MdRemoveCircle, MdSave, MdInfo, MdLocationOn } from 'react-icons/md';
+import { useNavigate, Link } from 'react-router-dom';
+import { MdGpsFixed, MdAddCircle, MdRemoveCircle, MdSave, MdInfo, MdLocationOn, MdArrowBack } from 'react-icons/md';
 import { determineOptimalCulvertSize } from '../../utils/CulvertCalculator';
-import { colors, culvertMaterials, culvertShapes } from '../../constants/constants';
+import { colors, culvertMaterials, culvertShapes, formatCoordinates } from '../../constants/constants';
 import ThemeToggle from '../../components/ThemeToggle';
 
 const InputScreen = () => {
@@ -15,6 +15,7 @@ const InputScreen = () => {
   const [roadName, setRoadName] = useState('');
   const [location, setLocation] = useState(null);
   const [locationError, setLocationError] = useState(null);
+  const [isGettingLocation, setIsGettingLocation] = useState(false);
 
   // Stream measurements - separated by type
   const [topWidths, setTopWidths] = useState([{ id: 1, value: '' }]);
@@ -38,38 +39,80 @@ const InputScreen = () => {
   
   // Status message
   const [statusMessage, setStatusMessage] = useState('');
+  const [statusType, setStatusType] = useState('success'); // 'success', 'error', 'info'
 
-  // Get current location using Web Geolocation API
+  // Get current location using Web Geolocation API with better error handling
   const getLocation = () => {
     setLocationError(null);
+    setIsGettingLocation(true);
     setStatusMessage('Getting location...');
+    setStatusType('info');
     
     if (!navigator.geolocation) {
       setLocationError("Your browser does not support geolocation");
-      setStatusMessage('');
+      setStatusMessage('Geolocation not supported by your browser');
+      setStatusType('error');
+      setIsGettingLocation(false);
       return;
     }
     
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        setLocation({
-          latitude: position.coords.latitude,
-          longitude: position.coords.longitude,
-        });
-        setStatusMessage('Location captured successfully!');
-        setTimeout(() => setStatusMessage(''), 3000);
-      },
-      (error) => {
-        console.error("Error getting location:", error);
-        setLocationError(`Error getting location: ${error.message}`);
-        setStatusMessage('');
-      },
-      { 
-        enableHighAccuracy: true, 
-        timeout: 15000, 
-        maximumAge: 0 
+    const handleSuccess = (position) => {
+      const { latitude, longitude } = position.coords;
+      setLocation({
+        latitude,
+        longitude,
+      });
+      setLocationError(null);
+      setStatusMessage('Location captured successfully!');
+      setStatusType('success');
+      setIsGettingLocation(false);
+      
+      setTimeout(() => {
+        if (statusMessage === 'Location captured successfully!') {
+          setStatusMessage('');
+        }
+      }, 3000);
+    };
+    
+    const handleError = (error) => {
+      console.error("Error getting location:", error);
+      
+      // Human-friendly error messages
+      let errorMessage = "";
+      switch(error.code) {
+        case error.PERMISSION_DENIED:
+          errorMessage = "Location permission was denied. Please enable location access in your browser settings and try again.";
+          break;
+        case error.POSITION_UNAVAILABLE:
+          errorMessage = "Location information is unavailable. Try again or enter coordinates manually.";
+          break;
+        case error.TIMEOUT:
+          errorMessage = "Location request timed out. Please try again.";
+          break;
+        default:
+          errorMessage = `Error getting location: ${error.message}`;
       }
-    );
+      
+      setLocationError(errorMessage);
+      setStatusMessage(errorMessage);
+      setStatusType('error');
+      setIsGettingLocation(false);
+    };
+    
+    const options = { 
+      enableHighAccuracy: true,
+      timeout: 15000,
+      maximumAge: 0
+    };
+    
+    try {
+      navigator.geolocation.getCurrentPosition(handleSuccess, handleError, options);
+    } catch (err) {
+      setLocationError(`Unexpected error: ${err.message}`);
+      setStatusMessage(`Unexpected error: ${err.message}`);
+      setStatusType('error');
+      setIsGettingLocation(false);
+    }
   };
 
   // Helper functions for managing measurement arrays
@@ -112,8 +155,11 @@ const InputScreen = () => {
   const calculateAverage = (measurements) => {
     if (measurements.length === 0) return 0;
     
-    const sum = measurements.reduce((total, m) => total + parseFloat(m.value || 0), 0);
-    return (sum / measurements.length).toFixed(2);
+    const validMeasurements = measurements.filter(m => !isNaN(parseFloat(m.value)) && parseFloat(m.value) > 0);
+    if (validMeasurements.length === 0) return 0;
+    
+    const sum = validMeasurements.reduce((total, m) => total + parseFloat(m.value), 0);
+    return (sum / validMeasurements.length).toFixed(2);
   };
 
   // Get averages for display
@@ -133,9 +179,15 @@ const InputScreen = () => {
     for (let i = 0; i < maxLength; i++) {
       standardizedMeasurements.push({
         id: i + 1,
-        topWidth: i < topWidths.length ? topWidths[i].value : topWidths[0].value,
-        bottomWidth: i < bottomWidths.length ? bottomWidths[i].value : bottomWidths[0].value,
-        depth: i < depths.length ? depths[i].value : depths[0].value
+        topWidth: i < topWidths.length && !isNaN(parseFloat(topWidths[i].value)) 
+          ? topWidths[i].value 
+          : averages.topWidth,
+        bottomWidth: i < bottomWidths.length && !isNaN(parseFloat(bottomWidths[i].value)) 
+          ? bottomWidths[i].value 
+          : averages.bottomWidth,
+        depth: i < depths.length && !isNaN(parseFloat(depths[i].value)) 
+          ? depths[i].value 
+          : averages.depth
       });
     }
     
@@ -146,7 +198,8 @@ const InputScreen = () => {
   const calculateCulvertSize = () => {
     // Validate inputs
     if (!validateInputs()) {
-      alert('Please fill in all required fields with valid numbers.');
+      setStatusMessage('Please fill in all required fields with valid numbers.');
+      setStatusType('error');
       return;
     }
 
@@ -227,7 +280,12 @@ const InputScreen = () => {
     localStorage.setItem('culvertForm', JSON.stringify(formData));
     
     setStatusMessage('Data saved successfully!');
-    setTimeout(() => setStatusMessage(''), 3000);
+    setStatusType('success');
+    setTimeout(() => {
+      if (statusMessage === 'Data saved successfully!') {
+        setStatusMessage('');
+      }
+    }, 3000);
   };
 
   // Load saved form data if available
@@ -257,7 +315,12 @@ const InputScreen = () => {
         setUseTransportabilityMatrix(data.useTransportabilityMatrix !== undefined ? data.useTransportabilityMatrix : true);
         
         setStatusMessage('Loaded saved data.');
-        setTimeout(() => setStatusMessage(''), 3000);
+        setStatusType('info');
+        setTimeout(() => {
+          if (statusMessage === 'Loaded saved data.') {
+            setStatusMessage('');
+          }
+        }, 3000);
       } catch (error) {
         console.error("Error loading saved data:", error);
       }
@@ -297,6 +360,7 @@ const InputScreen = () => {
           <button 
             className="add-button"
             onClick={() => addMeasurement(type)}
+            aria-label={`Add ${label} measurement`}
           >
             <MdAddCircle size={20} color={colors.primary} />
             <span>Add {label}</span>
@@ -312,6 +376,7 @@ const InputScreen = () => {
                   <button 
                     className="remove-button"
                     onClick={() => removeMeasurement(type, measurement.id)}
+                    aria-label={`Remove measurement ${index + 1}`}
                   >
                     <MdRemoveCircle size={18} color={colors.error} />
                   </button>
@@ -325,6 +390,7 @@ const InputScreen = () => {
                 placeholder={placeholder}
                 step="0.01"
                 min="0"
+                aria-label={`${label} measurement ${index + 1}`}
               />
             </div>
           ))}
@@ -337,10 +403,15 @@ const InputScreen = () => {
     <div className="container">
       <ThemeToggle />
       
-      <h1 className="page-title">Culvert Sizing Tool</h1>
+      <div className="page-header">
+        <Link to="/" className="back-button">
+          <MdArrowBack /> <span>Back</span>
+        </Link>
+        <h1 className="page-title">Culvert Sizing Tool</h1>
+      </div>
       
       {statusMessage && (
-        <div className="status-message">
+        <div className={`status-message ${statusType}`}>
           {statusMessage}
         </div>
       )}
@@ -374,21 +445,53 @@ const InputScreen = () => {
         <div className="form-group">
           <label className="form-label">Location</label>
           <div className="location-container">
-            {location ? (
+            {location && (
               <div className="location-display">
                 <MdLocationOn size={20} color={colors.primary} />
                 <span className="location-text">
                   {location.latitude.toFixed(6)}, {location.longitude.toFixed(6)}
                 </span>
               </div>
-            ) : null}
+            )}
             <button 
-              className="gps-button"
+              className={`gps-button ${isGettingLocation ? 'loading' : ''}`}
               onClick={getLocation}
+              disabled={isGettingLocation}
             >
               <MdGpsFixed size={20} color="white" />
-              <span>{location ? 'Update Location' : 'Get GPS Location'}</span>
+              <span>{isGettingLocation ? 'Getting Location...' : (location ? 'Update Location' : 'Get GPS Location')}</span>
             </button>
+            
+            {/* Manual location entry option */}
+            {(locationError || !navigator.geolocation) && (
+              <div className="manual-location">
+                <p className="helper-text">You can also enter coordinates manually:</p>
+                <div className="manual-coords">
+                  <input
+                    type="number"
+                    placeholder="Latitude"
+                    className="form-input"
+                    step="0.000001"
+                    value={location?.latitude || ''}
+                    onChange={(e) => setLocation(prev => ({
+                      ...prev,
+                      latitude: parseFloat(e.target.value)
+                    }))}
+                  />
+                  <input
+                    type="number"
+                    placeholder="Longitude"
+                    className="form-input"
+                    step="0.000001"
+                    value={location?.longitude || ''}
+                    onChange={(e) => setLocation(prev => ({
+                      ...prev,
+                      longitude: parseFloat(e.target.value)
+                    }))}
+                  />
+                </div>
+              </div>
+            )}
           </div>
           {locationError && <p className="error-text">{locationError}</p>}
         </div>
