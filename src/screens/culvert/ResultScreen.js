@@ -8,7 +8,14 @@ import {
   ScrollView, 
   TouchableOpacity 
 } from 'react-native';
-import { MaterialIcons } from '@expo/vector-icons';
+import { 
+  MdImage,
+  MdCheckCircle,
+  MdWarning,
+  MdError,
+  MdEdit,
+  MdSave 
+} from 'react-icons/md';
 import { colors, culvertMaterials, culvertShapes } from '../../constants/constants';
 
 const ResultScreen = ({ route, navigation }) => {
@@ -73,7 +80,7 @@ const ResultScreen = ({ route, navigation }) => {
         
         {professionalDesignRequired && (
           <View style={styles.warningBanner}>
-            <MaterialIcons name="warning" size={24} color={colors.white} />
+            <MdWarning size={24} color="white" />
             <Text style={styles.warningBannerText}>
               Professional Design Required
             </Text>
@@ -251,7 +258,7 @@ const ResultScreen = ({ route, navigation }) => {
         <View style={styles.imageContainer}>
           <Text style={styles.imageCaption}>Cross-Sectional Area Diagram</Text>
           <View style={styles.imagePlaceholder}>
-            <MaterialIcons name="image" size={48} color={colors.lightText} />
+            <MdImage size={48} color={colors.lightText} />
             <Text style={styles.imagePlaceholderText}>Diagram will display here in future version</Text>
           </View>
         </View>
@@ -262,7 +269,7 @@ const ResultScreen = ({ route, navigation }) => {
         <Text style={styles.sectionTitle}>Design Recommendations</Text>
         
         <View style={styles.recommendationItem}>
-          <MaterialIcons name="check-circle" size={24} color={colors.success} style={styles.recommendationIcon} />
+          <MdCheckCircle size={24} color={colors.success} style={styles.recommendationIcon} />
           <View style={styles.recommendationContent}>
             <Text style={styles.recommendationTitle}>Installation</Text>
             <Text style={styles.recommendationText}>
@@ -272,7 +279,7 @@ const ResultScreen = ({ route, navigation }) => {
         </View>
         
         <View style={styles.recommendationItem}>
-          <MaterialIcons name="check-circle" size={24} color={colors.success} style={styles.recommendationIcon} />
+          <MdCheckCircle size={24} color={colors.success} style={styles.recommendationIcon} />
           <View style={styles.recommendationContent}>
             <Text style={styles.recommendationTitle}>Inlet/Outlet Protection</Text>
             <Text style={styles.recommendationText}>
@@ -283,7 +290,7 @@ const ResultScreen = ({ route, navigation }) => {
         
         {streamProperties.fishBearing && (
           <View style={styles.recommendationItem}>
-            <MaterialIcons name="check-circle" size={24} color={colors.success} style={styles.recommendationIcon} />
+            <MdCheckCircle size={24} color={colors.success} style={styles.recommendationIcon} />
             <View style={styles.recommendationContent}>
               <Text style={styles.recommendationTitle}>Fish Passage</Text>
               <Text style={styles.recommendationText}>
@@ -295,7 +302,7 @@ const ResultScreen = ({ route, navigation }) => {
         
         {finalSize >= 1200 && (
           <View style={styles.recommendationItem}>
-            <MaterialIcons name="warning" size={24} color={colors.warning} style={styles.recommendationIcon} />
+            <MdWarning size={24} color={colors.warning} style={styles.recommendationIcon} />
             <View style={styles.recommendationContent}>
               <Text style={styles.recommendationTitle}>Large Culvert Considerations</Text>
               <Text style={styles.recommendationText}>
@@ -307,7 +314,7 @@ const ResultScreen = ({ route, navigation }) => {
         
         {professionalDesignRequired && (
           <View style={styles.recommendationItem}>
-            <MaterialIcons name="error" size={24} color={colors.error} style={styles.recommendationIcon} />
+            <MdError size={24} color={colors.error} style={styles.recommendationIcon} />
             <View style={styles.recommendationContent}>
               <Text style={styles.recommendationTitle}>Professional Design Required</Text>
               <Text style={styles.recommendationText}>
@@ -324,7 +331,7 @@ const ResultScreen = ({ route, navigation }) => {
           style={[styles.button, styles.editButton]}
           onPress={() => navigation.goBack()}
         >
-          <MaterialIcons name="edit" size={20} color={colors.white} />
+          <MdEdit size={20} color="white" />
           <Text style={styles.buttonText}>Edit Inputs</Text>
         </TouchableOpacity>
         
@@ -335,7 +342,7 @@ const ResultScreen = ({ route, navigation }) => {
             alert('PDF export will be available in a future update');
           }}
         >
-          <MaterialIcons name="save-alt" size={20} color={colors.white} />
+          <MdSave size={20} color="white" />
           <Text style={styles.buttonText}>Export PDF</Text>
         </TouchableOpacity>
       </View>
@@ -354,14 +361,7 @@ const styles = StyleSheet.create({
     padding: 16,
     margin: 16,
     marginBottom: 8,
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 3.84,
-    elevation: 5,
+    boxShadow: '0px 2px 4px rgba(0, 0, 0, 0.1)',
   },
   sectionTitle: {
     fontSize: 18,
@@ -376,14 +376,16 @@ const styles = StyleSheet.create({
     marginVertical: 40,
   },
   sizeBadgeContainer: {
+    display: 'flex',
     alignItems: 'center',
     marginBottom: 16,
   },
   sizeBadge: {
     backgroundColor: colors.primary,
-    borderRadius: 50,
+    borderRadius: '50%',
     width: 150,
     height: 150,
+    display: 'flex',
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 16,
@@ -405,6 +407,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   warningBanner: {
+    display: 'flex',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
@@ -420,6 +423,7 @@ const styles = StyleSheet.create({
     marginLeft: 8,
   },
   infoRow: {
+    display: 'flex',
     flexDirection: 'row',
     justifyContent: 'space-between',
     paddingVertical: 8,
@@ -439,6 +443,7 @@ const styles = StyleSheet.create({
     textAlign: 'right',
   },
   comparisonContainer: {
+    display: 'flex',
     flexDirection: 'row',
     justifyContent: 'space-between',
   },
@@ -450,7 +455,7 @@ const styles = StyleSheet.create({
     marginHorizontal: 4,
   },
   governingMethod: {
-    backgroundColor: colors.primary + '20', // 20% opacity primary color
+    backgroundColor: `${colors.primary}20`, // 20% opacity primary color
     borderWidth: 2,
     borderColor: colors.primary,
   },
@@ -483,6 +488,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   tableHeader: {
+    display: 'flex',
     flexDirection: 'row',
     backgroundColor: colors.primary,
     padding: 8,
@@ -496,6 +502,7 @@ const styles = StyleSheet.create({
     padding: 4,
   },
   tableRow: {
+    display: 'flex',
     flexDirection: 'row',
     borderTopWidth: 1,
     borderTopColor: colors.border,
@@ -518,13 +525,14 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: colors.text,
     marginBottom: 16,
-    lineHeight: 24,
+    lineHeight: 1.5,
   },
   formula: {
     backgroundColor: colors.background,
     padding: 16,
     borderRadius: 4,
     marginBottom: 16,
+    display: 'flex',
     alignItems: 'center',
   },
   formulaText: {
@@ -540,6 +548,7 @@ const styles = StyleSheet.create({
   },
   imageContainer: {
     marginVertical: 16,
+    display: 'flex',
     alignItems: 'center',
   },
   imageCaption: {
@@ -552,6 +561,7 @@ const styles = StyleSheet.create({
     height: 150,
     backgroundColor: colors.background,
     borderRadius: 8,
+    display: 'flex',
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -561,6 +571,7 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   recommendationItem: {
+    display: 'flex',
     flexDirection: 'row',
     marginBottom: 16,
   },
@@ -580,14 +591,16 @@ const styles = StyleSheet.create({
   recommendationText: {
     fontSize: 14,
     color: colors.text,
-    lineHeight: 20,
+    lineHeight: 1.4,
   },
   buttonContainer: {
+    display: 'flex',
     flexDirection: 'row',
     justifyContent: 'space-between',
     margin: 16,
   },
   button: {
+    display: 'flex',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
@@ -595,14 +608,8 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     flex: 1,
     marginHorizontal: 4,
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 3.84,
-    elevation: 5,
+    boxShadow: '0px 2px 4px rgba(0, 0, 0, 0.1)',
+    cursor: 'pointer',
   },
   editButton: {
     backgroundColor: colors.secondary,
