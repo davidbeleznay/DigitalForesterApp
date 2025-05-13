@@ -24,6 +24,7 @@ The application now has:
 - Advanced California Method implementation with multiple measurements
 - Professional design recommendation system based on culvert sizing results
 - Detailed result visualization with comparison tables and warnings
+- Improved field card design for better user experience
 
 ## Features Implemented
 
@@ -40,12 +41,19 @@ The application now has:
    - Dynamic field calculations
 
 3. **Home Dashboard**
-   - Tool selection cards
-   - Feature highlights
-   - Navigation to specific tools
-   - Coming soon indicators for future tools
+   - Tool selection cards with modern field card design
+   - Feature highlights with descriptions
+   - Direct navigation to create new assessments
+   - Recent drafts section for continuing work
 
-4. **Culvert Sizing Tool**
+4. **Road Risk Assessment Tool**
+   - Comprehensive road evaluation form
+   - Hazard and consequence factor scoring
+   - Automatic risk calculation matrix
+   - Photo documentation capability
+   - PDF export functionality
+
+5. **Culvert Sizing Tool**
    - Multi-step form with stream measurements
    - Support for multiple measurement points with averaging
    - Trapezoid cross-sectional area calculations
@@ -58,19 +66,9 @@ The application now has:
    - Toggle switches for climate change factors
    - Comprehensive results display with method comparison
 
-5. **Road Risk Assessment Tool**
-   - Detailed road condition evaluation
-   - Multiple risk factor inputs:
-     - Hazard factors (likelihood of failure)
-     - Consequence factors (impact severity)
-   - Interactive risk scoring matrix
-   - Photo documentation
-   - PDF export capability
-   - Automatic risk category calculation
-
 ## How to Use
 
-1. Start the application and navigate to either the Road Risk Assessment or Culvert Sizing Tool from the Home page
+1. Start the application and select a tool from the homepage
 2. For Road Risk Assessment:
    - Enter road name and location information
    - Rate hazard and consequence factors
@@ -139,6 +137,13 @@ npm install --legacy-peer-deps
 ## Changelog
 
 ### 2025-05-13 (Latest)
+- Redesigned HomeScreen with improved field card layout
+- Updated navigation to create new assessments when clicking on tool cards
+- Enhanced draft card styling with better visual hierarchy
+- Improved responsive design for various screen sizes
+- Added card descriptions to better explain each tool's purpose
+
+### 2025-05-13
 - Fixed Road Risk Assessment routing issues
 - Added proper navigation link to Road Risk Assessment from HomeScreen
 - Added route for History page
