@@ -1,163 +1,93 @@
 // src/screens/HomeScreen.js
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { colors } from '../constants/constants';
+import ThemeToggle from '../components/ThemeToggle';
+import { formatDate } from '../constants/constants';
 
 const HomeScreen = () => {
+  // Mock draft data - in a real app, this would come from localStorage or an API
+  const [drafts, setDrafts] = useState([
+    {
+      id: 1,
+      title: 'yes',
+      location: 'No location',
+      type: 'risk',
+      date: '2025-05-08',
+      path: '/road-risk'
+    },
+    {
+      id: 2,
+      title: 'Culvert name',
+      location: 'gps',
+      type: 'culvert',
+      date: '2025-05-07',
+      path: '/culvert'
+    }
+  ]);
+
   return (
-    <div style={styles.container}>
-      <div style={styles.header}>
-        <h1 style={styles.title}>Digital Forester</h1>
-        <p style={styles.subtitle}>Forestry Calculation Tools</p>
-      </div>
+    <div className="container">
+      <ThemeToggle />
       
-      <div style={styles.toolsContainer}>
+      <h1 className="main-title">Digital Forester App</h1>
+      
+      <p style={{ textAlign: 'center', marginBottom: '32px' }}>
+        Select a tool to begin:
+      </p>
+      
+      <div className="tool-container">
+        <button className="tool-btn primary">
+          Road Risk Assessment
+        </button>
+        
         <Link to="/culvert" style={{ textDecoration: 'none' }}>
-          <div style={styles.toolCard}>
-            <h2 style={styles.toolTitle}>Culvert Sizing Tool</h2>
-            <p style={styles.toolDescription}>
-              Calculate appropriate culvert dimensions using the California Method and hydraulic analysis.
-            </p>
-            <div style={styles.featureList}>
-              <div style={styles.featureItem}>
-                <p style={styles.featureText}>✓ 3× Bankfull Area Method</p>
-              </div>
-              <div style={styles.featureItem}>
-                <p style={styles.featureText}>✓ Multiple Stream Measurements</p>
-              </div>
-              <div style={styles.featureItem}>
-                <p style={styles.featureText}>✓ Hydraulic Analysis</p>
-              </div>
-              <div style={styles.featureItem}>
-                <p style={styles.featureText}>✓ Climate Change Factors</p>
-              </div>
-            </div>
-            <button style={styles.button}>
-              <span style={styles.buttonText}>Open Tool</span>
-            </button>
-          </div>
+          <button className="tool-btn success">
+            Culvert Sizing Tool
+          </button>
         </Link>
         
-        <div style={{...styles.toolCard, ...styles.comingSoon}}>
-          <h2 style={styles.toolTitle}>Road Risk Assessment</h2>
-          <p style={styles.toolDescription}>
-            Evaluate forestry road risk factors and generate assessment reports.
-          </p>
-          <span style={styles.comingSoonLabel}>Coming Soon</span>
-        </div>
+        <button className="tool-btn secondary">
+          Assessment History
+        </button>
       </div>
       
-      <div style={styles.footer}>
-        <p style={styles.footerText}>Digital Forester App © 2025</p>
+      {drafts.length > 0 && (
+        <>
+          <h2 className="section-title">Recent Drafts</h2>
+          
+          <div>
+            {drafts.map(draft => (
+              <div key={draft.id} className="draft-card">
+                <div className="draft-row">
+                  <div className="draft-info">
+                    <h3 className="draft-title">{draft.title}</h3>
+                    <p className="draft-subtitle">{draft.location}</p>
+                  </div>
+                  
+                  <div className="draft-meta">
+                    <span className={`draft-type ${draft.type}`}>
+                      {draft.type === 'risk' ? 'Road Risk' : 'Culvert Sizing'}
+                    </span>
+                    <span className="draft-date">{formatDate(draft.date)}</span>
+                  </div>
+                </div>
+                
+                <Link to={draft.path} className="draft-action">
+                  Continue editing →
+                </Link>
+              </div>
+            ))}
+          </div>
+        </>
+      )}
+      
+      <div className="footer">
+        <p>Digital Forester App v0.2.0</p>
+        <p>© 2025 Forest Management Technologies</p>
       </div>
     </div>
   );
-};
-
-const styles = {
-  container: {
-    padding: '20px',
-    backgroundColor: colors.background,
-    minHeight: '100vh',
-    display: 'flex',
-    flexDirection: 'column',
-  },
-  header: {
-    marginBottom: '40px',
-    textAlign: 'center',
-  },
-  title: {
-    fontSize: '32px',
-    fontWeight: 'bold',
-    color: colors.primary,
-    marginBottom: '8px',
-  },
-  subtitle: {
-    fontSize: '18px',
-    color: colors.lightText,
-    margin: 0,
-  },
-  toolsContainer: {
-    display: 'flex',
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'center',
-    gap: '20px',
-    flex: 1,
-  },
-  toolCard: {
-    backgroundColor: colors.white,
-    borderRadius: '12px',
-    padding: '24px',
-    width: '320px',
-    boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)',
-    display: 'flex',
-    flexDirection: 'column',
-    height: '100%',
-  },
-  comingSoon: {
-    opacity: 0.7,
-    position: 'relative',
-    overflow: 'hidden',
-  },
-  toolTitle: {
-    fontSize: '20px',
-    fontWeight: 'bold',
-    color: colors.primary,
-    marginBottom: '12px',
-  },
-  toolDescription: {
-    fontSize: '16px',
-    color: colors.text,
-    lineHeight: 1.5,
-    marginBottom: '16px',
-  },
-  featureList: {
-    marginBottom: '20px',
-  },
-  featureItem: {
-    marginBottom: '8px',
-  },
-  featureText: {
-    fontSize: '14px',
-    color: colors.text,
-    margin: 0,
-  },
-  button: {
-    backgroundColor: colors.primary,
-    padding: '12px 16px',
-    borderRadius: '8px',
-    textAlign: 'center',
-    marginTop: 'auto',
-    border: 'none',
-    cursor: 'pointer',
-  },
-  buttonText: {
-    color: colors.white,
-    fontSize: '16px',
-    fontWeight: 'bold',
-  },
-  comingSoonLabel: {
-    position: 'absolute',
-    top: '16px',
-    right: '16px',
-    backgroundColor: colors.secondary,
-    color: colors.white,
-    padding: '4px 8px',
-    borderRadius: '4px',
-    fontSize: '12px',
-    fontWeight: 'bold',
-  },
-  footer: {
-    marginTop: '40px',
-    textAlign: 'center',
-  },
-  footerText: {
-    fontSize: '14px',
-    color: colors.lightText,
-    margin: 0,
-  }
 };
 
 export default HomeScreen;
