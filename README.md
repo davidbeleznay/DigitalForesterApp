@@ -1,230 +1,59 @@
-# Digital Forester App
+# AI-Forester-App
 
-A web application for forestry professionals to perform field calculations and collect data.
-
-## Project Overview
-
-The Digital Forester App is designed for forestry professionals to perform field calculations, collect data, and generate reports. It includes tools for road risk assessment and culvert sizing.
+A mobile application for forestry professionals to perform field calculations and collect data.
 
 ## Project Setup
 
-1. Clone the repository: `git clone https://github.com/davidbeleznay/DigitalForesterApp.git`
+1. Install Expo CLI: `npm install -g expo-cli`
 2. Install dependencies: `npm install`
-3. Start the development server: `npm start`
-4. View the app in your browser at `http://localhost:3000`
+3. Start the development server: `npx expo start`
+4. Scan the QR code with Expo Go app on your mobile device
 
 ## Current Status
 
-The application now has:
-- A responsive web interface optimized for both desktop and mobile use
-- React Router-based navigation system
-- Comprehensive form state management
-- Road Risk Assessment tool for evaluation of forest road hazards
-- Culvert Sizing Tool with dual-method calculation approach
-- Advanced California Method implementation with multiple measurements
-- Professional design recommendation system based on culvert sizing results
-- Detailed result visualization with comparison tables and warnings
-- Improved field card design for better user experience
-- Enhanced culvert form with separate top width, bottom width, and depth measurement inputs
-- Robust geolocation handling with manual coordinate entry fallback
+We've rebuilt the application from scratch to resolve persistent issues with React Native Gesture Handler and TypeScript.
 
-## Features Implemented
+Navigation structure is fully implemented with consistent routing for all tools. The Culvert Sizing Tool is now functional with California sizing method and integrated fish passage requirements. Road Risk Assessment navigation is fixed.
 
-1. **React Web Application**
-   - Single-page application architecture
-   - Responsive design for mobile and desktop
-   - Modern UI components
-   - React Router for navigation
+## Features
 
-2. **Form Management**
-   - Form state using React hooks
-   - Input handling and validation
-   - Step-by-step data entry process
-   - Dynamic field calculations
+### Culvert Sizing Tool
+- Calculates appropriate culvert dimensions based on:
+  - California Sizing Method (primary): Sizes culverts based on 1.2 × bankfull width
+  - Hydraulic Capacity Check (secondary): Verifies culvert can pass bankfull flow
+- Automatic embedding integration for fish passage requirements
+- Visual results showing culvert dimensions and embedding
+- Option to save calculations as drafts for later reference
 
-3. **Home Dashboard**
-   - Tool selection cards with modern field card design
-   - Feature highlights with descriptions
-   - Direct navigation to create new assessments
-   - Recent drafts section for continuing work
+### Road Risk Assessment
+- Form-based tool for evaluating forest road risk factors (in progress)
+- Navigation structure in place
 
-4. **Road Risk Assessment Tool**
-   - Comprehensive road evaluation form
-   - Hazard and consequence factor scoring
-   - Automatic risk calculation matrix
-   - Photo documentation capability
-   - PDF export functionality
-
-5. **Culvert Sizing Tool**
-   - Multi-section form with separate measurement inputs for different dimensions:
-     - Individual top width measurements with averaging
-     - Individual bottom width measurements with averaging
-     - Individual depth measurements with averaging
-   - Robust GPS location capture with user-friendly error handling:
-     - Enhanced error messaging for geolocation failures
-     - Manual coordinate entry option when GPS is unavailable
-     - Loading indicator during location capture
-   - Trapezoid cross-sectional area calculations
-   - Dual sizing methodology:
-     - Hydraulic sizing using Manning's equation
-     - California Method sizing using 3× bankfull cross-sectional area
-   - Q100 detection and professional design recommendations
-   - Headwater criterion (HW/D) validation
-   - Culvert specification selection (material, shape, Manning's n)
-   - Toggle switches for climate change factors
-   - Comprehensive results display with method comparison
-   - Auto-save functionality for draft recovery
-
-## How to Use
-
-1. Start the application and select a tool from the homepage
-2. For Road Risk Assessment:
-   - Enter road name and location information
-   - Rate hazard and consequence factors
-   - View calculated risk score and professional requirements
-   - Add photos and comments
-   - Save assessment or export as PDF
-
-3. For Culvert Sizing:
-   - Enter culvert ID and road information
-   - Capture location using one of these methods:
-     - Click "Get GPS Location" button to use device geolocation (requires permission)
-     - Enter coordinates manually if GPS is unavailable or denied
-   - Add multiple stream measurements:
-     - Add multiple top width measurements to capture variation
-     - Add multiple bottom width measurements if needed
-     - Add multiple depth measurements at different locations
-   - View calculated averages automatically
-   - Enter stream properties (slope, discharge, fish passage requirements)
-   - Configure culvert specifications and design preferences
-   - Toggle climate change option for future-proofing
-   - Save your draft at any time
-   - Click "Calculate Culvert Size" to get sizing recommendations from both methods
-
-4. Review History:
-   - Access previously saved assessments and drafts
-   - Continue editing existing drafts
-   - View completed assessments
-
-## Troubleshooting
-
-If you encounter any issues:
-
-1. Make sure you have the latest version: `git pull origin main`
-2. Delete the node_modules folder: `rmdir /s /q node_modules` (Windows) or `rm -rf node_modules` (Mac/Linux)
-3. Delete package-lock.json: `del package-lock.json` (Windows) or `rm package-lock.json` (Mac/Linux)
-4. Reinstall dependencies: `npm install`
-5. Start the server: `npm start`
-
-If you encounter GPS location errors:
-- Make sure your browser has permission to access your location
-- Try entering the coordinates manually using the input fields provided
-- Check that your device's location services are enabled
-
-If you encounter any dependency conflicts:
-```
-npm install --legacy-peer-deps
-```
-
-## Next Steps
-
-1. Add Culvert Visualization:
-   - Graphic representation of recommended culvert
-   - Dynamic cross-section diagram showing water levels
-   - Comparison of different shapes and materials
-   
-2. Add Result Export Functionality:
-   - Export calculations as PDF reports
-   - Save culvert designs to local database
-   - Generate QR codes for field reference
-
-3. Enhance Offline Capabilities:
-   - Pre-load regional data for offline use
-   - Implement offline map tiles for GPS functionality
-   - Periodic background sync when connectivity returns
-
-4. Add Advanced Design Features:
-   - Multi-culvert configurations for wider streams
-   - Scour and headcutting analysis
-   - Energy dissipation structure recommendations
-
-5. Implement User Management:
-   - User profiles with saved preferences
-   - Team sharing of culvert designs
-   - Design approval workflows
+### Data Management
+- Local storage for saved calculations
+- Draft tracking across tools
+- History view for accessing saved field cards
 
 ## Changelog
 
-### 2025-05-13 (Latest)
-- Fixed geolocation functionality with robust error handling
-- Added manual coordinate entry option when GPS location is unavailable
-- Improved status messaging with different message types (success, error, info)
-- Added loading state indicator for GPS button
-- Enhanced navigation with back button and page header
-- Updated styling for better user experience
-
 ### 2025-05-13
-- Enhanced Culvert Sizing Tool with separate measurement input sections
-- Added ability to capture multiple measurements for top width, bottom width, and depth independently
-- Improved GPS location capturing with better visual feedback and error handling
-- Updated measurement grid layout for more intuitive data entry
-- Added draft saving functionality with status messages
-- Enhanced form validation for better user experience
-- Updated form styling and component organization for clarity
+- Added comprehensive CulvertCalculator utility with bankfull width method and fish passage support
+- Created CulvertSizingForm component with integration of California sizing method
+- Implemented ResultScreen with visual representation of culvert dimensions
+- Updated navigation structure for consistent routing
+- Fixed Road Risk routing in AppRouter and HomeScreen
+- Enhanced styling with fish passage and culvert visualization components
 
-### 2025-05-13 
-- Redesigned HomeScreen with improved field card layout
-- Updated navigation to create new assessments when clicking on tool cards
-- Enhanced draft card styling with better visual hierarchy
-- Improved responsive design for various screen sizes
-- Added card descriptions to better explain each tool's purpose
+### 2025-05-04
+- Created fresh project with Expo
+- Set up basic navigation structure
+- Implemented HomeScreen with navigation to Culvert Tool
+- Established color palette and basic styling
 
-### 2025-05-13
-- Fixed Road Risk Assessment routing issues
-- Added proper navigation link to Road Risk Assessment from HomeScreen
-- Added route for History page
-- Ensured proper connectivity between all application components
-- Updated README with comprehensive documentation on all tools
+## Next Steps
 
-### 2025-05-13
-- Converted application to React web app from React Native
-- Fixed dependency conflicts and package structure
-- Updated navigation to use React Router instead of React Navigation
-- Modified GPS functionality to use web Geolocation API
-- Updated UI components to use web-compatible styling
-- Created modern responsive HomeScreen with tool navigation cards
-- Fixed React error handling and validation
-
-### 2025-05-13 (Earlier)
-- Implemented California Method culvert sizing with 3x bankfull area calculation
-- Added multiple measurement inputs for top width, bottom width, and depth
-- Added automatic calculation of cross-sectional area and required culvert size
-- Implemented Q100 handling with professional design recommendations
-- Created comprehensive results screen with detailed calculation breakdowns
-- Added formula display and comparison tables for sizing methods
-- Enhanced culvert sizing calculator with headwater criterion checks
-- Added warning banner for streams requiring professional design
-
-### 2025-05-08
-- Enhanced Culvert Sizing Tool with dual sizing methodology
-- Added stream geometry inputs (width, depth, slope, fish passage)
-- Implemented transportability matrix sizing alongside hydraulic sizing
-- Added comparison logic to recommend larger of two sizes
-- Added regional calculation methods (BC, California, Pacific NW)
-- Implemented fish passage considerations and debris transport requirements
-- Enhanced results display with sizing method comparison
-- Added toggles for climate change and transportability matrix options
-- Improved UI with additional field validations and tooltips
-
-### 2025-05-07
-- Added form state management using React hooks
-- Implemented localStorage for saving and retrieving form data
-- Updated Dashboard to display saved drafts
-- Added feedback messages for form actions
-
-### 2025-05-06
-- Added basic routing with React Router
-- Created Dashboard, Road Risk Form, and Culvert Sizing Form pages
-- Implemented navigation between pages
-- Added basic form UI with styled inputs
-- Simplified app structure to resolve formatting issues
+- Complete Road Risk Assessment form functionality
+- Implement PDF export for completed calculations
+- Add offline data synchronization
+- Integrate GPS location capture
+- Develop reporting functionality
