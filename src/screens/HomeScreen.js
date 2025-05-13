@@ -37,9 +37,11 @@ const HomeScreen = () => {
       </p>
       
       <div className="tool-container">
-        <button className="tool-btn primary">
-          Road Risk Assessment
-        </button>
+        <Link to="/road-risk" style={{ textDecoration: 'none' }}>
+          <button className="tool-btn primary">
+            Road Risk Assessment
+          </button>
+        </Link>
         
         <Link to="/culvert" style={{ textDecoration: 'none' }}>
           <button className="tool-btn success">
@@ -47,9 +49,11 @@ const HomeScreen = () => {
           </button>
         </Link>
         
-        <button className="tool-btn secondary">
-          Assessment History
-        </button>
+        <Link to="/history" style={{ textDecoration: 'none' }}>
+          <button className="tool-btn secondary">
+            Assessment History
+          </button>
+        </Link>
       </div>
       
       {drafts.length > 0 && (
