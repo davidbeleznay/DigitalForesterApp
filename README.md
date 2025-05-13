@@ -137,7 +137,13 @@ If you encounter any issues:
 
 ## Changelog
 
-### 2025-05-08 (Latest)
+### 2025-05-13 (Latest)
+- Simplified Culvert ID section by removing Assessment title
+- Replaced Location field with GPS button for automatic coordinate capture
+- Removed Region field from Culvert ID section
+- Added expo-location integration for GPS functionality
+
+### 2025-05-08
 - Enhanced Culvert Sizing Tool with dual sizing methodology
 - Added stream geometry inputs (width, depth, slope, fish passage)
 - Implemented transportability matrix sizing alongside hydraulic sizing
