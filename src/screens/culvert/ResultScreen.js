@@ -1,13 +1,7 @@
 // src/screens/culvert/ResultScreen.js
 
 import React from 'react';
-import { 
-  View, 
-  Text, 
-  StyleSheet, 
-  ScrollView, 
-  TouchableOpacity 
-} from 'react-native';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { 
   MdImage,
   MdCheckCircle,
@@ -18,8 +12,9 @@ import {
 } from 'react-icons/md';
 import { colors, culvertMaterials, culvertShapes } from '../../constants/constants';
 
-const ResultScreen = ({ route, navigation }) => {
-  // Get calculation results from route params
+const ResultScreen = () => {
+  const location = useLocation();
+  const navigate = useNavigate();
   const { 
     result, 
     measurements, 
@@ -27,7 +22,7 @@ const ResultScreen = ({ route, navigation }) => {
     streamProperties, 
     culvertSpecs, 
     options 
-  } = route.params || {};
+  } = location.state || {};
 
   // Get material and shape labels
   const getMaterialLabel = (value) => {
@@ -43,14 +38,14 @@ const ResultScreen = ({ route, navigation }) => {
   // If no result, show placeholder message
   if (!result) {
     return (
-      <ScrollView style={styles.container}>
-        <View style={styles.card}>
-          <Text style={styles.sectionTitle}>Results</Text>
-          <Text style={styles.placeholder}>
+      <div style={styles.container}>
+        <div style={styles.card}>
+          <h2 style={styles.sectionTitle}>Results</h2>
+          <p style={styles.placeholder}>
             No calculation results available. Please complete the input form to calculate culvert size.
-          </Text>
-        </View>
-      </ScrollView>
+          </p>
+        </div>
+      </div>
     );
   }
 
@@ -66,345 +61,351 @@ const ResultScreen = ({ route, navigation }) => {
   } = result;
 
   return (
-    <ScrollView style={styles.container}>
+    <div style={styles.container}>
       {/* Final Recommendation */}
-      <View style={styles.card}>
-        <Text style={styles.sectionTitle}>Recommended Culvert Size</Text>
-        <View style={styles.sizeBadgeContainer}>
-          <View style={styles.sizeBadge}>
-            <Text style={styles.sizeValue}>{finalSize} mm</Text>
-            <Text style={styles.sizeLabel}>{getShapeLabel(culvertSpecs.shape)}</Text>
-          </View>
-        </View>
-        <Text style={styles.message}>{message}</Text>
+      <div style={styles.card}>
+        <h2 style={styles.sectionTitle}>Recommended Culvert Size</h2>
+        <div style={styles.sizeBadgeContainer}>
+          <div style={styles.sizeBadge}>
+            <p style={styles.sizeValue}>{finalSize} mm</p>
+            <p style={styles.sizeLabel}>{getShapeLabel(culvertSpecs.shape)}</p>
+          </div>
+        </div>
+        <p style={styles.message}>{message}</p>
         
         {professionalDesignRequired && (
-          <View style={styles.warningBanner}>
+          <div style={styles.warningBanner}>
             <MdWarning size={24} color="white" />
-            <Text style={styles.warningBannerText}>
+            <p style={styles.warningBannerText}>
               Professional Design Required
-            </Text>
-          </View>
+            </p>
+          </div>
         )}
         
-        <View style={styles.infoRow}>
-          <Text style={styles.infoLabel}>Governing Method:</Text>
-          <Text style={styles.infoValue}>{governingMethod}</Text>
-        </View>
+        <div style={styles.infoRow}>
+          <p style={styles.infoLabel}>Governing Method:</p>
+          <p style={styles.infoValue}>{governingMethod}</p>
+        </div>
         
-        <View style={styles.infoRow}>
-          <Text style={styles.infoLabel}>Material:</Text>
-          <Text style={styles.infoValue}>{getMaterialLabel(culvertSpecs.material)}</Text>
-        </View>
+        <div style={styles.infoRow}>
+          <p style={styles.infoLabel}>Material:</p>
+          <p style={styles.infoValue}>{getMaterialLabel(culvertSpecs.material)}</p>
+        </div>
         
-        <View style={styles.infoRow}>
-          <Text style={styles.infoLabel}>Manning's n:</Text>
-          <Text style={styles.infoValue}>{culvertSpecs.manningsN}</Text>
-        </View>
+        <div style={styles.infoRow}>
+          <p style={styles.infoLabel}>Manning's n:</p>
+          <p style={styles.infoValue}>{culvertSpecs.manningsN}</p>
+        </div>
         
-        <View style={styles.infoRow}>
-          <Text style={styles.infoLabel}>Headwater Criterion:</Text>
-          <Text style={styles.infoValue}>HW/D ≤ {culvertSpecs.maxHwD}</Text>
-        </View>
+        <div style={styles.infoRow}>
+          <p style={styles.infoLabel}>Headwater Criterion:</p>
+          <p style={styles.infoValue}>HW/D ≤ {culvertSpecs.maxHwD}</p>
+        </div>
         
         {options.includeClimateChange && (
-          <View style={styles.infoRow}>
-            <Text style={styles.infoLabel}>Climate Change Factor:</Text>
-            <Text style={styles.infoValue}>{options.climateChangeFactor.toFixed(2)}x</Text>
-          </View>
+          <div style={styles.infoRow}>
+            <p style={styles.infoLabel}>Climate Change Factor:</p>
+            <p style={styles.infoValue}>{options.climateChangeFactor.toFixed(2)}x</p>
+          </div>
         )}
-      </View>
+      </div>
 
       {/* Sizing Method Comparison */}
-      <View style={styles.card}>
-        <Text style={styles.sectionTitle}>Sizing Method Comparison</Text>
+      <div style={styles.card}>
+        <h2 style={styles.sectionTitle}>Sizing Method Comparison</h2>
         
-        <View style={styles.comparisonContainer}>
-          <View style={[
-            styles.comparisonItem, 
-            governingMethod.includes('California') && styles.governingMethod
-          ]}>
-            <Text style={styles.comparisonTitle}>California Method</Text>
-            <Text style={styles.comparisonValue}>
+        <div style={styles.comparisonContainer}>
+          <div style={{
+            ...styles.comparisonItem, 
+            ...(governingMethod.includes('California') ? styles.governingMethod : {})
+          }}>
+            <p style={styles.comparisonTitle}>California Method</p>
+            <p style={styles.comparisonValue}>
               {typeof californiaSizing.size === 'string' && californiaSizing.size === 'Q100' 
                 ? 'Q100' 
                 : `${californiaSizing.size} mm`}
-            </Text>
-            <Text style={styles.comparisonDescription}>
+            </p>
+            <p style={styles.comparisonDescription}>
               3× Bankfull Area: {(bankfullDimensions.bankfullArea * 3).toFixed(2)} m²
-            </Text>
-            <Text style={styles.comparisonNote}>{californiaSizing.message}</Text>
-          </View>
+            </p>
+            <p style={styles.comparisonNote}>{californiaSizing.message}</p>
+          </div>
           
-          <View style={[
-            styles.comparisonItem, 
-            governingMethod.includes('Hydraulic') && styles.governingMethod
-          ]}>
-            <Text style={styles.comparisonTitle}>Hydraulic Calculation</Text>
-            <Text style={styles.comparisonValue}>{hydraulicSizing.size} mm</Text>
-            <Text style={styles.comparisonDescription}>
+          <div style={{
+            ...styles.comparisonItem, 
+            ...(governingMethod.includes('Hydraulic') ? styles.governingMethod : {})
+          }}>
+            <p style={styles.comparisonTitle}>Hydraulic Calculation</p>
+            <p style={styles.comparisonValue}>{hydraulicSizing.size} mm</p>
+            <p style={styles.comparisonDescription}>
               Design Discharge: {streamProperties.adjustedDischarge.toFixed(2)} m³/s
-            </Text>
-            <Text style={styles.comparisonNote}>{hydraulicSizing.message}</Text>
-          </View>
-        </View>
-      </View>
+            </p>
+            <p style={styles.comparisonNote}>{hydraulicSizing.message}</p>
+          </div>
+        </div>
+      </div>
 
       {/* Calculation Details */}
-      <View style={styles.card}>
-        <Text style={styles.sectionTitle}>Calculation Details</Text>
+      <div style={styles.card}>
+        <h2 style={styles.sectionTitle}>Calculation Details</h2>
         
-        <View style={styles.table}>
-          <View style={styles.tableHeader}>
-            <Text style={[styles.tableHeaderCell, { flex: 1 }]}>Method</Text>
-            <Text style={[styles.tableHeaderCell, { flex: 1.5 }]}>Key Parameter</Text>
-            <Text style={[styles.tableHeaderCell, { flex: 1 }]}>Result</Text>
-          </View>
+        <div style={styles.table}>
+          <div style={styles.tableHeader}>
+            <p style={{...styles.tableHeaderCell, flex: 1}}>Method</p>
+            <p style={{...styles.tableHeaderCell, flex: 1.5}}>Key Parameter</p>
+            <p style={{...styles.tableHeaderCell, flex: 1}}>Result</p>
+          </div>
 
-          <View style={styles.tableRow}>
-            <Text style={[styles.tableCell, { flex: 1 }]}>California Table</Text>
-            <Text style={[styles.tableCell, { flex: 1.5 }]}>
+          <div style={styles.tableRow}>
+            <p style={{...styles.tableCell, flex: 1}}>California Table</p>
+            <p style={{...styles.tableCell, flex: 1.5}}>
               Width: {bankfullDimensions.averageWidth.toFixed(2)} m 
               Depth: {averages.depth} m
-            </Text>
-            <Text style={[styles.tableCell, { flex: 1 }]}>
+            </p>
+            <p style={{...styles.tableCell, flex: 1}}>
               {typeof californiaSizing.size === 'string' ? californiaSizing.size : `${californiaSizing.size} mm`}
-            </Text>
-          </View>
+            </p>
+          </div>
 
-          <View style={styles.tableRow}>
-            <Text style={[styles.tableCell, { flex: 1 }]}>Cross-Section</Text>
-            <Text style={[styles.tableCell, { flex: 1.5 }]}>
+          <div style={styles.tableRow}>
+            <p style={{...styles.tableCell, flex: 1}}>Cross-Section</p>
+            <p style={{...styles.tableCell, flex: 1.5}}>
               Area: {bankfullDimensions.bankfullArea.toFixed(2)} m² 
               × 3 = {(bankfullDimensions.bankfullArea * 3).toFixed(2)} m²
-            </Text>
-            <Text style={[styles.tableCell, { flex: 1 }]}>
+            </p>
+            <p style={{...styles.tableCell, flex: 1}}>
               {bankfullDimensions.calculatedSize} mm
-            </Text>
-          </View>
+            </p>
+          </div>
 
-          <View style={styles.tableRow}>
-            <Text style={[styles.tableCell, { flex: 1 }]}>Hydraulic</Text>
-            <Text style={[styles.tableCell, { flex: 1.5 }]}>
+          <div style={styles.tableRow}>
+            <p style={{...styles.tableCell, flex: 1}}>Hydraulic</p>
+            <p style={{...styles.tableCell, flex: 1.5}}>
               Discharge: {streamProperties.adjustedDischarge.toFixed(2)} m³/s
               HW/D ≤ {culvertSpecs.maxHwD}
-            </Text>
-            <Text style={[styles.tableCell, { flex: 1 }]}>
+            </p>
+            <p style={{...styles.tableCell, flex: 1}}>
               {hydraulicSizing.size} mm
-            </Text>
-          </View>
-        </View>
-      </View>
+            </p>
+          </div>
+        </div>
+      </div>
 
       {/* Stream Measurements */}
-      <View style={styles.card}>
-        <Text style={styles.sectionTitle}>Stream Measurements</Text>
+      <div style={styles.card}>
+        <h2 style={styles.sectionTitle}>Stream Measurements</h2>
         
-        <View style={styles.table}>
-          <View style={styles.tableHeader}>
-            <Text style={[styles.tableHeaderCell, { flex: 0.5 }]}>#</Text>
-            <Text style={[styles.tableHeaderCell, { flex: 1 }]}>Top (m)</Text>
-            <Text style={[styles.tableHeaderCell, { flex: 1 }]}>Bottom (m)</Text>
-            <Text style={[styles.tableHeaderCell, { flex: 1 }]}>Depth (m)</Text>
-          </View>
+        <div style={styles.table}>
+          <div style={styles.tableHeader}>
+            <p style={{...styles.tableHeaderCell, flex: 0.5}}>#</p>
+            <p style={{...styles.tableHeaderCell, flex: 1}}>Top (m)</p>
+            <p style={{...styles.tableHeaderCell, flex: 1}}>Bottom (m)</p>
+            <p style={{...styles.tableHeaderCell, flex: 1}}>Depth (m)</p>
+          </div>
           
           {measurements.map((measurement, index) => (
-            <View key={measurement.id} style={styles.tableRow}>
-              <Text style={[styles.tableCell, { flex: 0.5 }]}>{index + 1}</Text>
-              <Text style={[styles.tableCell, { flex: 1 }]}>{measurement.topWidth}</Text>
-              <Text style={[styles.tableCell, { flex: 1 }]}>{measurement.bottomWidth}</Text>
-              <Text style={[styles.tableCell, { flex: 1 }]}>{measurement.depth}</Text>
-            </View>
+            <div key={measurement.id} style={styles.tableRow}>
+              <p style={{...styles.tableCell, flex: 0.5}}>{index + 1}</p>
+              <p style={{...styles.tableCell, flex: 1}}>{measurement.topWidth}</p>
+              <p style={{...styles.tableCell, flex: 1}}>{measurement.bottomWidth}</p>
+              <p style={{...styles.tableCell, flex: 1}}>{measurement.depth}</p>
+            </div>
           ))}
           
-          <View style={[styles.tableRow, styles.tableFooter]}>
-            <Text style={[styles.tableFooterCell, { flex: 0.5 }]}>Avg</Text>
-            <Text style={[styles.tableFooterCell, { flex: 1 }]}>{averages.topWidth}</Text>
-            <Text style={[styles.tableFooterCell, { flex: 1 }]}>{averages.bottomWidth}</Text>
-            <Text style={[styles.tableFooterCell, { flex: 1 }]}>{averages.depth}</Text>
-          </View>
-        </View>
+          <div style={{...styles.tableRow, ...styles.tableFooter}}>
+            <p style={{...styles.tableFooterCell, flex: 0.5}}>Avg</p>
+            <p style={{...styles.tableFooterCell, flex: 1}}>{averages.topWidth}</p>
+            <p style={{...styles.tableFooterCell, flex: 1}}>{averages.bottomWidth}</p>
+            <p style={{...styles.tableFooterCell, flex: 1}}>{averages.depth}</p>
+          </div>
+        </div>
         
-        <View style={styles.infoRow}>
-          <Text style={styles.infoLabel}>Average Width:</Text>
-          <Text style={styles.infoValue}>{bankfullDimensions.averageWidth.toFixed(2)} m</Text>
-        </View>
+        <div style={styles.infoRow}>
+          <p style={styles.infoLabel}>Average Width:</p>
+          <p style={styles.infoValue}>{bankfullDimensions.averageWidth.toFixed(2)} m</p>
+        </div>
         
-        <View style={styles.infoRow}>
-          <Text style={styles.infoLabel}>Bankfull Area:</Text>
-          <Text style={styles.infoValue}>{bankfullDimensions.bankfullArea.toFixed(2)} m²</Text>
-        </View>
+        <div style={styles.infoRow}>
+          <p style={styles.infoLabel}>Bankfull Area:</p>
+          <p style={styles.infoValue}>{bankfullDimensions.bankfullArea.toFixed(2)} m²</p>
+        </div>
         
-        <View style={styles.infoRow}>
-          <Text style={styles.infoLabel}>End Area (3×):</Text>
-          <Text style={styles.infoValue}>{(bankfullDimensions.bankfullArea * 3).toFixed(2)} m²</Text>
-        </View>
-      </View>
+        <div style={styles.infoRow}>
+          <p style={styles.infoLabel}>End Area (3×):</p>
+          <p style={styles.infoValue}>{(bankfullDimensions.bankfullArea * 3).toFixed(2)} m²</p>
+        </div>
+      </div>
 
       {/* California Method Explanation */}
-      <View style={styles.card}>
-        <Text style={styles.sectionTitle}>California Method Explanation</Text>
-        <Text style={styles.explanationText}>
+      <div style={styles.card}>
+        <h2 style={styles.sectionTitle}>California Method Explanation</h2>
+        <p style={styles.explanationText}>
           The California Method (End Area Design Aid) uses the average stream width and depth to determine the appropriate culvert size based on area. This method uses average width × average depth × 3 to result in the end opening area of the culvert.
-        </Text>
-        <View style={styles.formula}>
-          <Text style={styles.formulaText}>
+        </p>
+        <div style={styles.formula}>
+          <p style={styles.formulaText}>
             End Area = ((W₁ + W₂) ÷ 2) × D × 3
-          </Text>
-          <Text style={styles.formulaLegend}>
+          </p>
+          <p style={styles.formulaLegend}>
             W₁ = Average Top Width, W₂ = Average Bottom Width, D = Average Depth
-          </Text>
-        </View>
-        <View style={styles.imageContainer}>
-          <Text style={styles.imageCaption}>Cross-Sectional Area Diagram</Text>
-          <View style={styles.imagePlaceholder}>
+          </p>
+        </div>
+        <div style={styles.imageContainer}>
+          <p style={styles.imageCaption}>Cross-Sectional Area Diagram</p>
+          <div style={styles.imagePlaceholder}>
             <MdImage size={48} color={colors.lightText} />
-            <Text style={styles.imagePlaceholderText}>Diagram will display here in future version</Text>
-          </View>
-        </View>
-      </View>
+            <p style={styles.imagePlaceholderText}>Diagram will display here in future version</p>
+          </div>
+        </div>
+      </div>
 
       {/* Design Recommendations */}
-      <View style={styles.card}>
-        <Text style={styles.sectionTitle}>Design Recommendations</Text>
+      <div style={styles.card}>
+        <h2 style={styles.sectionTitle}>Design Recommendations</h2>
         
-        <View style={styles.recommendationItem}>
+        <div style={styles.recommendationItem}>
           <MdCheckCircle size={24} color={colors.success} style={styles.recommendationIcon} />
-          <View style={styles.recommendationContent}>
-            <Text style={styles.recommendationTitle}>Installation</Text>
-            <Text style={styles.recommendationText}>
+          <div style={styles.recommendationContent}>
+            <h3 style={styles.recommendationTitle}>Installation</h3>
+            <p style={styles.recommendationText}>
               Install culvert at stream grade to maintain natural flow characteristics and minimize scouring.
-            </Text>
-          </View>
-        </View>
+            </p>
+          </div>
+        </div>
         
-        <View style={styles.recommendationItem}>
+        <div style={styles.recommendationItem}>
           <MdCheckCircle size={24} color={colors.success} style={styles.recommendationIcon} />
-          <View style={styles.recommendationContent}>
-            <Text style={styles.recommendationTitle}>Inlet/Outlet Protection</Text>
-            <Text style={styles.recommendationText}>
+          <div style={styles.recommendationContent}>
+            <h3 style={styles.recommendationTitle}>Inlet/Outlet Protection</h3>
+            <p style={styles.recommendationText}>
               Use riprap or other erosion control measures at inlet and outlet to prevent scouring.
-            </Text>
-          </View>
-        </View>
+            </p>
+          </div>
+        </div>
         
         {streamProperties.fishBearing && (
-          <View style={styles.recommendationItem}>
+          <div style={styles.recommendationItem}>
             <MdCheckCircle size={24} color={colors.success} style={styles.recommendationIcon} />
-            <View style={styles.recommendationContent}>
-              <Text style={styles.recommendationTitle}>Fish Passage</Text>
-              <Text style={styles.recommendationText}>
+            <div style={styles.recommendationContent}>
+              <h3 style={styles.recommendationTitle}>Fish Passage</h3>
+              <p style={styles.recommendationText}>
                 Embed culvert 20% of its height into streambed and maintain natural substrate through the culvert.
-              </Text>
-            </View>
-          </View>
+              </p>
+            </div>
+          </div>
         )}
         
         {finalSize >= 1200 && (
-          <View style={styles.recommendationItem}>
+          <div style={styles.recommendationItem}>
             <MdWarning size={24} color={colors.warning} style={styles.recommendationIcon} />
-            <View style={styles.recommendationContent}>
-              <Text style={styles.recommendationTitle}>Large Culvert Considerations</Text>
-              <Text style={styles.recommendationText}>
+            <div style={styles.recommendationContent}>
+              <h3 style={styles.recommendationTitle}>Large Culvert Considerations</h3>
+              <p style={styles.recommendationText}>
                 For culverts larger than 1200mm, consider using arch culverts or bridges to better accommodate high flows and debris.
-              </Text>
-            </View>
-          </View>
+              </p>
+            </div>
+          </div>
         )}
         
         {professionalDesignRequired && (
-          <View style={styles.recommendationItem}>
+          <div style={styles.recommendationItem}>
             <MdError size={24} color={colors.error} style={styles.recommendationIcon} />
-            <View style={styles.recommendationContent}>
-              <Text style={styles.recommendationTitle}>Professional Design Required</Text>
-              <Text style={styles.recommendationText}>
+            <div style={styles.recommendationContent}>
+              <h3 style={styles.recommendationTitle}>Professional Design Required</h3>
+              <p style={styles.recommendationText}>
                 The California Method indicates this stream is too large for a standard culvert (Q100 result). A professional engineer should design this crossing, possibly considering a bridge or large arch culvert.
-              </Text>
-            </View>
-          </View>
+              </p>
+            </div>
+          </div>
         )}
-      </View>
+      </div>
 
       {/* Action Buttons */}
-      <View style={styles.buttonContainer}>
-        <TouchableOpacity 
-          style={[styles.button, styles.editButton]}
-          onPress={() => navigation.goBack()}
+      <div style={styles.buttonContainer}>
+        <button 
+          style={{...styles.button, ...styles.editButton}}
+          onClick={() => navigate('/culvert')}
         >
           <MdEdit size={20} color="white" />
-          <Text style={styles.buttonText}>Edit Inputs</Text>
-        </TouchableOpacity>
+          <span style={styles.buttonText}>Edit Inputs</span>
+        </button>
         
-        <TouchableOpacity 
-          style={[styles.button, styles.primaryButton]}
-          onPress={() => {
+        <button 
+          style={{...styles.button, ...styles.primaryButton}}
+          onClick={() => {
             // This would be connected to PDF export functionality in the future
             alert('PDF export will be available in a future update');
           }}
         >
           <MdSave size={20} color="white" />
-          <Text style={styles.buttonText}>Export PDF</Text>
-        </TouchableOpacity>
-      </View>
-    </ScrollView>
+          <span style={styles.buttonText}>Export PDF</span>
+        </button>
+      </div>
+    </div>
   );
 };
 
-const styles = StyleSheet.create({
+const styles = {
   container: {
-    flex: 1,
+    padding: '20px',
+    maxWidth: '1200px',
+    margin: '0 auto',
     backgroundColor: colors.background,
   },
   card: {
     backgroundColor: colors.white,
-    borderRadius: 8,
-    padding: 16,
-    margin: 16,
-    marginBottom: 8,
+    borderRadius: '8px',
+    padding: '16px',
+    margin: '16px 0',
+    marginBottom: '8px',
     boxShadow: '0px 2px 4px rgba(0, 0, 0, 0.1)',
   },
   sectionTitle: {
-    fontSize: 18,
+    fontSize: '18px',
     fontWeight: 'bold',
-    marginBottom: 16,
+    marginBottom: '16px',
     color: colors.primary,
   },
   placeholder: {
-    fontSize: 16,
+    fontSize: '16px',
     color: colors.lightText,
     textAlign: 'center',
-    marginVertical: 40,
+    margin: '40px 0',
   },
   sizeBadgeContainer: {
     display: 'flex',
     alignItems: 'center',
-    marginBottom: 16,
+    justifyContent: 'center',
+    marginBottom: '16px',
   },
   sizeBadge: {
     backgroundColor: colors.primary,
     borderRadius: '50%',
-    width: 150,
-    height: 150,
+    width: '150px',
+    height: '150px',
     display: 'flex',
+    flexDirection: 'column',
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: '16px',
   },
   sizeValue: {
-    fontSize: 28,
+    fontSize: '28px',
     fontWeight: 'bold',
     color: colors.white,
+    margin: 0,
   },
   sizeLabel: {
-    fontSize: 16,
+    fontSize: '16px',
     color: colors.white,
-    marginTop: 4,
+    marginTop: '4px',
+    margin: 0,
   },
   message: {
-    fontSize: 16,
+    fontSize: '16px',
     color: colors.text,
     textAlign: 'center',
-    marginBottom: 16,
+    marginBottom: '16px',
   },
   warningBanner: {
     display: 'flex',
@@ -412,204 +413,220 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: colors.error,
-    padding: 12,
-    borderRadius: 4,
-    marginBottom: 16,
+    padding: '12px',
+    borderRadius: '4px',
+    marginBottom: '16px',
   },
   warningBannerText: {
-    fontSize: 16,
+    fontSize: '16px',
     fontWeight: 'bold',
     color: colors.white,
-    marginLeft: 8,
+    marginLeft: '8px',
+    margin: 0,
   },
   infoRow: {
     display: 'flex',
     flexDirection: 'row',
     justifyContent: 'space-between',
-    paddingVertical: 8,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
+    padding: '8px 0',
+    borderBottom: `1px solid ${colors.border}`,
   },
   infoLabel: {
-    fontSize: 16,
+    fontSize: '16px',
     color: colors.text,
     flex: 1,
+    margin: 0,
   },
   infoValue: {
-    fontSize: 16,
+    fontSize: '16px',
     fontWeight: 'bold',
     color: colors.secondary,
     flex: 1,
     textAlign: 'right',
+    margin: 0,
   },
   comparisonContainer: {
     display: 'flex',
     flexDirection: 'row',
     justifyContent: 'space-between',
+    flexWrap: 'wrap',
   },
   comparisonItem: {
     flex: 1,
-    padding: 12,
-    borderRadius: 8,
+    padding: '12px',
+    borderRadius: '8px',
     backgroundColor: colors.background,
-    marginHorizontal: 4,
+    margin: '4px',
+    minWidth: '200px',
   },
   governingMethod: {
     backgroundColor: `${colors.primary}20`, // 20% opacity primary color
-    borderWidth: 2,
-    borderColor: colors.primary,
+    border: `2px solid ${colors.primary}`,
   },
   comparisonTitle: {
-    fontSize: 16,
+    fontSize: '16px',
     fontWeight: 'bold',
-    marginBottom: 8,
+    marginBottom: '8px',
     color: colors.primary,
+    margin: '0 0 8px 0',
   },
   comparisonValue: {
-    fontSize: 24,
+    fontSize: '24px',
     fontWeight: 'bold',
     color: colors.text,
-    marginBottom: 8,
+    margin: '0 0 8px 0',
   },
   comparisonDescription: {
-    fontSize: 14,
+    fontSize: '14px',
     color: colors.text,
-    marginBottom: 8,
+    margin: '0 0 8px 0',
   },
   comparisonNote: {
-    fontSize: 12,
+    fontSize: '12px',
     color: colors.lightText,
     fontStyle: 'italic',
+    margin: 0,
   },
   table: {
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: 4,
-    marginBottom: 16,
+    border: `1px solid ${colors.border}`,
+    borderRadius: '4px',
+    marginBottom: '16px',
   },
   tableHeader: {
     display: 'flex',
     flexDirection: 'row',
     backgroundColor: colors.primary,
-    padding: 8,
-    borderTopLeftRadius: 4,
-    borderTopRightRadius: 4,
+    padding: '8px',
+    borderTopLeftRadius: '4px',
+    borderTopRightRadius: '4px',
   },
   tableHeaderCell: {
-    fontSize: 14,
+    fontSize: '14px',
     fontWeight: 'bold',
     color: colors.white,
-    padding: 4,
+    padding: '4px',
+    margin: 0,
   },
   tableRow: {
     display: 'flex',
     flexDirection: 'row',
-    borderTopWidth: 1,
-    borderTopColor: colors.border,
+    borderTop: `1px solid ${colors.border}`,
   },
   tableCell: {
-    fontSize: 14,
+    fontSize: '14px',
     color: colors.text,
-    padding: 8,
+    padding: '8px',
+    margin: 0,
   },
   tableFooter: {
     backgroundColor: colors.background,
   },
   tableFooterCell: {
-    fontSize: 14,
+    fontSize: '14px',
     fontWeight: 'bold',
     color: colors.primary,
-    padding: 8,
+    padding: '8px',
+    margin: 0,
   },
   explanationText: {
-    fontSize: 16,
+    fontSize: '16px',
     color: colors.text,
-    marginBottom: 16,
+    marginBottom: '16px',
     lineHeight: 1.5,
   },
   formula: {
     backgroundColor: colors.background,
-    padding: 16,
-    borderRadius: 4,
-    marginBottom: 16,
+    padding: '16px',
+    borderRadius: '4px',
+    marginBottom: '16px',
     display: 'flex',
+    flexDirection: 'column',
     alignItems: 'center',
   },
   formulaText: {
-    fontSize: 18,
+    fontSize: '18px',
     fontWeight: 'bold',
     color: colors.primary,
-    marginBottom: 8,
+    marginBottom: '8px',
+    margin: '0 0 8px 0',
   },
   formulaLegend: {
-    fontSize: 14,
+    fontSize: '14px',
     color: colors.lightText,
     textAlign: 'center',
+    margin: 0,
   },
   imageContainer: {
-    marginVertical: 16,
+    margin: '16px 0',
     display: 'flex',
+    flexDirection: 'column',
     alignItems: 'center',
   },
   imageCaption: {
-    fontSize: 14,
+    fontSize: '14px',
     color: colors.lightText,
-    marginBottom: 8,
+    marginBottom: '8px',
+    margin: '0 0 8px 0',
   },
   imagePlaceholder: {
     width: '100%',
-    height: 150,
+    height: '150px',
     backgroundColor: colors.background,
-    borderRadius: 8,
+    borderRadius: '8px',
     display: 'flex',
+    flexDirection: 'column',
     justifyContent: 'center',
     alignItems: 'center',
   },
   imagePlaceholderText: {
-    fontSize: 14,
+    fontSize: '14px',
     color: colors.lightText,
-    marginTop: 8,
+    marginTop: '8px',
+    margin: '8px 0 0 0',
   },
   recommendationItem: {
     display: 'flex',
     flexDirection: 'row',
-    marginBottom: 16,
+    marginBottom: '16px',
   },
   recommendationIcon: {
-    marginRight: 12,
-    marginTop: 2,
+    marginRight: '12px',
+    marginTop: '2px',
   },
   recommendationContent: {
     flex: 1,
   },
   recommendationTitle: {
-    fontSize: 16,
+    fontSize: '16px',
     fontWeight: 'bold',
     color: colors.text,
-    marginBottom: 4,
+    marginBottom: '4px',
+    margin: '0 0 4px 0',
   },
   recommendationText: {
-    fontSize: 14,
+    fontSize: '14px',
     color: colors.text,
     lineHeight: 1.4,
+    margin: 0,
   },
   buttonContainer: {
     display: 'flex',
     flexDirection: 'row',
     justifyContent: 'space-between',
-    margin: 16,
+    margin: '16px 0',
   },
   button: {
     display: 'flex',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    padding: 12,
-    borderRadius: 8,
+    padding: '12px',
+    borderRadius: '8px',
     flex: 1,
-    marginHorizontal: 4,
+    margin: '0 4px',
     boxShadow: '0px 2px 4px rgba(0, 0, 0, 0.1)',
     cursor: 'pointer',
+    border: 'none',
   },
   editButton: {
     backgroundColor: colors.secondary,
@@ -619,10 +636,10 @@ const styles = StyleSheet.create({
   },
   buttonText: {
     color: colors.white,
-    fontSize: 16,
+    fontSize: '16px',
     fontWeight: 'bold',
-    marginLeft: 8,
+    marginLeft: '8px',
   },
-});
+};
 
 export default ResultScreen;
