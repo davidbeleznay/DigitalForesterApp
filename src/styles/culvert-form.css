@@ -1,0 +1,307 @@
+/* Add styles for progress indicator and multi-measurement functionality */
+
+/* Progress Indicator */
+.progress-indicator {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 30px;
+  position: relative;
+}
+
+.progress-indicator::before {
+  content: '';
+  position: absolute;
+  top: 16px;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background-color: var(--border-color);
+  z-index: 1;
+}
+
+.progress-step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  z-index: 2;
+  flex: 1;
+}
+
+.progress-number {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background-color: var(--bg-color);
+  border: 2px solid var(--border-color);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 8px;
+  font-weight: 600;
+  color: var(--text-light);
+  transition: all 0.3s ease;
+}
+
+.progress-label {
+  font-size: 12px;
+  color: var(--text-light);
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.progress-step.active .progress-number {
+  background-color: var(--primary-color);
+  border-color: var(--primary-color);
+  color: white;
+}
+
+.progress-step.active .progress-label {
+  color: var(--primary-color);
+  font-weight: 600;
+}
+
+.progress-step.completed .progress-number {
+  background-color: var(--success-color);
+  border-color: var(--success-color);
+  color: white;
+}
+
+.progress-step.completed .progress-label {
+  color: var(--success-color);
+}
+
+/* Enhanced Measurement Styles */
+.measurement-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.measurement-item {
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  overflow: hidden;
+  transition: all 0.2s ease;
+}
+
+.measurement-item:hover {
+  box-shadow: var(--shadow);
+  transform: translateY(-2px);
+}
+
+.measurement-item-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: rgba(0, 0, 0, 0.03);
+  padding: 6px 10px;
+}
+
+.measurement-number {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-light);
+}
+
+.remove-button {
+  background: none;
+  border: none;
+  color: var(--text-light);
+  font-size: 16px;
+  cursor: pointer;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  transition: all 0.2s ease;
+}
+
+.remove-button:hover {
+  background-color: rgba(0, 0, 0, 0.1);
+  color: var(--error-color);
+}
+
+.remove-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.measurement-input {
+  width: 100%;
+  padding: 12px 8px;
+  border: none;
+  font-size: 16px;
+  background-color: var(--card-bg);
+  color: var(--text-color);
+  text-align: center;
+}
+
+/* Averages container */
+.averages-container {
+  background-color: rgba(0, 0, 0, 0.03);
+  padding: 16px;
+  border-radius: 8px;
+  margin-top: 20px;
+}
+
+.averages-container h3 {
+  font-size: 16px;
+  margin-top: 0;
+  margin-bottom: 12px;
+  color: var(--primary-color);
+}
+
+/* Add button styling */
+.add-button {
+  display: flex;
+  align-items: center;
+  background: none;
+  border: none;
+  color: var(--primary-color);
+  font-weight: 500;
+  padding: 6px 12px;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+.add-button:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+.add-button span {
+  margin-left: 6px;
+}
+
+/* Culvert visualization improvements */
+.culvert-diagram {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 30px 0;
+  padding: 30px 20px;
+  background-color: rgba(0, 0, 0, 0.03);
+  border-radius: 8px;
+  position: relative;
+}
+
+.culvert-diagram::before {
+  content: 'Cross-section view (not to scale)';
+  position: absolute;
+  bottom: 5px;
+  right: 10px;
+  font-size: 10px;
+  color: var(--text-light);
+}
+
+.stream-bed {
+  height: 60px;
+  width: 100px;
+  background-color: #8d6e63;
+  position: relative;
+}
+
+.stream-level {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  background-color: rgba(33, 150, 243, 0.3);
+}
+
+.culvert-pipe {
+  background-color: #90a4ae;
+  border-radius: 50%;
+  height: 80px;
+  width: 200px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.embed-area {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  background-color: #8d6e63;
+}
+
+/* Mobile responsiveness improvements */
+@media (max-width: 640px) {
+  .progress-indicator {
+    padding: 0 10px;
+  }
+  
+  .progress-label {
+    font-size: 10px;
+  }
+  
+  .measurement-grid {
+    grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+  }
+  
+  .culvert-diagram {
+    padding: 20px 10px;
+  }
+  
+  .stream-bed {
+    width: 60px;
+  }
+  
+  .culvert-pipe {
+    width: 160px;
+  }
+}
+
+/* GP Location button improvements */
+.gps-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--primary-color);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 12px 20px;
+  font-weight: 500;
+  transition: background-color 0.2s ease;
+  width: 100%;
+  margin-bottom: 10px;
+}
+
+.gps-button svg {
+  margin-right: 8px;
+}
+
+.location-display {
+  display: flex;
+  align-items: center;
+  margin-top: 10px;
+  padding: 10px;
+  background-color: rgba(0, 0, 0, 0.05);
+  border-radius: 6px;
+  font-family: monospace;
+}
+
+.manual-location {
+  background-color: var(--bg-color);
+  border-radius: 6px;
+  padding: 16px;
+  margin-top: 16px;
+  border: 1px dashed var(--border-color);
+}
+
+.manual-coords {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 10px;
+}
