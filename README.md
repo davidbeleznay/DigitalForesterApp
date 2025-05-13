@@ -26,7 +26,7 @@ The application now has:
 - Detailed result visualization with comparison tables and warnings
 - Improved field card design for better user experience
 - Enhanced culvert form with separate top width, bottom width, and depth measurement inputs
-- Improved GPS location capture
+- Robust geolocation handling with manual coordinate entry fallback
 
 ## Features Implemented
 
@@ -60,7 +60,10 @@ The application now has:
      - Individual top width measurements with averaging
      - Individual bottom width measurements with averaging
      - Individual depth measurements with averaging
-   - Enhanced GPS location capture with visual confirmation
+   - Robust GPS location capture with user-friendly error handling:
+     - Enhanced error messaging for geolocation failures
+     - Manual coordinate entry option when GPS is unavailable
+     - Loading indicator during location capture
    - Trapezoid cross-sectional area calculations
    - Dual sizing methodology:
      - Hydraulic sizing using Manning's equation
@@ -84,7 +87,9 @@ The application now has:
 
 3. For Culvert Sizing:
    - Enter culvert ID and road information
-   - Use the GPS button to capture coordinates (requires location permissions)
+   - Capture location using one of these methods:
+     - Click "Get GPS Location" button to use device geolocation (requires permission)
+     - Enter coordinates manually if GPS is unavailable or denied
    - Add multiple stream measurements:
      - Add multiple top width measurements to capture variation
      - Add multiple bottom width measurements if needed
@@ -110,6 +115,11 @@ If you encounter any issues:
 3. Delete package-lock.json: `del package-lock.json` (Windows) or `rm package-lock.json` (Mac/Linux)
 4. Reinstall dependencies: `npm install`
 5. Start the server: `npm start`
+
+If you encounter GPS location errors:
+- Make sure your browser has permission to access your location
+- Try entering the coordinates manually using the input fields provided
+- Check that your device's location services are enabled
 
 If you encounter any dependency conflicts:
 ```
@@ -146,6 +156,14 @@ npm install --legacy-peer-deps
 ## Changelog
 
 ### 2025-05-13 (Latest)
+- Fixed geolocation functionality with robust error handling
+- Added manual coordinate entry option when GPS location is unavailable
+- Improved status messaging with different message types (success, error, info)
+- Added loading state indicator for GPS button
+- Enhanced navigation with back button and page header
+- Updated styling for better user experience
+
+### 2025-05-13
 - Enhanced Culvert Sizing Tool with separate measurement input sections
 - Added ability to capture multiple measurements for top width, bottom width, and depth independently
 - Improved GPS location capturing with better visual feedback and error handling
@@ -187,12 +205,6 @@ npm install --legacy-peer-deps
 - Enhanced culvert sizing calculator with headwater criterion checks
 - Added warning banner for streams requiring professional design
 
-### 2025-05-13 (Earlier)
-- Simplified Culvert ID section by removing Assessment title
-- Replaced Location field with GPS button for automatic coordinate capture
-- Removed Region field from Culvert ID section
-- Added expo-location integration for GPS functionality
-
 ### 2025-05-08
 - Enhanced Culvert Sizing Tool with dual sizing methodology
 - Added stream geometry inputs (width, depth, slope, fish passage)
@@ -203,16 +215,6 @@ npm install --legacy-peer-deps
 - Enhanced results display with sizing method comparison
 - Added toggles for climate change and transportability matrix options
 - Improved UI with additional field validations and tooltips
-
-### 2025-05-08 (Earlier)
-- Implemented comprehensive Culvert Sizing Tool with multi-step form process
-- Added watershed characteristics input section with runoff coefficient selection
-- Integrated bankfull measurement inputs for ecological compliance
-- Added culvert specifications section with material, shape, and Manning's n selection
-- Implemented calculation logic using Rational Method and Manning's equation
-- Created results display with recommended culvert sizes and velocity checks
-- Added climate change and debris factors for resilient design
-- Enhanced form with safety factor inputs and design recommendations
 
 ### 2025-05-07
 - Added form state management using React hooks
