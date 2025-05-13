@@ -1,30 +1,51 @@
 // src/screens/HomeScreen.js
 
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { MdAdd, MdHistory, MdChevronRight } from 'react-icons/md';
 import ThemeToggle from '../components/ThemeToggle';
 import { formatDate } from '../constants/constants';
 
 const HomeScreen = () => {
-  // Mock draft data - in a real app, this would come from localStorage or an API
-  const [drafts, setDrafts] = useState([
-    {
-      id: 1,
-      title: 'yes',
-      location: 'No location',
-      type: 'risk',
-      date: '2025-05-08',
-      path: '/road-risk'
-    },
-    {
-      id: 2,
-      title: 'Culvert name',
-      location: 'gps',
-      type: 'culvert',
-      date: '2025-05-07',
-      path: '/culvert'
+  const navigate = useNavigate();
+  
+  // Fetch drafts from localStorage on component mount
+  const [drafts, setDrafts] = useState([]);
+
+  useEffect(() => {
+    // In a real app, this would fetch from localStorage or API
+    const storedDrafts = [
+      {
+        id: 1,
+        title: 'yes',
+        location: 'No location',
+        type: 'risk',
+        date: '2025-05-08',
+        path: '/road-risk'
+      },
+      {
+        id: 2,
+        title: 'Culvert name',
+        location: 'gps',
+        type: 'culvert',
+        date: '2025-05-07',
+        path: '/culvert'
+      }
+    ];
+    setDrafts(storedDrafts);
+  }, []);
+
+  // Handle starting a new assessment
+  const handleNewAssessment = (type) => {
+    // Clear any existing form data for the selected tool
+    if (type === 'risk') {
+      localStorage.removeItem('roadRiskForm');
+      navigate('/road-risk');
+    } else if (type === 'culvert') {
+      localStorage.removeItem('culvertForm');
+      navigate('/culvert');
     }
-  ]);
+  };
 
   return (
     <div className="container">
@@ -36,23 +57,48 @@ const HomeScreen = () => {
         Select a tool to begin:
       </p>
       
-      <div className="tool-container">
-        <Link to="/road-risk" style={{ textDecoration: 'none' }}>
-          <button className="tool-btn primary">
-            Road Risk Assessment
-          </button>
-        </Link>
+      {/* Tool Cards Grid Layout */}
+      <div className="field-card-grid">
+        <div 
+          className="field-card primary"
+          onClick={() => handleNewAssessment('risk')}
+        >
+          <div className="field-card-content">
+            <h2 className="field-card-title">Road Risk Assessment</h2>
+            <p className="field-card-description">
+              Evaluate forest road conditions and identify potential hazards
+            </p>
+          </div>
+          <div className="field-card-icon">
+            <MdAdd size={24} />
+          </div>
+        </div>
         
-        <Link to="/culvert" style={{ textDecoration: 'none' }}>
-          <button className="tool-btn success">
-            Culvert Sizing Tool
-          </button>
-        </Link>
+        <div 
+          className="field-card success"
+          onClick={() => handleNewAssessment('culvert')}
+        >
+          <div className="field-card-content">
+            <h2 className="field-card-title">Culvert Sizing Tool</h2>
+            <p className="field-card-description">
+              Calculate appropriate culvert dimensions for stream crossings
+            </p>
+          </div>
+          <div className="field-card-icon">
+            <MdAdd size={24} />
+          </div>
+        </div>
         
-        <Link to="/history" style={{ textDecoration: 'none' }}>
-          <button className="tool-btn secondary">
-            Assessment History
-          </button>
+        <Link to="/history" className="field-card secondary" style={{ textDecoration: 'none' }}>
+          <div className="field-card-content">
+            <h2 className="field-card-title">Assessment History</h2>
+            <p className="field-card-description">
+              View and manage your previous assessments
+            </p>
+          </div>
+          <div className="field-card-icon">
+            <MdHistory size={24} />
+          </div>
         </Link>
       </div>
       
@@ -60,25 +106,23 @@ const HomeScreen = () => {
         <>
           <h2 className="section-title">Recent Drafts</h2>
           
-          <div>
+          <div className="drafts-container">
             {drafts.map(draft => (
               <div key={draft.id} className="draft-card">
-                <div className="draft-row">
-                  <div className="draft-info">
-                    <h3 className="draft-title">{draft.title}</h3>
-                    <p className="draft-subtitle">{draft.location}</p>
-                  </div>
-                  
-                  <div className="draft-meta">
-                    <span className={`draft-type ${draft.type}`}>
-                      {draft.type === 'risk' ? 'Road Risk' : 'Culvert Sizing'}
-                    </span>
-                    <span className="draft-date">{formatDate(draft.date)}</span>
-                  </div>
+                <div className="draft-header">
+                  <h3 className="draft-title">{draft.title}</h3>
+                  <span className={`draft-type ${draft.type}`}>
+                    {draft.type === 'risk' ? 'Road Risk' : 'Culvert Sizing'}
+                  </span>
+                </div>
+                
+                <div className="draft-details">
+                  <p className="draft-location">{draft.location}</p>
+                  <p className="draft-date">{formatDate(draft.date)}</p>
                 </div>
                 
                 <Link to={draft.path} className="draft-action">
-                  Continue editing →
+                  Continue editing <MdChevronRight size={18} style={{ verticalAlign: 'middle' }}/>
                 </Link>
               </div>
             ))}
