@@ -16,6 +16,7 @@ const STANDARD_PIPE_SIZES = [450, 600, 700, 750, 800, 900, 1000, 1200, 1400, 150
  * @param {number} params.slopePercent - Channel slope in percent
  * @param {number} params.maxHwdRatio - Maximum headwater-to-diameter ratio (default 0.8)
  * @param {boolean} params.fishPassage - Whether fish passage is required
+ * @param {number} params.climateChangeFactor - Climate change multiplication factor (default 1.2)
  * @returns {Object} Calculation results including recommended pipe size
  */
 export const calculateCulvert = (params) => {
@@ -27,7 +28,8 @@ export const calculateCulvert = (params) => {
     streamRoughness = 0.04,
     pipeRoughness = 0.024,
     maxHwdRatio = 0.8, // Conservative HW/D ratio (default 0.8)
-    fishPassage = false
+    fishPassage = false,
+    climateChangeFactor = 1.2 // Default climate change factor (20% increase)
   } = params;
 
   // Convert slope percent to decimal
@@ -54,60 +56,98 @@ export const calculateCulvert = (params) => {
   const altSpanRequiredMm = altSpanRequired * 1000;
   
   // Step 6: Select the appropriate pipe size from the lookup table
-  let selectedPipeSizeMm = recommendedSizeMm;
+  let californiaRecommendedSize = recommendedSizeMm;
   
   // Step 7: If fish passage is required, check if we need to increase size
   if (fishPassage) {
     // For fish passage, larger pipes may be needed
     if (topWidth < 1.0) {
       const fishPassageDiameterMm = topWidth * 1500; // 1.5x converted to mm
-      if (fishPassageDiameterMm > selectedPipeSizeMm) {
+      if (fishPassageDiameterMm > californiaRecommendedSize) {
         const largerSize = STANDARD_PIPE_SIZES.find(size => size >= fishPassageDiameterMm);
-        if (largerSize) selectedPipeSizeMm = largerSize;
+        if (largerSize) californiaRecommendedSize = largerSize;
       }
     }
   }
   
   // Step 8: Calculate embedding depth (20% of pipe diameter if fish passage is required)
-  const embedDepth = fishPassage ? 0.2 * (selectedPipeSizeMm / 1000) : 0;
+  const embedDepth = fishPassage ? 0.2 * (californiaRecommendedSize / 1000) : 0;
   
-  // Step 9: Calculate bankfull flow using Manning's equation for hydraulic check
+  // Step 9: Calculate bankfull flow using Manning's equation
   // For trapezoidal channels
   const wettedPerimeter = bottomWidth + 2 * avgStreamDepth * Math.sqrt(1 + Math.pow((topWidth - bottomWidth) / (2 * avgStreamDepth), 2));
   const hydraulicRadius = streamArea / wettedPerimeter;
   
-  const bankfullFlow = (1 / streamRoughness) * 
-                       streamArea * 
-                       Math.pow(hydraulicRadius, 2/3) * 
-                       Math.pow(slope, 0.5);
+  // Calculate base flow
+  const baseFlow = (1 / streamRoughness) * 
+                   streamArea * 
+                   Math.pow(hydraulicRadius, 2/3) * 
+                   Math.pow(slope, 0.5);
   
-  // Step 10: Calculate pipe capacity (full-flow approximation)
-  const pipeCapacity = calculatePipeCapacity(selectedPipeSizeMm / 1000, pipeRoughness, slope);
+  // Apply climate change factor to flow
+  const bankfullFlow = baseFlow * climateChangeFactor;
   
-  // Step 11: Calculate headwater for the selected culvert at bankfull flow
-  // This is a simplified approximation
-  const headwaterRatio = 0.9 * Math.pow(bankfullFlow / (Math.PI * Math.pow(selectedPipeSizeMm/2000, 2) * Math.sqrt(2 * 9.81 * (selectedPipeSizeMm/1000))), 0.7);
+  // Step 10: Calculate hydraulic sizing using Manning's equation
+  // Find the smallest pipe that can handle the design flow with the specified HW/D ratio
+  let hydraulicSize = 0;
+  let pipeCapacity = 0;
+  let headwaterRatio = 0;
   
-  // Step 12: Check if pipe meets hydraulic requirements
-  const capacityCheck = pipeCapacity >= bankfullFlow;
-  const headwaterCheck = headwaterRatio <= maxHwdRatio;
-  
-  // Step 13: If checks fail, size up the pipe, but this is only a sanity check
-  // We primarily rely on the California Method table
-  let hydraulicUpsizedPipeMm = selectedPipeSizeMm;
-  
-  if (!capacityCheck || !headwaterCheck) {
-    const currentSizeIndex = STANDARD_PIPE_SIZES.indexOf(selectedPipeSizeMm);
-    if (currentSizeIndex < STANDARD_PIPE_SIZES.length - 1) {
-      hydraulicUpsizedPipeMm = STANDARD_PIPE_SIZES[currentSizeIndex + 1];
+  // Try each standard pipe size, starting from the smallest
+  for (const pipeSize of STANDARD_PIPE_SIZES) {
+    const pipeDiameter = pipeSize / 1000; // Convert to meters
+    const area = Math.PI * Math.pow(pipeDiameter, 2) / 4;
+    const hydraulicRadius = pipeDiameter / 4;
+    
+    // Calculate capacity with Manning's equation
+    const capacity = (1 / pipeRoughness) * 
+                     area * 
+                     Math.pow(hydraulicRadius, 2/3) * 
+                     Math.pow(slope, 0.5);
+    
+    // Calculate headwater ratio (simplified approximation)
+    const hw_ratio = 0.9 * Math.pow(bankfullFlow / (Math.PI * Math.pow(pipeDiameter/2, 2) * Math.sqrt(2 * 9.81 * pipeDiameter)), 0.7);
+    
+    // Check if this pipe size meets both capacity and headwater criteria
+    if (capacity >= bankfullFlow && hw_ratio <= maxHwdRatio) {
+      hydraulicSize = pipeSize;
+      pipeCapacity = capacity;
+      headwaterRatio = hw_ratio;
+      break;
+    }
+    
+    // If we've reached the largest pipe size, use it even if it doesn't meet criteria
+    if (pipeSize === STANDARD_PIPE_SIZES[STANDARD_PIPE_SIZES.length - 1]) {
+      hydraulicSize = pipeSize;
+      pipeCapacity = capacity;
+      headwaterRatio = hw_ratio;
     }
   }
   
-  // Step 14: Compare the California Method result with hydraulic check
-  let sizingComparison = "";
-  let sizingMethod = "California Method Table Lookup";
+  // Step 11: Determine final size and governing method
+  const finalSize = Math.max(californiaRecommendedSize, hydraulicSize);
+  const governingMethod = finalSize === hydraulicSize && hydraulicSize > californiaRecommendedSize ? 
+    "Hydraulic Calculation (Manning's)" : "California Method";
   
-  if (hydraulicUpsizedPipeMm > selectedPipeSizeMm) {
+  // Step 12: Check capacity and headwater ratio for the final selected size
+  const finalPipeDiameter = finalSize / 1000; // Convert to meters
+  const finalArea = Math.PI * Math.pow(finalPipeDiameter, 2) / 4;
+  const finalHydraulicRadius = finalPipeDiameter / 4;
+  
+  const finalCapacity = (1 / pipeRoughness) * 
+                        finalArea * 
+                        Math.pow(finalHydraulicRadius, 2/3) * 
+                        Math.pow(slope, 0.5);
+  
+  const finalHeadwaterRatio = 0.9 * Math.pow(bankfullFlow / (Math.PI * Math.pow(finalPipeDiameter/2, 2) * Math.sqrt(2 * 9.81 * finalPipeDiameter)), 0.7);
+  
+  const capacityCheck = finalCapacity >= bankfullFlow;
+  const headwaterCheck = finalHeadwaterRatio <= maxHwdRatio;
+  
+  // Step 13: Compare the California Method result with hydraulic check
+  let sizingComparison = "";
+  
+  if (hydraulicSize > californiaRecommendedSize) {
     sizingComparison = "The hydraulic check suggests a larger pipe size than the California Method table.";
   } else if (requiredDiameterMm > recommendedSizeMm) {
     sizingComparison = "The California Method formula suggests a larger size than the table lookup.";
@@ -124,24 +164,27 @@ export const calculateCulvert = (params) => {
     streamShape: Math.abs(topWidth - bottomWidth) < 0.1 ? "Rectangular" : "Trapezoidal",
     incisionRatio: (topWidth / bottomWidth).toFixed(2),
     tableRecommendedSize: recommendedSizeMm,
+    californiaSize: californiaRecommendedSize,
     requiredCulvertArea: californiaArea.toFixed(2),
     requiredDiameterM: requiredDiameterM.toFixed(2),
     requiredDiameterMm: Math.round(requiredDiameterMm),
     altSpanRequiredM: altSpanRequired.toFixed(2),
     altSpanRequiredMm: Math.round(altSpanRequiredMm),
-    selectedPipeSize: selectedPipeSizeMm,
-    selectedPipeSizeM: (selectedPipeSizeMm / 1000).toFixed(2),
-    hydraulicUpsizedPipeSize: hydraulicUpsizedPipeMm,
+    hydraulicSize: hydraulicSize,
+    finalSize: finalSize,
+    selectedPipeSizeM: (finalSize / 1000).toFixed(2),
     embedDepth: embedDepth.toFixed(2),
+    baseFlow: baseFlow.toFixed(2),
     bankfullFlow: bankfullFlow.toFixed(2),
-    pipeCapacity: pipeCapacity.toFixed(2),
+    climateChangeFactor: climateChangeFactor.toFixed(2),
+    pipeCapacity: finalCapacity.toFixed(2),
     hydraulicCheck: capacityCheck && headwaterCheck,
     capacityCheck,
     headwaterCheck,
-    headwaterRatio: headwaterRatio.toFixed(2),
+    headwaterRatio: finalHeadwaterRatio.toFixed(2),
     maxHwdRatio: maxHwdRatio.toFixed(2),
     fishPassage,
-    sizingMethod,
+    governingMethod,
     sizingComparison,
     notes: fishPassage ? 
       "Fish passage requirements applied with 20% embedded culvert." : 
@@ -223,21 +266,44 @@ export const lookupCulvertSizeFromTable = (width, depth) => {
   
   // If width exceeds the max table width, use the largest width threshold
   if (width > widthThresholds[widthThresholds.length - 1]) {
-    return 3600; // Maximum standard pipe size
+    width = widthThresholds[widthThresholds.length - 1];
   }
   
   // Find appropriate width key in the table
-  const widthKey = widthThresholds.find(w => w >= width) || widthThresholds[widthThresholds.length - 1];
+  let widthKey = null;
+  for (let i = 0; i < widthThresholds.length; i++) {
+    if (width <= widthThresholds[i]) {
+      widthKey = widthThresholds[i];
+      break;
+    }
+  }
+  
+  // If no suitable width threshold found, use the largest
+  if (!widthKey) {
+    widthKey = widthThresholds[widthThresholds.length - 1];
+  }
   
   // Find appropriate depth key in the table
   const depthThresholds = Object.keys(sizingTable[widthKey]).map(Number).sort((a, b) => a - b);
   
   // If depth exceeds the max table depth, use the largest depth threshold
   if (depth > depthThresholds[depthThresholds.length - 1]) {
-    return sizingTable[widthKey][depthThresholds[depthThresholds.length - 1]];
+    depth = depthThresholds[depthThresholds.length - 1];
   }
   
-  const depthKey = depthThresholds.find(d => d >= depth) || depthThresholds[depthThresholds.length - 1];
+  // Find the closest depth threshold that's >= the given depth
+  let depthKey = null;
+  for (let i = 0; i < depthThresholds.length; i++) {
+    if (depth <= depthThresholds[i]) {
+      depthKey = depthThresholds[i];
+      break;
+    }
+  }
+  
+  // If no suitable depth threshold found, use the largest
+  if (!depthKey) {
+    depthKey = depthThresholds[depthThresholds.length - 1];
+  }
 
   // Return the recommended culvert size
   return sizingTable[widthKey][depthKey];
