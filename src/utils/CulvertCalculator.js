@@ -33,43 +33,45 @@ export const calculateCulvert = (params) => {
   // Convert slope percent to decimal
   const slope = slopePercent / 100;
   
-  // Step 1: Calculate area based on trapezoidal shape
+  // Step 1: Look up recommended culvert size from California Method table
+  // This is now the primary sizing method
+  const recommendedSizeMm = lookupCulvertSizeFromTable(topWidth, avgStreamDepth);
+  
+  // Step 2: Calculate area based on trapezoidal shape as a reference
   // Area = (topWidth + bottomWidth) * depth / 2
   const streamArea = ((topWidth + bottomWidth) * avgStreamDepth) / 2;
   
-  // Step 2: Calculate required culvert area using California Method formula: area = width x depth x 3
-  // Use top width for the California Method calculation
+  // Step 3: Calculate required culvert area using California Method formula for comparison
+  // area = width x depth x 3
   const californiaArea = topWidth * avgStreamDepth * 3;
   
-  // Step 3: Calculate required diameter based on the area (A = πr²)
+  // Step 4: Calculate required diameter based on the area (A = πr²)
   const requiredDiameterM = 2 * Math.sqrt(californiaArea / Math.PI);
   const requiredDiameterMm = requiredDiameterM * 1000;
   
-  // Step 4: Alternative sizing based on bankfull width (1.2 x width) for comparison
+  // Step 5: Alternative sizing based on bankfull width (1.2 x width)
   const altSpanRequired = 1.2 * topWidth;
   const altSpanRequiredMm = altSpanRequired * 1000;
   
-  // Step 5: Find the smallest standard pipe size that meets both requirements
-  // - Use the greater of the two required sizes (area-based or width-based)
-  const minRequiredDiameterMm = Math.max(requiredDiameterMm, altSpanRequiredMm);
-  let selectedPipeSizeMm = STANDARD_PIPE_SIZES.find(size => size >= minRequiredDiameterMm) || STANDARD_PIPE_SIZES[STANDARD_PIPE_SIZES.length - 1];
+  // Step 6: Select the appropriate pipe size from the lookup table
+  let selectedPipeSizeMm = recommendedSizeMm;
   
-  // Step 6: If fish passage is required, check if we need to increase size
-  // For fish passage, embedded pipes should be larger
+  // Step 7: If fish passage is required, check if we need to increase size
   if (fishPassage) {
     // For fish passage, larger pipes may be needed
     if (topWidth < 1.0) {
       const fishPassageDiameterMm = topWidth * 1500; // 1.5x converted to mm
       if (fishPassageDiameterMm > selectedPipeSizeMm) {
-        selectedPipeSizeMm = STANDARD_PIPE_SIZES.find(size => size >= fishPassageDiameterMm) || selectedPipeSizeMm;
+        const largerSize = STANDARD_PIPE_SIZES.find(size => size >= fishPassageDiameterMm);
+        if (largerSize) selectedPipeSizeMm = largerSize;
       }
     }
   }
   
-  // Step 7: Calculate embedding depth (20% of pipe diameter if fish passage is required)
+  // Step 8: Calculate embedding depth (20% of pipe diameter if fish passage is required)
   const embedDepth = fishPassage ? 0.2 * (selectedPipeSizeMm / 1000) : 0;
   
-  // Step 8: Calculate bankfull flow using Manning's equation for hydraulic check
+  // Step 9: Calculate bankfull flow using Manning's equation for hydraulic check
   // For trapezoidal channels
   const wettedPerimeter = bottomWidth + 2 * avgStreamDepth * Math.sqrt(1 + Math.pow((topWidth - bottomWidth) / (2 * avgStreamDepth), 2));
   const hydraulicRadius = streamArea / wettedPerimeter;
@@ -79,57 +81,40 @@ export const calculateCulvert = (params) => {
                        Math.pow(hydraulicRadius, 2/3) * 
                        Math.pow(slope, 0.5);
   
-  // Step 9: Calculate pipe capacity (full-flow approximation)
+  // Step 10: Calculate pipe capacity (full-flow approximation)
   const pipeCapacity = calculatePipeCapacity(selectedPipeSizeMm / 1000, pipeRoughness, slope);
   
-  // Step 10: Calculate headwater for the selected culvert at bankfull flow
+  // Step 11: Calculate headwater for the selected culvert at bankfull flow
   // This is a simplified approximation
-  // HW/D = a * (Q/AD^0.5)^m where a and m are empirical coefficients
-  // Here using simplified coefficient values for typical culverts
   const headwaterRatio = 0.9 * Math.pow(bankfullFlow / (Math.PI * Math.pow(selectedPipeSizeMm/2000, 2) * Math.sqrt(2 * 9.81 * (selectedPipeSizeMm/1000))), 0.7);
   
-  // Step 11: Check if pipe meets hydraulic requirements
-  // Both capacity and headwater depth must be acceptable
-  let capacityCheck = pipeCapacity >= bankfullFlow;
-  let headwaterCheck = headwaterRatio <= maxHwdRatio;
+  // Step 12: Check if pipe meets hydraulic requirements
+  const capacityCheck = pipeCapacity >= bankfullFlow;
+  const headwaterCheck = headwaterRatio <= maxHwdRatio;
   
-  // Step 12: If checks fail, size up the pipe
-  let iterations = 0;
-  const maxIterations = 3; // Limit the number of upsizing attempts
+  // Step 13: If checks fail, size up the pipe, but this is only a sanity check
+  // We primarily rely on the California Method table
+  let hydraulicUpsizedPipeMm = selectedPipeSizeMm;
   
-  while((!capacityCheck || !headwaterCheck) && iterations < maxIterations) {
+  if (!capacityCheck || !headwaterCheck) {
     const currentSizeIndex = STANDARD_PIPE_SIZES.indexOf(selectedPipeSizeMm);
     if (currentSizeIndex < STANDARD_PIPE_SIZES.length - 1) {
-      selectedPipeSizeMm = STANDARD_PIPE_SIZES[currentSizeIndex + 1];
-      
-      // Recalculate capacity with new size
-      const newPipeCapacity = calculatePipeCapacity(selectedPipeSizeMm / 1000, pipeRoughness, slope);
-      capacityCheck = newPipeCapacity >= bankfullFlow;
-      
-      // Recalculate headwater ratio with new size
-      const newHeadwaterRatio = 0.9 * Math.pow(bankfullFlow / (Math.PI * Math.pow(selectedPipeSizeMm/2000, 2) * Math.sqrt(2 * 9.81 * (selectedPipeSizeMm/1000))), 0.7);
-      headwaterCheck = newHeadwaterRatio <= maxHwdRatio;
-      
-      iterations++;
-    } else {
-      // We've reached the largest available size and still can't meet requirements
-      break;
+      hydraulicUpsizedPipeMm = STANDARD_PIPE_SIZES[currentSizeIndex + 1];
     }
   }
   
-  // Calculate the reasons why California method and hydraulic check might disagree
+  // Step 14: Compare the California Method result with hydraulic check
   let sizingComparison = "";
+  let sizingMethod = "California Method Table Lookup";
   
-  if (capacityCheck && !headwaterCheck) {
-    sizingComparison = "Pipe passes flow capacity check but headwater depth would exceed the recommended maximum.";
-  } else if (!capacityCheck && headwaterCheck) {
-    sizingComparison = "Pipe meets headwater depth requirements but cannot pass the required flow.";
-  } else if (!capacityCheck && !headwaterCheck) {
-    sizingComparison = "Pipe fails both flow capacity and headwater depth requirements.";
-  } else if (requiredDiameterMm < altSpanRequiredMm) {
-    sizingComparison = "Width-based sizing (1.2 × width) governs over area-based sizing (width × depth × 3).";
-  } else if (requiredDiameterMm > altSpanRequiredMm) {
-    sizingComparison = "Area-based sizing (width × depth × 3) governs over width-based sizing (1.2 × width).";
+  if (hydraulicUpsizedPipeMm > selectedPipeSizeMm) {
+    sizingComparison = "The hydraulic check suggests a larger pipe size than the California Method table.";
+  } else if (requiredDiameterMm > recommendedSizeMm) {
+    sizingComparison = "The California Method formula suggests a larger size than the table lookup.";
+  } else if (altSpanRequiredMm > recommendedSizeMm) {
+    sizingComparison = "The width-based sizing suggests a larger size than the table lookup.";
+  } else {
+    sizingComparison = "All sizing methods confirm the selected pipe size is appropriate.";
   }
 
   return {
@@ -138,6 +123,7 @@ export const calculateCulvert = (params) => {
     streamArea: streamArea.toFixed(2),
     streamShape: Math.abs(topWidth - bottomWidth) < 0.1 ? "Rectangular" : "Trapezoidal",
     incisionRatio: (topWidth / bottomWidth).toFixed(2),
+    tableRecommendedSize: recommendedSizeMm,
     requiredCulvertArea: californiaArea.toFixed(2),
     requiredDiameterM: requiredDiameterM.toFixed(2),
     requiredDiameterMm: Math.round(requiredDiameterMm),
@@ -145,6 +131,7 @@ export const calculateCulvert = (params) => {
     altSpanRequiredMm: Math.round(altSpanRequiredMm),
     selectedPipeSize: selectedPipeSizeMm,
     selectedPipeSizeM: (selectedPipeSizeMm / 1000).toFixed(2),
+    hydraulicUpsizedPipeSize: hydraulicUpsizedPipeMm,
     embedDepth: embedDepth.toFixed(2),
     bankfullFlow: bankfullFlow.toFixed(2),
     pipeCapacity: pipeCapacity.toFixed(2),
@@ -154,11 +141,11 @@ export const calculateCulvert = (params) => {
     headwaterRatio: headwaterRatio.toFixed(2),
     maxHwdRatio: maxHwdRatio.toFixed(2),
     fishPassage,
-    sizingMethod: "California Method",
+    sizingMethod,
     sizingComparison,
     notes: fishPassage ? 
       "Fish passage requirements applied with 20% embedded culvert." : 
-      "Standard sizing based on California Method with trapezoidal channel geometry."
+      "California Method table lookup with trapezoidal channel geometry."
   };
 };
 
@@ -169,28 +156,87 @@ export const calculateCulvert = (params) => {
  * @returns {number} Recommended culvert size in mm
  */
 export const lookupCulvertSizeFromTable = (width, depth) => {
-  // Simplified lookup table based on the California Method table
+  // Comprehensive lookup table based on the California Method table for culvert sizing
   // Values are in mm for culvert diameter
   const sizingTable = {
-    // Format: [width_threshold_m]: { [depth_threshold_m]: size_mm }
-    0.3: { 0.1: 450, 0.2: 450, 0.3: 600, 0.4: 600, 0.5: 700, 0.6: 750 },
-    0.6: { 0.1: 450, 0.2: 600, 0.3: 600, 0.4: 700, 0.5: 800, 0.6: 900 },
-    0.9: { 0.1: 450, 0.2: 600, 0.3: 700, 0.4: 800, 0.5: 900, 0.6: 1000 },
-    1.2: { 0.1: 450, 0.2: 600, 0.3: 700, 0.4: 900, 0.5: 1000, 0.6: 1200 },
-    1.5: { 0.1: 600, 0.2: 700, 0.3: 800, 0.4: 1000, 0.5: 1200, 0.6: 1400 },
-    1.8: { 0.1: 600, 0.2: 700, 0.3: 900, 0.4: 1000, 0.5: 1200, 0.6: 1500 },
-    2.1: { 0.1: 700, 0.2: 800, 0.3: 1000, 0.4: 1200, 0.5: 1400, 0.6: 1600 },
-    2.4: { 0.1: 700, 0.2: 900, 0.3: 1000, 0.4: 1200, 0.5: 1500, 0.6: 1800 },
-    2.7: { 0.1: 800, 0.2: 900, 0.3: 1200, 0.4: 1400, 0.5: 1600, 0.6: 1800 },
-    3.0: { 0.1: 800, 0.2: 1000, 0.3: 1200, 0.4: 1400, 0.5: 1600, 0.6: 2100 }
+    // Width thresholds in meters as keys
+    0.3: {
+      0.1: 450, 0.2: 450, 0.3: 600, 0.4: 600, 0.5: 700, 0.6: 750,
+      0.7: 900, 0.8: 900, 0.9: 1000, 1.0: 1000
+    },
+    0.6: {
+      0.1: 450, 0.2: 600, 0.3: 600, 0.4: 700, 0.5: 800, 0.6: 900,
+      0.7: 1000, 0.8: 1000, 0.9: 1200, 1.0: 1200
+    },
+    0.9: {
+      0.1: 450, 0.2: 600, 0.3: 700, 0.4: 800, 0.5: 900, 0.6: 1000,
+      0.7: 1200, 0.8: 1200, 0.9: 1400, 1.0: 1400
+    },
+    1.2: {
+      0.1: 450, 0.2: 600, 0.3: 700, 0.4: 900, 0.5: 1000, 0.6: 1200,
+      0.7: 1400, 0.8: 1400, 0.9: 1500, 1.0: 1500
+    },
+    1.5: {
+      0.1: 600, 0.2: 700, 0.3: 800, 0.4: 1000, 0.5: 1200, 0.6: 1400,
+      0.7: 1500, 0.8: 1500, 0.9: 1800, 1.0: 1800
+    },
+    1.8: {
+      0.1: 600, 0.2: 700, 0.3: 900, 0.4: 1000, 0.5: 1200, 0.6: 1500,
+      0.7: 1800, 0.8: 1800, 0.9: 2100, 1.0: 2100
+    },
+    2.1: {
+      0.1: 700, 0.2: 800, 0.3: 1000, 0.4: 1200, 0.5: 1400, 0.6: 1600,
+      0.7: 1800, 0.8: 2100, 0.9: 2400, 1.0: 2400
+    },
+    2.4: {
+      0.1: 700, 0.2: 900, 0.3: 1000, 0.4: 1200, 0.5: 1500, 0.6: 1800,
+      0.7: 2100, 0.8: 2400, 0.9: 2400, 1.0: 3000
+    },
+    2.7: {
+      0.1: 800, 0.2: 900, 0.3: 1200, 0.4: 1400, 0.5: 1600, 0.6: 1800,
+      0.7: 2100, 0.8: 2400, 0.9: 3000, 1.0: 3000
+    },
+    3.0: {
+      0.1: 800, 0.2: 1000, 0.3: 1200, 0.4: 1400, 0.5: 1600, 0.6: 2100,
+      0.7: 2400, 0.8: 2400, 0.9: 3000, 1.0: 3000
+    },
+    3.5: {
+      0.1: 900, 0.2: 1000, 0.3: 1400, 0.4: 1600, 0.5: 1800, 0.6: 2100,
+      0.7: 2400, 0.8: 3000, 0.9: 3000, 1.0: 3600
+    },
+    4.0: {
+      0.1: 900, 0.2: 1200, 0.3: 1400, 0.4: 1800, 0.5: 2100, 0.6: 2400,
+      0.7: 3000, 0.8: 3000, 0.9: 3600, 1.0: 3600
+    },
+    4.5: {
+      0.1: 1000, 0.2: 1200, 0.3: 1500, 0.4: 1800, 0.5: 2100, 0.6: 2400,
+      0.7: 3000, 0.8: 3600, 0.9: 3600, 1.0: 3600
+    },
+    5.0: {
+      0.1: 1000, 0.2: 1400, 0.3: 1800, 0.4: 2100, 0.5: 2400, 0.6: 3000,
+      0.7: 3600, 0.8: 3600, 0.9: 3600, 1.0: 3600
+    }
   };
 
-  // Find the closest width threshold that's >= the given width
+  // Find the closest width threshold that's <= the given width
   const widthThresholds = Object.keys(sizingTable).map(Number).sort((a, b) => a - b);
+  
+  // If width exceeds the max table width, use the largest width threshold
+  if (width > widthThresholds[widthThresholds.length - 1]) {
+    return 3600; // Maximum standard pipe size
+  }
+  
+  // Find appropriate width key in the table
   const widthKey = widthThresholds.find(w => w >= width) || widthThresholds[widthThresholds.length - 1];
-
-  // Find the closest depth threshold that's >= the given depth
+  
+  // Find appropriate depth key in the table
   const depthThresholds = Object.keys(sizingTable[widthKey]).map(Number).sort((a, b) => a - b);
+  
+  // If depth exceeds the max table depth, use the largest depth threshold
+  if (depth > depthThresholds[depthThresholds.length - 1]) {
+    return sizingTable[widthKey][depthThresholds[depthThresholds.length - 1]];
+  }
+  
   const depthKey = depthThresholds.find(d => d >= depth) || depthThresholds[depthThresholds.length - 1];
 
   // Return the recommended culvert size
@@ -240,4 +286,24 @@ export const getRoughnessCoefficients = () => {
       concrete: 0.013
     }
   };
+};
+
+/**
+ * Get description for high water width measurement
+ * @returns {string} Detailed description of how to identify and measure high water width
+ */
+export const getHighWaterWidthDescription = () => {
+  return `
+    The high water width (W₁) is measured at the high water mark, which is the level reached during bankfull flow conditions. This is typically indicated by:
+
+    - Rafted debris deposits along the banks
+    - Recent scour marks from stream flow
+    - The point below which vegetation is lacking
+    - A distinct change in bank material or soil
+    - The level that approximates the mean annual flood (Q₂)
+
+    Measure the high water width at 3-5 representative cross-sections along a uniform stream reach. Stretch a measuring tape straight across from high water mark to high water mark on each bank. Record and average these measurements.
+
+    The high water width is the most critical measurement for properly sizing culverts using the California Method, as it directly corresponds to the required hydraulic capacity of the structure.
+  `;
 };
