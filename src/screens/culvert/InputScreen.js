@@ -10,8 +10,8 @@ import {
   ScrollView,
   Alert
 } from 'react-native';
-import { MaterialIcons } from '@expo/vector-icons';
-import * as Location from 'expo-location';
+import { MdGpsFixed, MdAddCircle, MdRemoveCircle } from 'react-icons/md';
+import { useGeolocated } from "react-geolocated";
 import { determineOptimalCulvertSize } from '../../utils/CulvertCalculator';
 import { colors, culvertMaterials, culvertShapes } from '../../constants/constants';
 
@@ -42,27 +42,38 @@ const InputScreen = ({ navigation }) => {
   const [includeClimateChange, setIncludeClimateChange] = useState(true);
   const [useTransportabilityMatrix, setUseTransportabilityMatrix] = useState(true);
 
-  const getLocation = async () => {
-    try {
-      let { status } = await Location.requestForegroundPermissionsAsync();
-      if (status !== 'granted') {
-        setLocationError('Permission to access location was denied');
-        return;
-      }
+  // Use react-geolocated hook for location services
+  const { coords, isGeolocationAvailable, isGeolocationEnabled, getPosition } = 
+    useGeolocated({
+      positionOptions: {
+        enableHighAccuracy: true,
+      },
+      userDecisionTimeout: 5000,
+    });
 
-      setLocationError(null);
-      let currentLocation = await Location.getCurrentPositionAsync({
-        accuracy: Location.Accuracy.Highest,
-      });
-      
+  // Update location when coords change
+  useEffect(() => {
+    if (coords) {
       setLocation({
-        latitude: currentLocation.coords.latitude,
-        longitude: currentLocation.coords.longitude,
+        latitude: coords.latitude,
+        longitude: coords.longitude,
       });
-    } catch (error) {
-      setLocationError('Could not get location. Please try again.');
-      console.error(error);
+      setLocationError(null);
     }
+  }, [coords]);
+
+  const getLocation = () => {
+    if (!isGeolocationAvailable) {
+      setLocationError("Your browser does not support geolocation");
+      return;
+    }
+    
+    if (!isGeolocationEnabled) {
+      setLocationError("Geolocation is not enabled");
+      return;
+    }
+    
+    getPosition();
   };
 
   // Add a new measurement row
@@ -216,7 +227,7 @@ const InputScreen = ({ navigation }) => {
             style={styles.gpsButton} 
             onPress={getLocation}
           >
-            <MaterialIcons name="gps-fixed" size={24} color="white" />
+            <MdGpsFixed size={24} color="white" />
             <Text style={styles.gpsButtonText}>
               {location ? 
                 `${location.latitude.toFixed(6)}, ${location.longitude.toFixed(6)}` : 
@@ -243,7 +254,7 @@ const InputScreen = ({ navigation }) => {
                   onPress={() => removeMeasurement(measurement.id)}
                   style={styles.removeButton}
                 >
-                  <MaterialIcons name="remove-circle" size={24} color={colors.error} />
+                  <MdRemoveCircle size={24} color={colors.error} />
                 </TouchableOpacity>
               )}
             </View>
@@ -291,7 +302,7 @@ const InputScreen = ({ navigation }) => {
           style={styles.addButton}
           onPress={addMeasurement}
         >
-          <MaterialIcons name="add-circle" size={20} color={colors.primary} />
+          <MdAddCircle size={20} color={colors.primary} />
           <Text style={styles.addButtonText}>Add Measurement</Text>
         </TouchableOpacity>
         
@@ -486,14 +497,7 @@ const styles = StyleSheet.create({
     padding: 16,
     margin: 16,
     marginBottom: 8,
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 3.84,
-    elevation: 5,
+    boxShadow: '0px 2px 4px rgba(0, 0, 0, 0.1)',
   },
   sectionTitle: {
     fontSize: 18,
@@ -510,6 +514,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   fieldRow: {
+    display: 'flex',
     flexDirection: 'row',
     justifyContent: 'space-between',
   },
@@ -534,12 +539,13 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   gpsButton: {
+    display: 'flex',
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
     backgroundColor: colors.primary,
     padding: 12,
     borderRadius: 4,
-    justifyContent: 'center',
   },
   gpsButtonText: {
     color: 'white',
@@ -558,6 +564,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   measurementHeader: {
+    display: 'flex',
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
@@ -572,11 +579,13 @@ const styles = StyleSheet.create({
     padding: 4,
   },
   addButton: {
+    display: 'flex',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     padding: 12,
     marginBottom: 16,
+    cursor: 'pointer',
   },
   addButtonText: {
     color: colors.primary,
@@ -596,6 +605,7 @@ const styles = StyleSheet.create({
     color: colors.text,
   },
   averageRow: {
+    display: 'flex',
     flexDirection: 'row',
     flexWrap: 'wrap',
   },
@@ -613,6 +623,7 @@ const styles = StyleSheet.create({
     color: colors.primary,
   },
   optionsContainer: {
+    display: 'flex',
     flexDirection: 'row',
     flexWrap: 'wrap',
     marginTop: 8,
@@ -623,6 +634,7 @@ const styles = StyleSheet.create({
     padding: 10,
     marginRight: 8,
     marginBottom: 8,
+    cursor: 'pointer',
   },
   optionActive: {
     backgroundColor: colors.primary,
@@ -643,7 +655,9 @@ const styles = StyleSheet.create({
     borderRadius: 4,
     padding: 12,
     alignItems: 'center',
+    justifyContent: 'center',
     width: 80,
+    cursor: 'pointer',
   },
   toggleActive: {
     backgroundColor: colors.primary,
@@ -666,14 +680,8 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     margin: 16,
     alignItems: 'center',
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    elevation: 5,
+    boxShadow: '0px 2px 4px rgba(0, 0, 0, 0.25)',
+    cursor: 'pointer',
   },
   calculateButtonText: {
     color: colors.white,
