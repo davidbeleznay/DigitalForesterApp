@@ -69,6 +69,14 @@ The Road Risk Assessment tool has been completely redesigned with a modular comp
 ## Changelog
 
 ### 2025-05-14
+- Implemented new CulvertResults component with enhanced visual design
+- Added clear result visualization with prominent circular size display
+- Created methodical results layout with categorized sections
+- Improved method comparison display with side-by-side boxes
+- Added detailed calculation tables with better readability
+- Enhanced stream measurement summary with averages and calculated values
+- Created responsive design for all screen sizes
+- Updated CulvertSizingForm to integrate new results component
 - Completely rebuilt Road Risk Assessment with modular component architecture
 - Created reusable RiskLevelSelector and RiskSelector components
 - Implemented centralized risk factor definitions and utilities
