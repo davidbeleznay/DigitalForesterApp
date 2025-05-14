@@ -17,45 +17,85 @@ const HomeScreen = () => {
     navigate('/history');
   };
   
-  // Get drafts from localStorage
-  const getCulvertDrafts = () => {
+  // Get assessments from localStorage
+  const getAssessmentHistory = () => {
     try {
-      return JSON.parse(localStorage.getItem('culvertDrafts') || '[]');
+      return JSON.parse(localStorage.getItem('assessmentHistory') || '[]');
     } catch (error) {
-      console.error('Error retrieving culvert drafts:', error);
+      console.error('Error retrieving assessment history:', error);
       return [];
     }
   };
   
-  const getRoadRiskDrafts = () => {
-    try {
-      return JSON.parse(localStorage.getItem('roadRiskDrafts') || '[]');
-    } catch (error) {
-      console.error('Error retrieving road risk drafts:', error);
-      return [];
-    }
+  // For backward compatibility
+  const getLegacyDrafts = () => {
+    const culvertDrafts = (() => {
+      try {
+        return JSON.parse(localStorage.getItem('culvertDrafts') || '[]')
+          .map(draft => ({
+            ...draft,
+            type: 'culvertSizing',
+            toolType: 'Culvert Sizing'
+          }));
+      } catch (error) {
+        console.error('Error retrieving culvert drafts:', error);
+        return [];
+      }
+    })();
+    
+    const roadRiskDrafts = (() => {
+      try {
+        return JSON.parse(localStorage.getItem('roadRiskDrafts') || '[]')
+          .map(draft => ({
+            ...draft,
+            type: 'roadRisk',
+            toolType: 'Road Risk'
+          }));
+      } catch (error) {
+        console.error('Error retrieving road risk drafts:', error);
+        return [];
+      }
+    })();
+    
+    return [...culvertDrafts, ...roadRiskDrafts];
   };
   
-  // Get and combine all drafts
-  const [drafts, setDrafts] = useState([]);
+  // Get and combine all assessments
+  const [recentAssessments, setRecentAssessments] = useState([]);
   
   useEffect(() => {
-    const culvertDrafts = getCulvertDrafts().map(draft => ({
-      ...draft,
-      toolType: 'Culvert Sizing'
+    // Get assessments from unified assessmentHistory
+    const assessmentHistory = getAssessmentHistory();
+    
+    // Get legacy drafts for backward compatibility
+    const legacyDrafts = getLegacyDrafts();
+    
+    // Combine and format for display
+    const formattedAssessments = assessmentHistory.map(assessment => ({
+      id: assessment.id,
+      title: assessment.title || 'Untitled Assessment',
+      type: assessment.type,
+      toolType: assessment.type === 'roadRisk' ? 'Road Risk' : 'Culvert Sizing',
+      location: assessment.data?.location || 'No location',
+      date: assessment.dateCreated || new Date().toISOString()
     }));
     
-    const roadRiskDrafts = getRoadRiskDrafts().map(draft => ({
-      ...draft,
-      toolType: 'Road Risk'
+    // Format legacy drafts to match new format
+    const formattedLegacyDrafts = legacyDrafts.map(draft => ({
+      id: draft.id || `legacy-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
+      title: draft.roadName || draft.culvertId || 'Untitled Draft',
+      type: draft.type,
+      toolType: draft.toolType,
+      location: draft.location || 'No location',
+      date: draft.date || new Date().toISOString()
     }));
     
-    // Combine and sort drafts by date (newest first)
-    const allDrafts = [...culvertDrafts, ...roadRiskDrafts]
+    // Combine and sort by date (newest first)
+    const allAssessments = [...formattedAssessments, ...formattedLegacyDrafts]
       .sort((a, b) => new Date(b.date) - new Date(a.date))
-      .slice(0, 5); // Only show the 5 most recent drafts
+      .slice(0, 5); // Only show the 5 most recent assessments
     
-    setDrafts(allDrafts);
+    setRecentAssessments(allAssessments);
   }, []);
   
   const formatDate = (dateString) => {
@@ -65,6 +105,14 @@ const HomeScreen = () => {
       day: 'numeric', 
       year: 'numeric'
     });
+  };
+  
+  const getLocationString = (location) => {
+    if (typeof location === 'string') return location;
+    if (location?.latitude) {
+      return `Lat: ${String(location.latitude).substring(0, 7)}, Lng: ${String(location.longitude).substring(0, 7)}`;
+    }
+    return 'No location';
   };
   
   return (
@@ -109,37 +157,34 @@ const HomeScreen = () => {
         </div>
       </div>
       
-      {drafts.length > 0 && (
+      {recentAssessments.length > 0 && (
         <div className="drafts-section">
-          <h2 className="section-title">Recent Drafts</h2>
+          <h2 className="section-title">Recent Assessments</h2>
           
           <div className="draft-list">
-            {drafts.map(draft => (
-              <div className="draft-item" key={draft.id}>
+            {recentAssessments.map(assessment => (
+              <div className="draft-item" key={assessment.id}>
                 <div className="draft-info">
                   <div className="draft-name">
-                    {draft.toolType === 'Culvert Sizing' ? draft.culvertId : draft.roadName}
+                    {assessment.title}
                   </div>
                   <div className="draft-location">
-                    {draft.location?.latitude ? `Lat: ${draft.location.latitude.substring(0, 7)}, Lng: ${draft.location.longitude.substring(0, 7)}` : 'No location'}
+                    {getLocationString(assessment.location)}
                   </div>
                 </div>
                 
                 <div className="draft-meta">
-                  <div className={`draft-type ${draft.toolType === 'Road Risk' ? 'road-risk' : 'culvert-sizing'}`}>
-                    {draft.toolType}
+                  <div className={`draft-type ${assessment.type === 'roadRisk' ? 'road-risk' : 'culvert-sizing'}`}>
+                    {assessment.toolType}
                   </div>
-                  <div className="draft-date">{formatDate(draft.date)}</div>
+                  <div className="draft-date">{formatDate(assessment.date)}</div>
                 </div>
                 
                 <button 
                   className="continue-button"
-                  onClick={() => draft.toolType === 'Culvert Sizing' ? 
-                    navigate('/culvert') : 
-                    navigate('/road-risk')
-                  }
+                  onClick={() => navigate('/history')}
                 >
-                  Continue editing →
+                  View details →
                 </button>
               </div>
             ))}
@@ -148,7 +193,7 @@ const HomeScreen = () => {
       )}
       
       <div className="app-footer">
-        <div className="app-version">Digital Forester App v0.2.0</div>
+        <div className="app-version">Digital Forester App v0.3.0</div>
         <div className="app-copyright">© 2025 Forest Management Technologies</div>
       </div>
     </div>
