@@ -1,318 +1,320 @@
 import React, { forwardRef } from 'react';
 
-const PDFExport = forwardRef(({ formData, riskScore, riskCategory, riskColor, requirements }, ref) => {
-  // Calculate hazard and consequence scores
-  const hazardScore = Object.values(formData.hazardFactors).reduce((sum, score) => sum + score, 0);
-  const consequenceScore = Object.values(formData.consequenceFactors).reduce((sum, score) => sum + score, 0);
-  
-  // Format date
+/**
+ * Component for PDF export of Road Risk Assessment data
+ * 
+ * @param {Object} props Component props
+ * @param {Object} props.formData The form data to be exported
+ * @param {number} props.riskScore Calculated risk score
+ * @param {string} props.riskCategory Risk category label
+ * @param {Object} props.riskColor Color theme for risk level
+ * @param {string} props.requirements Professional resource requirements text
+ * @param {Object} ref Forwarded ref for PDF generation
+ */
+const PDFExport = forwardRef(({ 
+  formData, 
+  riskScore, 
+  riskCategory, 
+  riskColor, 
+  requirements 
+}, ref) => {
+  // Destructure form data for easier access
+  const { basicInfo, hazardFactors, consequenceFactors, comments } = formData;
+
+  // Helper function to format date
   const formatDate = (dateString) => {
     if (!dateString) return '';
+    
     const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+    return date.toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
   };
-  
-  // Helper to get rating name based on score
-  const getRiskRating = (score) => {
-    switch (score) {
-      case 2: return 'Low';
-      case 4: return 'Moderate';
-      case 6: return 'High';
-      case 10: return 'Very High';
-      default: return '';
+
+  // Function to render factor score with label
+  const renderFactorScore = (label, score) => {
+    return (
+      <div style={styles.factorRow}>
+        <span style={styles.factorLabel}>{label}:</span>
+        <span style={styles.factorScore}>{score}</span>
+      </div>
+    );
+  };
+
+  // Styles for PDF layout
+  const styles = {
+    pdfContainer: {
+      fontFamily: 'Arial, sans-serif',
+      maxWidth: '850px',
+      margin: '20px auto',
+      padding: '30px',
+      backgroundColor: '#fff',
+      boxShadow: '0 0 10px rgba(0,0,0,0.1)',
+      color: '#333'
+    },
+    header: {
+      textAlign: 'center',
+      marginBottom: '30px',
+      borderBottom: '2px solid #34495e',
+      paddingBottom: '20px'
+    },
+    title: {
+      fontSize: '24px',
+      color: '#2c3e50',
+      marginBottom: '5px',
+      fontWeight: 'bold'
+    },
+    subtitle: {
+      fontSize: '14px',
+      color: '#7f8c8d',
+      marginBottom: '0'
+    },
+    basicInfoSection: {
+      marginBottom: '25px',
+      padding: '15px',
+      backgroundColor: '#f8f9fa',
+      borderRadius: '5px'
+    },
+    sectionTitle: {
+      fontSize: '18px',
+      fontWeight: 'bold',
+      color: '#2c3e50',
+      marginBottom: '15px',
+      paddingBottom: '5px',
+      borderBottom: '1px solid #ddd'
+    },
+    fieldRow: {
+      display: 'flex',
+      marginBottom: '8px'
+    },
+    fieldLabel: {
+      width: '150px',
+      fontWeight: 'bold',
+      color: '#555'
+    },
+    fieldValue: {
+      flex: 1,
+      color: '#333'
+    },
+    factorsSection: {
+      marginBottom: '25px'
+    },
+    factorGroup: {
+      marginBottom: '20px',
+      padding: '15px',
+      backgroundColor: '#f8f9fa',
+      borderRadius: '5px'
+    },
+    factorRow: {
+      display: 'flex',
+      marginBottom: '5px',
+      padding: '3px 0'
+    },
+    factorLabel: {
+      flex: 3,
+      fontWeight: 'normal',
+      color: '#555'
+    },
+    factorScore: {
+      flex: 1,
+      textAlign: 'center',
+      fontWeight: 'bold',
+      color: '#333'
+    },
+    riskSection: {
+      marginBottom: '25px',
+      padding: '20px',
+      borderRadius: '5px',
+      border: '1px solid',
+      borderColor: riskColor?.text || '#ccc',
+      backgroundColor: riskColor?.bg || '#f8f9fa'
+    },
+    riskHeader: {
+      display: 'flex',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      marginBottom: '15px',
+      paddingBottom: '10px',
+      borderBottom: '1px solid',
+      borderColor: riskColor?.text ? `${riskColor.text}30` : '#ddd'
+    },
+    riskCategory: {
+      fontWeight: 'bold',
+      fontSize: '20px',
+      color: riskColor?.text || '#333'
+    },
+    riskScore: {
+      fontWeight: 'bold',
+      fontSize: '20px',
+      color: riskColor?.text || '#333',
+      padding: '5px 15px',
+      backgroundColor: 'rgba(255, 255, 255, 0.7)',
+      borderRadius: '20px'
+    },
+    requirementsText: {
+      lineHeight: '1.5',
+      color: '#333'
+    },
+    commentsSection: {
+      marginBottom: '25px',
+      padding: '15px',
+      backgroundColor: '#f8f9fa',
+      borderRadius: '5px'
+    },
+    footerSection: {
+      marginTop: '30px',
+      borderTop: '1px solid #ddd',
+      paddingTop: '15px',
+      fontSize: '12px',
+      color: '#777'
     }
   };
-  
+
+  // The PDF Export JSX
   return (
-    <div ref={ref} style={{ 
-      padding: '40px', 
-      fontFamily: 'Arial, sans-serif',
-      maxWidth: '800px',
-      margin: '0 auto',
-      color: '#333'
-    }}>
-      <div style={{ 
-        textAlign: 'center', 
-        marginBottom: '20px',
-        borderBottom: '2px solid #1976D2',
-        paddingBottom: '20px'
-      }}>
-        <h1 style={{ color: '#1976D2', margin: '0 0 10px 0' }}>Road Risk Assessment Report</h1>
-        <p style={{ fontSize: '16px', margin: '0' }}>Generated on {new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
+    <div ref={ref} style={styles.pdfContainer}>
+      {/* Header */}
+      <div style={styles.header}>
+        <h1 style={styles.title}>Forest Road Risk Assessment</h1>
+        <p style={styles.subtitle}>Generated on {new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
       </div>
       
-      <div style={{ marginBottom: '30px' }}>
-        <h2 style={{ color: '#1976D2', borderBottom: '1px solid #ddd', paddingBottom: '8px' }}>Basic Information</h2>
-        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-          <tbody>
-            <tr>
-              <td style={{ padding: '8px 0', width: '200px', fontWeight: 'bold' }}>Road Name:</td>
-              <td style={{ padding: '8px 0' }}>{formData.basicInfo.roadName || 'Not specified'}</td>
-            </tr>
-            <tr>
-              <td style={{ padding: '8px 0', fontWeight: 'bold' }}>Road Segment:</td>
-              <td style={{ padding: '8px 0' }}>
-                {formData.basicInfo.startKm && formData.basicInfo.endKm ? 
-                  `KM ${formData.basicInfo.startKm} - ${formData.basicInfo.endKm}` : 
-                  (formData.basicInfo.startKm ? `KM ${formData.basicInfo.startKm}` : 'Not specified')}
-              </td>
-            </tr>
-            <tr>
-              <td style={{ padding: '8px 0', fontWeight: 'bold' }}>Start Coordinates:</td>
-              <td style={{ padding: '8px 0' }}>
-                {formData.basicInfo.startLat && formData.basicInfo.startLong ? 
-                  `${formData.basicInfo.startLat}, ${formData.basicInfo.startLong}` : 
-                  'Not specified'}
-              </td>
-            </tr>
-            <tr>
-              <td style={{ padding: '8px 0', fontWeight: 'bold' }}>End Coordinates:</td>
-              <td style={{ padding: '8px 0' }}>
-                {formData.basicInfo.endLat && formData.basicInfo.endLong ? 
-                  `${formData.basicInfo.endLat}, ${formData.basicInfo.endLong}` : 
-                  'Not specified'}
-              </td>
-            </tr>
-            <tr>
-              <td style={{ padding: '8px 0', fontWeight: 'bold' }}>Assessment Date:</td>
-              <td style={{ padding: '8px 0' }}>{formatDate(formData.basicInfo.date)}</td>
-            </tr>
-            <tr>
-              <td style={{ padding: '8px 0', fontWeight: 'bold' }}>Inspector Name:</td>
-              <td style={{ padding: '8px 0' }}>{formData.basicInfo.inspector || 'Not specified'}</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-      
-      <div style={{ 
-        marginBottom: '30px',
-        padding: '15px',
-        backgroundColor: `${riskColor.bg}`,
-        borderRadius: '8px',
-        border: `1px solid ${riskColor.text}`
-      }}>
-        <h2 style={{ color: riskColor.text, margin: '0 0 15px 0', textAlign: 'center' }}>
-          Risk Assessment Results
-        </h2>
+      {/* Basic Information */}
+      <div style={styles.basicInfoSection}>
+        <h2 style={styles.sectionTitle}>Road Information</h2>
         
-        <div style={{ display: 'flex', justifyContent: 'space-around', marginBottom: '15px' }}>
-          <div style={{ textAlign: 'center' }}>
-            <div style={{ fontWeight: 'bold', marginBottom: '5px' }}>Hazard Score</div>
-            <div style={{ fontSize: '24px' }}>{hazardScore}</div>
-          </div>
-          
-          <div style={{ textAlign: 'center', fontWeight: 'bold', fontSize: '24px' }}>
-            ×
-          </div>
-          
-          <div style={{ textAlign: 'center' }}>
-            <div style={{ fontWeight: 'bold', marginBottom: '5px' }}>Consequence Score</div>
-            <div style={{ fontSize: '24px' }}>{consequenceScore}</div>
-          </div>
-          
-          <div style={{ textAlign: 'center', fontWeight: 'bold', fontSize: '24px' }}>
-            =
-          </div>
-          
-          <div style={{ textAlign: 'center' }}>
-            <div style={{ fontWeight: 'bold', marginBottom: '5px' }}>Risk Score</div>
-            <div style={{ fontSize: '24px' }}>{riskScore}</div>
-          </div>
+        <div style={styles.fieldRow}>
+          <span style={styles.fieldLabel}>Road Name:</span>
+          <span style={styles.fieldValue}>{basicInfo.roadName || 'Not specified'}</span>
         </div>
         
-        <div style={{ 
-          textAlign: 'center', 
-          marginBottom: '15px',
-        }}>
-          <span style={{ 
-            display: 'inline-block',
-            padding: '5px 15px',
-            backgroundColor: riskColor.text,
-            color: 'white',
-            fontWeight: 'bold',
-            borderRadius: '20px'
-          }}>
-            {riskCategory} Risk
+        <div style={styles.fieldRow}>
+          <span style={styles.fieldLabel}>Road Segment:</span>
+          <span style={styles.fieldValue}>
+            {basicInfo.startKm ? `${basicInfo.startKm} km` : 'Start'} to {basicInfo.endKm ? `${basicInfo.endKm} km` : 'End'}
           </span>
         </div>
         
-        <div style={{
-          padding: '15px',
-          backgroundColor: 'rgba(255, 255, 255, 0.7)',
-          borderRadius: '4px'
-        }}>
-          <div style={{ fontWeight: 'bold', marginBottom: '5px' }}>Professional Requirements:</div>
-          <div>{requirements}</div>
+        <div style={styles.fieldRow}>
+          <span style={styles.fieldLabel}>Start Coordinates:</span>
+          <span style={styles.fieldValue}>
+            {basicInfo.startLat && basicInfo.startLong 
+              ? `${basicInfo.startLat}, ${basicInfo.startLong}` 
+              : 'Not specified'
+            }
+          </span>
+        </div>
+        
+        <div style={styles.fieldRow}>
+          <span style={styles.fieldLabel}>End Coordinates:</span>
+          <span style={styles.fieldValue}>
+            {basicInfo.endLat && basicInfo.endLong 
+              ? `${basicInfo.endLat}, ${basicInfo.endLong}` 
+              : 'Not specified'
+            }
+          </span>
+        </div>
+        
+        <div style={styles.fieldRow}>
+          <span style={styles.fieldLabel}>Assessment Date:</span>
+          <span style={styles.fieldValue}>{formatDate(basicInfo.date)}</span>
+        </div>
+        
+        <div style={styles.fieldRow}>
+          <span style={styles.fieldLabel}>Inspector:</span>
+          <span style={styles.fieldValue}>{basicInfo.inspector || 'Not specified'}</span>
         </div>
       </div>
       
-      <div style={{ marginBottom: '30px' }}>
-        <h2 style={{ color: '#1976D2', borderBottom: '1px solid #ddd', paddingBottom: '8px' }}>Hazard Factors (Likelihood)</h2>
-        <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: '10px' }}>
-          <thead>
-            <tr style={{ backgroundColor: '#f5f5f5' }}>
-              <th style={{ padding: '10px', textAlign: 'left', borderBottom: '1px solid #ddd' }}>Factor</th>
-              <th style={{ padding: '10px', textAlign: 'center', borderBottom: '1px solid #ddd' }}>Rating</th>
-              <th style={{ padding: '10px', textAlign: 'center', borderBottom: '1px solid #ddd' }}>Score</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td style={{ padding: '10px', borderBottom: '1px solid #ddd' }}>Terrain Stability</td>
-              <td style={{ padding: '10px', textAlign: 'center', borderBottom: '1px solid #ddd' }}>
-                {getRiskRating(formData.hazardFactors.terrainStability)}
-              </td>
-              <td style={{ padding: '10px', textAlign: 'center', borderBottom: '1px solid #ddd' }}>
-                {formData.hazardFactors.terrainStability}
-              </td>
-            </tr>
-            <tr>
-              <td style={{ padding: '10px', borderBottom: '1px solid #ddd' }}>Slope Grade</td>
-              <td style={{ padding: '10px', textAlign: 'center', borderBottom: '1px solid #ddd' }}>
-                {getRiskRating(formData.hazardFactors.slopeGrade)}
-              </td>
-              <td style={{ padding: '10px', textAlign: 'center', borderBottom: '1px solid #ddd' }}>
-                {formData.hazardFactors.slopeGrade}
-              </td>
-            </tr>
-            <tr>
-              <td style={{ padding: '10px', borderBottom: '1px solid #ddd' }}>Geology/Soil</td>
-              <td style={{ padding: '10px', textAlign: 'center', borderBottom: '1px solid #ddd' }}>
-                {getRiskRating(formData.hazardFactors.geologySoil)}
-              </td>
-              <td style={{ padding: '10px', textAlign: 'center', borderBottom: '1px solid #ddd' }}>
-                {formData.hazardFactors.geologySoil}
-              </td>
-            </tr>
-            <tr>
-              <td style={{ padding: '10px', borderBottom: '1px solid #ddd' }}>Drainage Conditions</td>
-              <td style={{ padding: '10px', textAlign: 'center', borderBottom: '1px solid #ddd' }}>
-                {getRiskRating(formData.hazardFactors.drainageConditions)}
-              </td>
-              <td style={{ padding: '10px', textAlign: 'center', borderBottom: '1px solid #ddd' }}>
-                {formData.hazardFactors.drainageConditions}
-              </td>
-            </tr>
-            <tr>
-              <td style={{ padding: '10px', borderBottom: '1px solid #ddd' }}>Road Failure History</td>
-              <td style={{ padding: '10px', textAlign: 'center', borderBottom: '1px solid #ddd' }}>
-                {getRiskRating(formData.hazardFactors.roadFailureHistory)}
-              </td>
-              <td style={{ padding: '10px', textAlign: 'center', borderBottom: '1px solid #ddd' }}>
-                {formData.hazardFactors.roadFailureHistory}
-              </td>
-            </tr>
-            <tr style={{ backgroundColor: '#f5f5f5' }}>
-              <td style={{ padding: '10px', fontWeight: 'bold', borderBottom: '1px solid #ddd' }}>Total Hazard Score</td>
-              <td style={{ padding: '10px', borderBottom: '1px solid #ddd' }}></td>
-              <td style={{ padding: '10px', textAlign: 'center', fontWeight: 'bold', borderBottom: '1px solid #ddd' }}>
-                {hazardScore}
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-      
-      <div style={{ marginBottom: '30px' }}>
-        <h2 style={{ color: '#1976D2', borderBottom: '1px solid #ddd', paddingBottom: '8px' }}>Consequence Factors (Severity)</h2>
-        <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: '10px' }}>
-          <thead>
-            <tr style={{ backgroundColor: '#f5f5f5' }}>
-              <th style={{ padding: '10px', textAlign: 'left', borderBottom: '1px solid #ddd' }}>Factor</th>
-              <th style={{ padding: '10px', textAlign: 'center', borderBottom: '1px solid #ddd' }}>Rating</th>
-              <th style={{ padding: '10px', textAlign: 'center', borderBottom: '1px solid #ddd' }}>Score</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td style={{ padding: '10px', borderBottom: '1px solid #ddd' }}>Proximity to Water</td>
-              <td style={{ padding: '10px', textAlign: 'center', borderBottom: '1px solid #ddd' }}>
-                {getRiskRating(formData.consequenceFactors.proximityToWater)}
-              </td>
-              <td style={{ padding: '10px', textAlign: 'center', borderBottom: '1px solid #ddd' }}>
-                {formData.consequenceFactors.proximityToWater}
-              </td>
-            </tr>
-            <tr>
-              <td style={{ padding: '10px', borderBottom: '1px solid #ddd' }}>Drainage Structure</td>
-              <td style={{ padding: '10px', textAlign: 'center', borderBottom: '1px solid #ddd' }}>
-                {getRiskRating(formData.consequenceFactors.drainageStructure)}
-              </td>
-              <td style={{ padding: '10px', textAlign: 'center', borderBottom: '1px solid #ddd' }}>
-                {formData.consequenceFactors.drainageStructure}
-              </td>
-            </tr>
-            <tr>
-              <td style={{ padding: '10px', borderBottom: '1px solid #ddd' }}>Public/Industrial Use</td>
-              <td style={{ padding: '10px', textAlign: 'center', borderBottom: '1px solid #ddd' }}>
-                {getRiskRating(formData.consequenceFactors.publicIndustrialUse)}
-              </td>
-              <td style={{ padding: '10px', textAlign: 'center', borderBottom: '1px solid #ddd' }}>
-                {formData.consequenceFactors.publicIndustrialUse}
-              </td>
-            </tr>
-            <tr>
-              <td style={{ padding: '10px', borderBottom: '1px solid #ddd' }}>Environmental Value</td>
-              <td style={{ padding: '10px', textAlign: 'center', borderBottom: '1px solid #ddd' }}>
-                {getRiskRating(formData.consequenceFactors.environmentalValue)}
-              </td>
-              <td style={{ padding: '10px', textAlign: 'center', borderBottom: '1px solid #ddd' }}>
-                {formData.consequenceFactors.environmentalValue}
-              </td>
-            </tr>
-            <tr style={{ backgroundColor: '#f5f5f5' }}>
-              <td style={{ padding: '10px', fontWeight: 'bold', borderBottom: '1px solid #ddd' }}>Total Consequence Score</td>
-              <td style={{ padding: '10px', borderBottom: '1px solid #ddd' }}></td>
-              <td style={{ padding: '10px', textAlign: 'center', fontWeight: 'bold', borderBottom: '1px solid #ddd' }}>
-                {consequenceScore}
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-      
-      {formData.comments && (
-        <div style={{ marginBottom: '30px' }}>
-          <h2 style={{ color: '#1976D2', borderBottom: '1px solid #ddd', paddingBottom: '8px' }}>Comments</h2>
-          <div style={{ 
-            padding: '15px', 
-            backgroundColor: '#f9f9f9', 
-            borderRadius: '8px', 
+      {/* Hazard Factors */}
+      <div style={styles.factorsSection}>
+        <h2 style={styles.sectionTitle}>Hazard Factors</h2>
+        
+        <div style={styles.factorGroup}>
+          {renderFactorScore('Terrain Stability', hazardFactors.terrainStability)}
+          {renderFactorScore('Slope Grade', hazardFactors.slopeGrade)}
+          {renderFactorScore('Geology/Soil', hazardFactors.geologySoil)}
+          {renderFactorScore('Drainage Conditions', hazardFactors.drainageConditions)}
+          {renderFactorScore('Road Failure History', hazardFactors.roadFailureHistory)}
+          
+          <div style={{
             marginTop: '10px',
-            whiteSpace: 'pre-line' 
+            paddingTop: '10px',
+            borderTop: '1px solid #ddd',
+            display: 'flex',
+            justifyContent: 'space-between'
           }}>
-            {formData.comments}
+            <span style={{fontWeight: 'bold', color: '#333'}}>Total Hazard Score:</span>
+            <span style={{fontWeight: 'bold', color: '#333'}}>
+              {Object.values(hazardFactors).reduce((sum, value) => sum + value, 0)}
+            </span>
           </div>
+        </div>
+      </div>
+      
+      {/* Consequence Factors */}
+      <div style={styles.factorsSection}>
+        <h2 style={styles.sectionTitle}>Consequence Factors</h2>
+        
+        <div style={styles.factorGroup}>
+          {renderFactorScore('Proximity to Water', consequenceFactors.proximityToWater)}
+          {renderFactorScore('Drainage Structure', consequenceFactors.drainageStructure)}
+          {renderFactorScore('Public/Industrial Use', consequenceFactors.publicIndustrialUse)}
+          {renderFactorScore('Environmental Value', consequenceFactors.environmentalValue)}
+          
+          <div style={{
+            marginTop: '10px',
+            paddingTop: '10px',
+            borderTop: '1px solid #ddd',
+            display: 'flex',
+            justifyContent: 'space-between'
+          }}>
+            <span style={{fontWeight: 'bold', color: '#333'}}>Total Consequence Score:</span>
+            <span style={{fontWeight: 'bold', color: '#333'}}>
+              {Object.values(consequenceFactors).reduce((sum, value) => sum + value, 0)}
+            </span>
+          </div>
+        </div>
+      </div>
+      
+      {/* Risk Assessment Results */}
+      <div style={styles.riskSection}>
+        <div style={styles.riskHeader}>
+          <div style={styles.riskCategory}>{riskCategory} Risk</div>
+          <div style={styles.riskScore}>{riskScore}</div>
+        </div>
+        
+        <h3 style={{
+          fontSize: '16px',
+          fontWeight: 'bold',
+          marginBottom: '10px',
+          color: riskColor?.text || '#333'
+        }}>
+          Professional Resource Requirements:
+        </h3>
+        
+        <p style={styles.requirementsText}>
+          {requirements}
+        </p>
+      </div>
+      
+      {/* Comments Section */}
+      {comments && (
+        <div style={styles.commentsSection}>
+          <h2 style={styles.sectionTitle}>Comments & Observations</h2>
+          <p style={{whiteSpace: 'pre-wrap', lineHeight: '1.5'}}>
+            {comments || 'No comments provided'}
+          </p>
         </div>
       )}
       
-      {/* Photo placeholder section */}
-      <div style={{ marginBottom: '30px' }}>
-        <h2 style={{ color: '#1976D2', borderBottom: '1px solid #ddd', paddingBottom: '8px' }}>Photos</h2>
-        <div style={{ 
-          padding: '30px', 
-          backgroundColor: '#f9f9f9', 
-          borderRadius: '8px', 
-          marginTop: '10px',
-          textAlign: 'center',
-          color: '#666',
-          border: '1px dashed #ccc'
-        }}>
-          No photos available
-        </div>
-      </div>
-      
-      <div style={{ 
-        marginTop: '40px', 
-        borderTop: '1px solid #ddd', 
-        paddingTop: '20px',
-        fontSize: '12px',
-        color: '#666',
-        textAlign: 'center'
-      }}>
-        <p>This assessment was generated by Digital Forester App on {new Date().toLocaleDateString()}</p>
-        <p>© 2025 Forest Management Technologies</p>
+      {/* Footer */}
+      <div style={styles.footerSection}>
+        <p>This assessment is based on visual observations and conditions at the time of inspection. 
+        Assessment protocols follow provincial guidelines for forest road management.</p>
+        <p>Generated by AI Forester App • Copyright © {new Date().getFullYear()}</p>
       </div>
     </div>
   );
