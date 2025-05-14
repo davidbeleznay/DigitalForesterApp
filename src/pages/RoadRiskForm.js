@@ -1,4 +1,81 @@
-              riskCategory} Risk
+                  '20px'}}>
+                  <div style={{display: 'flex', justifyContent: 'space-between', marginBottom: '8px'}}>
+                    <label style={{fontWeight: 'bold'}}>Culvert Sizing</label>
+                  </div>
+                  <RiskLevelSelector 
+                    name="culvertSizing"
+                    value={infrastructureFactors.culvertSizing}
+                    onChange={handleInfrastructureChange}
+                    descriptions={infrastructureDescriptions.culvertSizing}
+                  />
+                </div>
+                
+                <div style={{marginBottom: '20px'}}>
+                  <div style={{display: 'flex', justifyContent: 'space-between', marginBottom: '8px'}}>
+                    <label style={{fontWeight: 'bold'}}>Culvert Condition</label>
+                  </div>
+                  <RiskLevelSelector 
+                    name="culvertCondition"
+                    value={infrastructureFactors.culvertCondition}
+                    onChange={handleInfrastructureChange}
+                    descriptions={infrastructureDescriptions.culvertCondition}
+                  />
+                </div>
+                
+                <div style={{marginBottom: '10px'}}>
+                  <div style={{display: 'flex', justifyContent: 'space-between', marginBottom: '8px'}}>
+                    <label style={{fontWeight: 'bold'}}>Road Age</label>
+                  </div>
+                  <RiskLevelSelector 
+                    name="roadAge"
+                    value={infrastructureFactors.roadAge}
+                    onChange={handleInfrastructureChange}
+                    descriptions={infrastructureDescriptions.roadAge}
+                  />
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+        
+        {/* Risk Calculation Section */}
+        <div style={{
+          backgroundColor: riskColor.bg,
+          borderRadius: '8px',
+          padding: '20px',
+          marginBottom: '20px',
+          boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+          border: `1px solid ${riskColor.text}`,
+          color: riskColor.text
+        }}>
+          <h2 style={{fontSize: '1.2rem', marginBottom: '15px', textAlign: 'center'}}>
+            Risk Assessment Results
+          </h2>
+          
+          <div style={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            marginBottom: '15px'
+          }}>
+            <div style={{fontSize: '0.9rem', marginBottom: '5px'}}>
+              Risk Score = Hazard ({hazardScore}) × Consequence ({consequenceScore})
+            </div>
+            <div style={{
+              fontSize: '2rem',
+              fontWeight: 'bold',
+              marginBottom: '5px'
+            }}>
+              {riskScore}
+            </div>
+            <div style={{
+              padding: '5px 15px',
+              borderRadius: '20px',
+              backgroundColor: riskColor.text,
+              color: '#fff',
+              fontWeight: 'bold'
+            }}>
+              {riskCategory} Risk
             </div>
           </div>
           
