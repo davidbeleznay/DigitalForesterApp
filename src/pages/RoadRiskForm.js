@@ -1,4 +1,12 @@
-            flexWrap: 'wrap'}}>
+24px',
+            borderRadius: '4px',
+            textDecoration: 'none',
+            fontWeight: 'bold'
+          }}>
+            Back to Dashboard
+          </Link>
+          
+          <div style={{display: 'flex', gap: '10px', flexWrap: 'wrap'}}>
             <button 
               type="button"
               onClick={handleSaveDraft}
