@@ -65,14 +65,19 @@ The Road Risk Assessment tool now includes toggleable additional assessment fact
 ## Changelog
 
 ### 2025-05-14
+- Fixed syntax errors in Road Risk Assessment implementation
+- Completed Road Risk form implementation with proper structure
+- Added additional assessment factors toggle functionality
+- Added SyntaxCheck component for verification
+- Updated application documentation
+
+### 2025-05-13
 - Implemented toggleable additional assessment factors in Road Risk Assessment
 - Added Geotechnical Considerations with Low/Moderate/High risk level selectors
 - Added Infrastructure Elements with Low/Moderate/High risk level selectors
 - Improved PDF export to include additional assessment factors
 - Enhanced local storage to save all assessment data
 - Fixed Road Risk navigation and routing
-
-### 2025-05-13
 - Enhanced result screen with large circular size visualization
 - Added side-by-side method comparison section
 - Implemented climate change factor adjustment for flow calculations
