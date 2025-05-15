@@ -193,7 +193,7 @@ const HomeScreen = () => {
       )}
       
       <div className="app-footer">
-        <div className="app-version">Digital Forester App v0.3.0</div>
+        <div className="app-version">Digital Forester App v0.3.1</div>
         <div className="app-copyright">© 2025 Forest Management Technologies</div>
       </div>
     </div>
