@@ -24,15 +24,16 @@ The application has been rebuilt from scratch to resolve persistent issues with 
 ## Changelog
 
 ### 2025-05-15
+- Fixed Road Risk routing to ensure proper navigation from HomeScreen
+- Added dedicated RoadRiskNavigator for consistency with Culvert Tool
+- Created RoadRiskForm.css for proper styling of the Road Risk form
+- Updated App.js to import all necessary stylesheets
+- Updated HomeScreen.js to use correct navigation paths
+- Improved project structure with consistent navigation approach
 - Enhanced UI/UX for Road Risk Assessment with sophisticated visual design
 - Added animated transitions and interactive feedback for form interactions
 - Implemented sticky navigation and status messages for better user guidance
 - Improved mobile responsiveness with better touch targets and layout adjustments
-- Added visual distinction between form sections with color-coded headers
-- Enhanced results display with better data visualization and recommended actions
-- Improved form field styling with better focus states and input validation
-- Added breadcrumb navigation for easier app traversal
-- Improved photo gallery with better visual styling and interactions
 
 ### 2025-05-14
 - Redesigned the RoadRiskForm UI with button-based factor selection interface
@@ -62,15 +63,28 @@ AI-Forester-App/
 │   ├── components/       # Reusable UI components
 │   ├── navigation/       # Router configuration
 │   │   ├── AppRouter.js
-│   │   └── CulvertToolNavigator.js
+│   │   ├── MainNavigator.js
+│   │   ├── CulvertToolNavigator.js
+│   │   └── RoadRiskNavigator.js  # NEW
 │   ├── pages/            # Main form pages
 │   │   ├── RoadRiskForm.js
 │   │   └── HistoryPage.js
-│   └── screens/          # Screen components
-│       └── HomeScreen.js # Landing page with tool selection
+│   ├── screens/          # Screen components
+│   │   └── HomeScreen.js # Landing page with tool selection
+│   └── styles/           # CSS files for styling
+│       ├── index.css
+│       ├── RoadRiskForm.css      # NEW
+│       └── culvert-form.css
 ```
 
 ## Technical Implementation Notes
+
+### Navigation Structure
+- Uses dual-approach navigation system:
+  - React Router for web-based routing (AppRouter.js)
+  - React Navigation for mobile components (MainNavigator.js)
+- Consistent use of Navigators for tool-specific screens
+- Clear separation between global navigation and tool-specific navigation
 
 ### RoadRiskForm Component
 - Uses React hooks for state management
@@ -108,6 +122,7 @@ AI-Forester-App/
 
 - React/React Native
 - React Router
+- React Navigation
 - Expo
 - AsyncStorage (for local data persistence)
 
