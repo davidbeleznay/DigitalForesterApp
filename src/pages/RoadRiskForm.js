@@ -1,72 +1,3 @@
-          overflow: 'hidden'
-        }}>
-          <div style={{
-            position: 'absolute',
-            top: 0,
-            right: 0,
-            padding: '8px 15px',
-            backgroundColor: riskColor.text,
-            color: 'white',
-            fontWeight: '600',
-            fontSize: '0.9rem',
-            borderBottomLeftRadius: '8px'
-          }}>
-            {riskCategory} Risk
-          </div>
-          
-          <h2 style={sectionHeaderStyle}>Risk Assessment Results</h2>
-          
-          <div style={{display: 'flex', flexDirection: 'column', gap: '16px', marginTop: '20px'}}>
-            <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
-              <span style={{fontWeight: '600', color: '#34495e', fontSize: '1.05rem'}}>Hazard Score:</span>
-              <span style={{
-                fontWeight: '600', 
-                fontSize: '1.1rem', 
-                color: '#2c3e50',
-                backgroundColor: 'rgba(255, 255, 255, 0.7)',
-                padding: '6px 15px',
-                borderRadius: '6px',
-                border: '1px solid rgba(0, 0, 0, 0.1)'
-              }}>{hazardScore}</span>
-            </div>
-            
-            <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
-              <span style={{fontWeight: '600', color: '#34495e', fontSize: '1.05rem'}}>Consequence Score:</span>
-              <span style={{
-                fontWeight: '600', 
-                fontSize: '1.1rem', 
-                color: '#2c3e50',
-                backgroundColor: 'rgba(255, 255, 255, 0.7)',
-                padding: '6px 15px',
-                borderRadius: '6px',
-                border: '1px solid rgba(0, 0, 0, 0.1)'
-              }}>{consequenceScore}</span>
-            </div>
-            
-            <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
-              <span style={{fontWeight: '700', color: '#34495e', fontSize: '1.2rem'}}>Risk Score:</span>
-              <span style={{
-                fontWeight: '700', 
-                fontSize: '1.4rem', 
-                color: riskColor.text,
-                backgroundColor: 'rgba(255, 255, 255, 0.7)',
-                padding: '8px 20px',
-                borderRadius: '6px',
-                border: `1px solid ${riskColor.text}50`
-              }}>{riskScore}</span>
-            </div>
-          </div>
-          
-          <div style={{marginTop: '24px', backgroundColor: 'rgba(255, 255, 255, 0.7)', borderRadius: '8px', padding: '16px', border: '1px solid rgba(0, 0, 0, 0.1)'}}>
-            <h3 style={{marginTop: 0, marginBottom: '12px', color: riskColor.text, fontWeight: '600', fontSize: '1.1rem'}}>Professional Resource Requirements</h3>
-            <p style={{margin: 0, color: '#34495e', lineHeight: '1.6'}}>{requirements}</p>
-          </div>
-        </div>
-        
-        {/* Additional Factors Section (Toggleable) */}
-        <div style={{marginBottom: '24px'}}>
-          <button 
-            type="button"
             onClick={handleToggleAdditionalFactors}
             style={{
               ...buttonBaseStyle,
@@ -371,13 +302,111 @@
         <div style={sectionStyle}>
           <h2 style={sectionHeaderStyle}>Photo Documentation</h2>
           <p style={{marginBottom: '20px', color: '#7f8c8d', fontSize: '0.95rem'}}>
-            Upload photographs of the road conditions, hazards, drainage structures, or other relevant features.
+            Add photographs of the road conditions, hazards, drainage structures, or other relevant features.
           </p>
           
-          <PhotoCapture 
-            photos={photos}
-            onPhotosChange={handlePhotoCapture}
-          />
+          {/* Simple photo placeholder UI */}
+          <div>
+            <div style={{
+              border: '2px dashed #ddd',
+              borderRadius: '8px',
+              padding: '20px',
+              textAlign: 'center',
+              cursor: 'pointer',
+              marginBottom: '20px',
+              transition: 'all 0.2s ease',
+              backgroundColor: '#f9f9f9'
+            }} onClick={handleAddPhoto}>
+              <div style={{fontSize: '36px', color: '#7f8c8d', marginBottom: '10px'}}>📷</div>
+              <p style={{color: '#34495e', marginBottom: '5px', fontWeight: '600'}}>
+                Click to add a photo
+              </p>
+              <p style={{color: '#7f8c8d', fontSize: '0.9rem'}}>
+                (Photo functionality will be implemented in the next version)
+              </p>
+            </div>
+            
+            {/* Photo preview grid */}
+            {photos.length > 0 && (
+              <div style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))',
+                gap: '15px',
+                marginTop: '20px'
+              }}>
+                {photos.map(photo => (
+                  <div key={photo.id} style={{
+                    position: 'relative',
+                    borderRadius: '8px',
+                    overflow: 'hidden',
+                    boxShadow: '0 2px 5px rgba(0,0,0,0.1)',
+                    backgroundColor: '#fff'
+                  }}>
+                    <img 
+                      src={photo.dataUrl} 
+                      alt={photo.name} 
+                      style={{
+                        width: '100%',
+                        height: '150px',
+                        objectFit: 'cover',
+                        display: 'block'
+                      }}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const updatedPhotos = photos.filter(p => p.id !== photo.id);
+                        setPhotos(updatedPhotos);
+                        saveToLocalStorage({
+                          basicInfo,
+                          hazardFactors,
+                          consequenceFactors,
+                          showAdditionalFactors,
+                          geotechnicalFactors,
+                          infrastructureFactors,
+                          comments,
+                          photos: updatedPhotos
+                        });
+                      }}
+                      style={{
+                        position: 'absolute',
+                        top: '5px',
+                        right: '5px',
+                        backgroundColor: 'rgba(231, 76, 60, 0.9)',
+                        color: 'white',
+                        border: 'none',
+                        borderRadius: '50%',
+                        width: '28px',
+                        height: '28px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        cursor: 'pointer',
+                        fontSize: '16px',
+                        transition: 'all 0.2s ease',
+                        opacity: 0.8
+                      }}
+                      title="Remove photo"
+                    >
+                      ×
+                    </button>
+                    <div style={{
+                      padding: '8px 10px',
+                      fontSize: '0.85rem',
+                      color: '#34495e',
+                      whiteSpace: 'nowrap',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      backgroundColor: '#f9f9f9',
+                      borderTop: '1px solid #eee'
+                    }}>
+                      {photo.name}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
         
         {/* Comments Section */}
@@ -434,7 +463,7 @@
           <div style={{display: 'flex', justifyContent: 'space-between', gap: '16px'}}>
             <button 
               type="button"
-              onClick={handleTogglePDFPreview}
+              onClick={handleExportPDF}
               style={{
                 ...buttonBaseStyle,
                 flex: 1,
@@ -443,7 +472,7 @@
                 border: '1px solid #ddd'
               }}
             >
-              Preview PDF
+              Export PDF
             </button>
             
             <button 
