@@ -47,6 +47,38 @@ const riskTextColors = {
   veryHigh: '#880e4f'
 };
 
+// Button style colors based on score
+const buttonColors = {
+  2: {
+    active: '#4caf50',
+    inactive: '#ffffff',
+    textActive: '#ffffff',
+    textInactive: '#333333',
+    border: '#e0e0e0'
+  },
+  4: {
+    active: '#ffb300',
+    inactive: '#ffffff',
+    textActive: '#ffffff',
+    textInactive: '#333333',
+    border: '#e0e0e0'
+  },
+  6: {
+    active: '#ff9800',
+    inactive: '#ffffff',
+    textActive: '#ffffff',
+    textInactive: '#333333',
+    border: '#e0e0e0'
+  },
+  10: {
+    active: '#f44336',
+    inactive: '#ffffff',
+    textActive: '#ffffff',
+    textInactive: '#333333',
+    border: '#e0e0e0'
+  }
+};
+
 function RoadRiskForm() {
   const navigate = useNavigate();
   
@@ -116,11 +148,10 @@ function RoadRiskForm() {
   };
   
   // Handle hazard factor changes
-  const handleHazardChange = (e) => {
-    const { name, value } = e.target;
+  const handleHazardChange = (name, value) => {
     const updatedHazardFactors = {
       ...hazardFactors,
-      [name]: parseInt(value)
+      [name]: value
     };
     setHazardFactors(updatedHazardFactors);
     
@@ -135,11 +166,10 @@ function RoadRiskForm() {
   };
   
   // Handle consequence factor changes
-  const handleConsequenceChange = (e) => {
-    const { name, value } = e.target;
+  const handleConsequenceChange = (name, value) => {
     const updatedConsequenceFactors = {
       ...consequenceFactors,
-      [name]: parseInt(value)
+      [name]: value
     };
     setConsequenceFactors(updatedConsequenceFactors);
     
@@ -347,6 +377,45 @@ function RoadRiskForm() {
   const riskScore = getRiskScore();
   const { category: riskCategory, color: riskColorKey } = getRiskCategory(riskScore);
   
+  // Create a score option button
+  const ScoreButton = ({ factor, value, currentValue, onChange, label }) => {
+    const isSelected = currentValue === value;
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+        <button
+          type="button"
+          onClick={() => onChange(factor, value)}
+          style={{
+            width: '100%',
+            padding: '15px 0',
+            margin: '5px 0',
+            backgroundColor: isSelected ? buttonColors[value].active : buttonColors[value].inactive,
+            color: isSelected ? buttonColors[value].textActive : buttonColors[value].textInactive,
+            border: `1px solid ${isSelected ? buttonColors[value].active : buttonColors[value].border}`,
+            borderRadius: '4px',
+            cursor: 'pointer',
+            fontWeight: 'bold',
+            fontSize: '1.1rem',
+            transition: 'all 0.2s ease',
+            outline: 'none'
+          }}
+        >
+          {value}
+        </button>
+        <div style={{ 
+          textAlign: 'center', 
+          fontSize: '0.85rem', 
+          color: '#777', 
+          marginTop: '5px',
+          maxWidth: '120px',
+          lineHeight: '1.3'
+        }}>
+          {label}
+        </div>
+      </div>
+    );
+  };
+  
   return (
     <div style={{ padding: '20px', maxWidth: '800px', margin: '0 auto' }}>
       <h1 style={{ textAlign: 'center', marginBottom: '20px' }}>Road Risk Assessment</h1>
@@ -509,6 +578,7 @@ function RoadRiskForm() {
         </div>
       </div>
       
+      {/* Hazard Factors Section */}
       <div style={{ 
         backgroundColor: '#ffffff', 
         padding: '20px', 
@@ -516,96 +586,210 @@ function RoadRiskForm() {
         marginBottom: '20px',
         boxShadow: '0 2px 5px rgba(0,0,0,0.1)'
       }}>
-        <h2 style={{ borderBottom: '1px solid #f0f0f0', paddingBottom: '10px', marginBottom: '20px' }}>Hazard Factors</h2>
+        <h2 style={{ color: '#2196f3', borderBottom: '1px solid #f0f0f0', paddingBottom: '10px', marginBottom: '20px' }}>
+          Hazard Factors (Likelihood)
+        </h2>
         
-        <div style={{ marginBottom: '15px' }}>
-          <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Terrain Stability</label>
-          <select
-            name="terrainStability"
-            value={hazardFactors.terrainStability}
-            onChange={handleHazardChange}
-            style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ddd' }}
-          >
-            <option value={2}>Stable terrain (slopes &lt;40%)</option>
-            <option value={4}>Moderately stable (slopes 40-60%)</option>
-            <option value={6}>Potentially unstable (slopes &gt;60%)</option>
-            <option value={10}>Unstable terrain (Class IV/V)</option>
-          </select>
+        <p style={{ color: '#666', marginBottom: '20px' }}>
+          Select the appropriate score for each factor
+        </p>
+        
+        {/* Terrain Stability */}
+        <div style={{ marginBottom: '30px' }}>
+          <h3 style={{ marginBottom: '15px' }}>Terrain Stability</h3>
+          <div style={{ display: 'flex', justifyContent: 'space-between', gap: '10px' }}>
+            <ScoreButton 
+              factor="terrainStability" 
+              value={2} 
+              currentValue={hazardFactors.terrainStability} 
+              onChange={handleHazardChange} 
+              label="Stable terrain (slopes <40%)" 
+            />
+            <ScoreButton 
+              factor="terrainStability" 
+              value={4} 
+              currentValue={hazardFactors.terrainStability} 
+              onChange={handleHazardChange} 
+              label="Moderately stable (slopes 40-60%)" 
+            />
+            <ScoreButton 
+              factor="terrainStability" 
+              value={6} 
+              currentValue={hazardFactors.terrainStability} 
+              onChange={handleHazardChange} 
+              label="Potentially unstable (slopes >60%)" 
+            />
+            <ScoreButton 
+              factor="terrainStability" 
+              value={10} 
+              currentValue={hazardFactors.terrainStability} 
+              onChange={handleHazardChange} 
+              label="Unstable terrain (Class IV/V)" 
+            />
+          </div>
         </div>
         
-        <div style={{ marginBottom: '15px' }}>
-          <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Slope Grade</label>
-          <select
-            name="slopeGrade"
-            value={hazardFactors.slopeGrade}
-            onChange={handleHazardChange}
-            style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ddd' }}
-          >
-            <option value={2}>Low grade (&lt;8%)</option>
-            <option value={4}>Moderate grade (8-12%)</option>
-            <option value={6}>Steep grade (12-18%)</option>
-            <option value={10}>Very steep grade (&gt;18%)</option>
-          </select>
+        {/* Slope Grade */}
+        <div style={{ marginBottom: '30px' }}>
+          <h3 style={{ marginBottom: '15px' }}>Slope Grade</h3>
+          <div style={{ display: 'flex', justifyContent: 'space-between', gap: '10px' }}>
+            <ScoreButton 
+              factor="slopeGrade" 
+              value={2} 
+              currentValue={hazardFactors.slopeGrade} 
+              onChange={handleHazardChange} 
+              label="Low grade (<8%)" 
+            />
+            <ScoreButton 
+              factor="slopeGrade" 
+              value={4} 
+              currentValue={hazardFactors.slopeGrade} 
+              onChange={handleHazardChange} 
+              label="Moderate grade (8-12%)" 
+            />
+            <ScoreButton 
+              factor="slopeGrade" 
+              value={6} 
+              currentValue={hazardFactors.slopeGrade} 
+              onChange={handleHazardChange} 
+              label="Steep grade (12-18%)" 
+            />
+            <ScoreButton 
+              factor="slopeGrade" 
+              value={10} 
+              currentValue={hazardFactors.slopeGrade} 
+              onChange={handleHazardChange} 
+              label="Very steep grade (>18%)" 
+            />
+          </div>
         </div>
         
-        <div style={{ marginBottom: '15px' }}>
-          <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Geology/Soil</label>
-          <select
-            name="geologySoil"
-            value={hazardFactors.geologySoil}
-            onChange={handleHazardChange}
-            style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ddd' }}
-          >
-            <option value={2}>Cohesive, stable soils/bedrock</option>
-            <option value={4}>Moderately stable soils</option>
-            <option value={6}>Loose, erodible soils</option>
-            <option value={10}>Highly erodible soils/talus</option>
-          </select>
+        {/* Geology/Soil */}
+        <div style={{ marginBottom: '30px' }}>
+          <h3 style={{ marginBottom: '15px' }}>Geology/Soil</h3>
+          <div style={{ display: 'flex', justifyContent: 'space-between', gap: '10px' }}>
+            <ScoreButton 
+              factor="geologySoil" 
+              value={2} 
+              currentValue={hazardFactors.geologySoil} 
+              onChange={handleHazardChange} 
+              label="Cohesive, stable soils/bedrock" 
+            />
+            <ScoreButton 
+              factor="geologySoil" 
+              value={4} 
+              currentValue={hazardFactors.geologySoil} 
+              onChange={handleHazardChange} 
+              label="Moderately stable soils" 
+            />
+            <ScoreButton 
+              factor="geologySoil" 
+              value={6} 
+              currentValue={hazardFactors.geologySoil} 
+              onChange={handleHazardChange} 
+              label="Loose, erodible soils" 
+            />
+            <ScoreButton 
+              factor="geologySoil" 
+              value={10} 
+              currentValue={hazardFactors.geologySoil} 
+              onChange={handleHazardChange} 
+              label="Highly erodible soils/talus" 
+            />
+          </div>
         </div>
         
-        <div style={{ marginBottom: '15px' }}>
-          <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Drainage Conditions</label>
-          <select
-            name="drainageConditions"
-            value={hazardFactors.drainageConditions}
-            onChange={handleHazardChange}
-            style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ddd' }}
-          >
-            <option value={2}>Well-drained, minimal surface water</option>
-            <option value={4}>Moderate drainage issues</option>
-            <option value={6}>Poor drainage, standing water</option>
-            <option value={10}>Severe drainage issues, seepage</option>
-          </select>
+        {/* Drainage Conditions */}
+        <div style={{ marginBottom: '30px' }}>
+          <h3 style={{ marginBottom: '15px' }}>Drainage Conditions</h3>
+          <div style={{ display: 'flex', justifyContent: 'space-between', gap: '10px' }}>
+            <ScoreButton 
+              factor="drainageConditions" 
+              value={2} 
+              currentValue={hazardFactors.drainageConditions} 
+              onChange={handleHazardChange} 
+              label="Well-drained, minimal surface water" 
+            />
+            <ScoreButton 
+              factor="drainageConditions" 
+              value={4} 
+              currentValue={hazardFactors.drainageConditions} 
+              onChange={handleHazardChange} 
+              label="Moderate drainage issues" 
+            />
+            <ScoreButton 
+              factor="drainageConditions" 
+              value={6} 
+              currentValue={hazardFactors.drainageConditions} 
+              onChange={handleHazardChange} 
+              label="Poor drainage, standing water" 
+            />
+            <ScoreButton 
+              factor="drainageConditions" 
+              value={10} 
+              currentValue={hazardFactors.drainageConditions} 
+              onChange={handleHazardChange} 
+              label="Severe drainage issues, seepage" 
+            />
+          </div>
         </div>
         
-        <div style={{ marginBottom: '15px' }}>
-          <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Road Failure History</label>
-          <select
-            name="roadFailureHistory"
-            value={hazardFactors.roadFailureHistory}
-            onChange={handleHazardChange}
-            style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ddd' }}
-          >
-            <option value={2}>No previous failures</option>
-            <option value={4}>Minor historical issues</option>
-            <option value={6}>Moderate historical failures</option>
-            <option value={10}>Frequent/significant failures</option>
-          </select>
+        {/* Road Failure History */}
+        <div style={{ marginBottom: '30px' }}>
+          <h3 style={{ marginBottom: '15px' }}>Road Failure History</h3>
+          <div style={{ display: 'flex', justifyContent: 'space-between', gap: '10px' }}>
+            <ScoreButton 
+              factor="roadFailureHistory" 
+              value={2} 
+              currentValue={hazardFactors.roadFailureHistory} 
+              onChange={handleHazardChange} 
+              label="No previous failures" 
+            />
+            <ScoreButton 
+              factor="roadFailureHistory" 
+              value={4} 
+              currentValue={hazardFactors.roadFailureHistory} 
+              onChange={handleHazardChange} 
+              label="Minor historical issues" 
+            />
+            <ScoreButton 
+              factor="roadFailureHistory" 
+              value={6} 
+              currentValue={hazardFactors.roadFailureHistory} 
+              onChange={handleHazardChange} 
+              label="Moderate historical failures" 
+            />
+            <ScoreButton 
+              factor="roadFailureHistory" 
+              value={10} 
+              currentValue={hazardFactors.roadFailureHistory} 
+              onChange={handleHazardChange} 
+              label="Frequent/significant failures" 
+            />
+          </div>
         </div>
         
         <div style={{ 
           backgroundColor: '#f5f5f5', 
-          padding: '10px', 
+          padding: '15px', 
           borderRadius: '4px',
-          marginTop: '10px'
+          marginTop: '10px',
+          display: 'flex', 
+          justifyContent: 'space-between',
+          alignItems: 'center'
         }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-            <span style={{ fontWeight: 'bold' }}>Total Hazard Score:</span>
-            <span style={{ fontWeight: 'bold' }}>{hazardScore}</span>
-          </div>
+          <span style={{ fontWeight: 'bold', fontSize: '1.1rem' }}>Total Hazard Score:</span>
+          <span style={{ 
+            fontWeight: 'bold', 
+            fontSize: '1.1rem',
+            padding: '5px 15px',
+            backgroundColor: '#e0e0e0',
+            borderRadius: '4px'
+          }}>{hazardScore}</span>
         </div>
       </div>
       
+      {/* Consequence Factors Section */}
       <div style={{ 
         backgroundColor: '#ffffff', 
         padding: '20px', 
@@ -613,81 +797,175 @@ function RoadRiskForm() {
         marginBottom: '20px',
         boxShadow: '0 2px 5px rgba(0,0,0,0.1)'
       }}>
-        <h2 style={{ borderBottom: '1px solid #f0f0f0', paddingBottom: '10px', marginBottom: '20px' }}>Consequence Factors</h2>
+        <h2 style={{ color: '#2196f3', borderBottom: '1px solid #f0f0f0', paddingBottom: '10px', marginBottom: '20px' }}>
+          Consequence Factors (Severity)
+        </h2>
         
-        <div style={{ marginBottom: '15px' }}>
-          <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Proximity to Water</label>
-          <select
-            name="proximityToWater"
-            value={consequenceFactors.proximityToWater}
-            onChange={handleConsequenceChange}
-            style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ddd' }}
-          >
-            <option value={2}>No water nearby (&gt;100m)</option>
-            <option value={4}>Non-fish stream (30-100m)</option>
-            <option value={6}>Fish stream (10-30m)</option>
-            <option value={10}>Adjacent to fish stream (&lt;10m)</option>
-          </select>
+        <p style={{ color: '#666', marginBottom: '20px' }}>
+          Select the appropriate score for each factor
+        </p>
+        
+        {/* Proximity to Water */}
+        <div style={{ marginBottom: '30px' }}>
+          <h3 style={{ marginBottom: '15px' }}>Proximity to Water</h3>
+          <div style={{ display: 'flex', justifyContent: 'space-between', gap: '10px' }}>
+            <ScoreButton 
+              factor="proximityToWater" 
+              value={2} 
+              currentValue={consequenceFactors.proximityToWater} 
+              onChange={handleConsequenceChange} 
+              label="No water nearby (>100m)" 
+            />
+            <ScoreButton 
+              factor="proximityToWater" 
+              value={4} 
+              currentValue={consequenceFactors.proximityToWater} 
+              onChange={handleConsequenceChange} 
+              label="Non-fish stream (30-100m)" 
+            />
+            <ScoreButton 
+              factor="proximityToWater" 
+              value={6} 
+              currentValue={consequenceFactors.proximityToWater} 
+              onChange={handleConsequenceChange} 
+              label="Fish stream (10-30m)" 
+            />
+            <ScoreButton 
+              factor="proximityToWater" 
+              value={10} 
+              currentValue={consequenceFactors.proximityToWater} 
+              onChange={handleConsequenceChange} 
+              label="Adjacent to fish stream (<10m)" 
+            />
+          </div>
         </div>
         
-        <div style={{ marginBottom: '15px' }}>
-          <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Drainage Structure</label>
-          <select
-            name="drainageStructure"
-            value={consequenceFactors.drainageStructure}
-            onChange={handleConsequenceChange}
-            style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ddd' }}
-          >
-            <option value={2}>Adequate for 100+ year events</option>
-            <option value={4}>Adequate for 50-year events</option>
-            <option value={6}>Adequate for 25-year events</option>
-            <option value={10}>Undersized or deteriorating</option>
-          </select>
+        {/* Drainage Structure */}
+        <div style={{ marginBottom: '30px' }}>
+          <h3 style={{ marginBottom: '15px' }}>Drainage Structure</h3>
+          <div style={{ display: 'flex', justifyContent: 'space-between', gap: '10px' }}>
+            <ScoreButton 
+              factor="drainageStructure" 
+              value={2} 
+              currentValue={consequenceFactors.drainageStructure} 
+              onChange={handleConsequenceChange} 
+              label="Adequate for 100+ year events" 
+            />
+            <ScoreButton 
+              factor="drainageStructure" 
+              value={4} 
+              currentValue={consequenceFactors.drainageStructure} 
+              onChange={handleConsequenceChange} 
+              label="Adequate for 50-year events" 
+            />
+            <ScoreButton 
+              factor="drainageStructure" 
+              value={6} 
+              currentValue={consequenceFactors.drainageStructure} 
+              onChange={handleConsequenceChange} 
+              label="Adequate for 25-year events" 
+            />
+            <ScoreButton 
+              factor="drainageStructure" 
+              value={10} 
+              currentValue={consequenceFactors.drainageStructure} 
+              onChange={handleConsequenceChange} 
+              label="Undersized or deteriorating" 
+            />
+          </div>
         </div>
         
-        <div style={{ marginBottom: '15px' }}>
-          <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Public/Industrial Use</label>
-          <select
-            name="publicIndustrialUse"
-            value={consequenceFactors.publicIndustrialUse}
-            onChange={handleConsequenceChange}
-            style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ddd' }}
-          >
-            <option value={2}>Minimal use (wilderness road)</option>
-            <option value={4}>Low volume industrial use</option>
-            <option value={6}>Moderate public/industrial</option>
-            <option value={10}>High volume/mainline road</option>
-          </select>
+        {/* Public/Industrial Use */}
+        <div style={{ marginBottom: '30px' }}>
+          <h3 style={{ marginBottom: '15px' }}>Public/Industrial Use</h3>
+          <div style={{ display: 'flex', justifyContent: 'space-between', gap: '10px' }}>
+            <ScoreButton 
+              factor="publicIndustrialUse" 
+              value={2} 
+              currentValue={consequenceFactors.publicIndustrialUse} 
+              onChange={handleConsequenceChange} 
+              label="Minimal use (wilderness road)" 
+            />
+            <ScoreButton 
+              factor="publicIndustrialUse" 
+              value={4} 
+              currentValue={consequenceFactors.publicIndustrialUse} 
+              onChange={handleConsequenceChange} 
+              label="Low volume industrial use" 
+            />
+            <ScoreButton 
+              factor="publicIndustrialUse" 
+              value={6} 
+              currentValue={consequenceFactors.publicIndustrialUse} 
+              onChange={handleConsequenceChange} 
+              label="Moderate public/industrial" 
+            />
+            <ScoreButton 
+              factor="publicIndustrialUse" 
+              value={10} 
+              currentValue={consequenceFactors.publicIndustrialUse} 
+              onChange={handleConsequenceChange} 
+              label="High volume/mainline road" 
+            />
+          </div>
         </div>
         
-        <div style={{ marginBottom: '15px' }}>
-          <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Environmental Value</label>
-          <select
-            name="environmentalValue"
-            value={consequenceFactors.environmentalValue}
-            onChange={handleConsequenceChange}
-            style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ddd' }}
-          >
-            <option value={2}>No significant values</option>
-            <option value={4}>Standard riparian/wildlife</option>
-            <option value={6}>Important habitat or cultural</option>
-            <option value={10}>Critical habitat or cultural site</option>
-          </select>
+        {/* Environmental Value */}
+        <div style={{ marginBottom: '30px' }}>
+          <h3 style={{ marginBottom: '15px' }}>Environmental Value</h3>
+          <div style={{ display: 'flex', justifyContent: 'space-between', gap: '10px' }}>
+            <ScoreButton 
+              factor="environmentalValue" 
+              value={2} 
+              currentValue={consequenceFactors.environmentalValue} 
+              onChange={handleConsequenceChange} 
+              label="No significant values" 
+            />
+            <ScoreButton 
+              factor="environmentalValue" 
+              value={4} 
+              currentValue={consequenceFactors.environmentalValue} 
+              onChange={handleConsequenceChange} 
+              label="Standard riparian/wildlife" 
+            />
+            <ScoreButton 
+              factor="environmentalValue" 
+              value={6} 
+              currentValue={consequenceFactors.environmentalValue} 
+              onChange={handleConsequenceChange} 
+              label="Important habitat or cultural" 
+            />
+            <ScoreButton 
+              factor="environmentalValue" 
+              value={10} 
+              currentValue={consequenceFactors.environmentalValue} 
+              onChange={handleConsequenceChange} 
+              label="Critical habitat/cultural site" 
+            />
+          </div>
         </div>
         
         <div style={{ 
           backgroundColor: '#f5f5f5', 
-          padding: '10px', 
+          padding: '15px', 
           borderRadius: '4px',
-          marginTop: '10px'
+          marginTop: '10px',
+          display: 'flex', 
+          justifyContent: 'space-between',
+          alignItems: 'center'
         }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-            <span style={{ fontWeight: 'bold' }}>Total Consequence Score:</span>
-            <span style={{ fontWeight: 'bold' }}>{consequenceScore}</span>
-          </div>
+          <span style={{ fontWeight: 'bold', fontSize: '1.1rem' }}>Total Consequence Score:</span>
+          <span style={{ 
+            fontWeight: 'bold', 
+            fontSize: '1.1rem',
+            padding: '5px 15px',
+            backgroundColor: '#e0e0e0',
+            borderRadius: '4px'
+          }}>{consequenceScore}</span>
         </div>
       </div>
       
+      {/* Risk Result Section */}
       <div style={{ 
         backgroundColor: riskColors[riskColorKey], 
         padding: '20px', 
@@ -713,23 +991,41 @@ function RoadRiskForm() {
         <h2 style={{ borderBottom: '1px solid #f0f0f0', paddingBottom: '10px', marginBottom: '20px' }}>Risk Assessment Results</h2>
         
         <div style={{ marginBottom: '15px' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px', alignItems: 'center' }}>
             <span style={{ fontWeight: 'bold' }}>Hazard Score:</span>
-            <span style={{ fontWeight: 'bold' }}>{hazardScore}</span>
+            <span style={{ 
+              fontWeight: 'bold',
+              backgroundColor: 'rgba(255,255,255,0.7)',
+              padding: '5px 15px',
+              borderRadius: '4px'
+            }}>{hazardScore}</span>
           </div>
           
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px', alignItems: 'center' }}>
             <span style={{ fontWeight: 'bold' }}>Consequence Score:</span>
-            <span style={{ fontWeight: 'bold' }}>{consequenceScore}</span>
+            <span style={{ 
+              fontWeight: 'bold',
+              backgroundColor: 'rgba(255,255,255,0.7)',
+              padding: '5px 15px',
+              borderRadius: '4px'
+            }}>{consequenceScore}</span>
           </div>
           
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px' }}>
-            <span style={{ fontWeight: 'bold' }}>Risk Score:</span>
-            <span style={{ fontWeight: 'bold', color: riskTextColors[riskColorKey] }}>{riskScore}</span>
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px', alignItems: 'center' }}>
+            <span style={{ fontWeight: 'bold', fontSize: '1.1rem' }}>Risk Score:</span>
+            <span style={{ 
+              fontWeight: 'bold',
+              fontSize: '1.1rem',
+              backgroundColor: 'rgba(255,255,255,0.7)',
+              padding: '5px 15px',
+              borderRadius: '4px',
+              color: riskTextColors[riskColorKey]
+            }}>{riskScore}</span>
           </div>
         </div>
       </div>
       
+      {/* Photo Section */}
       <div style={{ 
         backgroundColor: '#ffffff', 
         padding: '20px', 
@@ -792,6 +1088,7 @@ function RoadRiskForm() {
         )}
       </div>
       
+      {/* Comments Section */}
       <div style={{ 
         backgroundColor: '#ffffff', 
         padding: '20px', 
@@ -817,6 +1114,7 @@ function RoadRiskForm() {
         />
       </div>
       
+      {/* Action Buttons */}
       <div style={{ display: 'flex', gap: '10px', marginBottom: '20px' }}>
         <button
           type="button"
