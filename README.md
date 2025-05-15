@@ -24,14 +24,14 @@ The application has been rebuilt from scratch to resolve persistent issues with 
 ## Changelog
 
 ### 2025-05-15
-- Fixed Road Risk routing to ensure proper navigation from HomeScreen
-- Created simplified RoadRiskForm.js to fix syntax errors
-- Updated AppRouter.js to directly render RoadRiskForm
-- Fixed project structure with consistent navigation approach
-- Resolved dependency issues by using React Router for web routing
-- Enhanced UI/UX for Road Risk Assessment with sophisticated visual design
-- Added animated transitions and interactive feedback for form interactions
-- Implemented sticky navigation and status messages for better user guidance
+- Removed React Navigation dependencies and switched to React Router for all navigation
+- Fixed RoadRiskForm component to resolve syntax errors
+- Simplified navigation structure with direct routing
+- Created minimal placeholder for RoadRiskForm to be built incrementally
+- Removed unused RoadRiskNavigator and streamlined routing architecture
+- Updated MainNavigator to use consistent React Router approach
+- Fixed project structure for better maintainability
+- Added clear navigation paths between all screens
 
 ### 2025-05-14
 - Redesigned the RoadRiskForm UI with button-based factor selection interface
@@ -60,64 +60,60 @@ AI-Forester-App/
 ├── src/
 │   ├── components/       # Reusable UI components
 │   ├── navigation/       # Router configuration
-│   │   ├── AppRouter.js
-│   │   └── CulvertToolNavigator.js
+│   │   ├── AppRouter.js  # Main router using React Router
+│   │   ├── MainNavigator.js # Secondary router layer
+│   │   └── CulvertToolNavigator.js # Culvert-specific routes
 │   ├── pages/            # Main form pages
-│   │   ├── RoadRiskForm.js
-│   │   └── HistoryPage.js
-│   └── screens/          # Screen components
-│       └── HomeScreen.js # Landing page with tool selection
+│   │   ├── RoadRiskForm.js  # Simple placeholder for now
+│   │   └── HistoryPage.js   # History viewing page
+│   ├── screens/          # Screen components
+│   │   ├── HomeScreen.js    # Landing page with tool selection
+│   │   └── culvert/         # Culvert tool screens
+│   └── styles/           # CSS files for styling
+│       ├── index.css
+│       ├── RoadRiskForm.css # Styles for Road Risk form
+│       └── culvert-form.css # Styles for Culvert Tool
 ```
 
 ## Technical Implementation Notes
 
 ### Bug Fixes Applied
-- Resolved React Navigation dependency issue by using React Router for web-based routing
-- Fixed syntax errors in RoadRiskForm.js by creating a simplified, complete component
-- Simplified navigation structure by directly rendering components in the router
-- Added proper CSS styling for the RoadRiskForm component
+- Resolved React Navigation dependency issue by switching entirely to React Router
+- Fixed syntax errors in RoadRiskForm.js by creating a simplified minimal component
+- Simplified navigation structure to use a consistent approach throughout the app
+- Standardized on React Router for web-based navigation
+- Created clean, minimal interfaces for easier incremental development
 
 ### RoadRiskForm Component
-- Uses React hooks for state management
-- Implements auto-save to localStorage for all form data
-- Features a modern button-based UI for risk factor selection
-- Visually highlights selected values with appropriate colors
-- Calculates risk scores based on user-selected factor values
-- Provides user feedback through animated status messages
-- Includes placeholder functionality for photo capture and PDF export
-- Uses CSS transitions and animations for a more engaging experience
-- Implements responsive design patterns for all screen sizes
+- Created minimal component that will be expanded incrementally
+- Set up proper routing and navigation between screens
+- Established basic structure with proper import/export and React Router integration
 
-### UI Design Principles
-- Consistent color scheme with section-specific accents for better visual organization
-- Visual distinction between different risk levels and form sections
-- Clear and concise labeling with improved typography hierarchy
-- Easy-to-understand rating system with clear value descriptions
-- Mobile-friendly layout with responsive adjustment for different screen sizes
-- Interactive feedback with hover and active states for all interactive elements
-- Micro-animations and transitions for a more polished user experience
-- Clear section organization with proper visual hierarchy using color, spacing, and typography
-- Accessibility considerations with proper contrast ratios and focus states
+### Navigation Structure
+- AppRouter: Top-level router that sets up the main routes (/home, /road-risk, /culvert, /history)
+- MainNavigator: Secondary router that could be expanded for more complex navigation in the future
+- CulvertToolNavigator: Specialized router for the Culvert Tool's multi-screen workflow
 
 ## Next Steps
 
-1. Complete the implementation of the Culvert Sizing Tool with calculation algorithms
-2. Add photo capture functionality with device camera integration
-3. Implement PDF export for assessment reports
-4. Create visualization components for assessment results
-5. Add offline functionality for field use
-6. Implement user authentication for multi-user support
-7. Add dark mode support with theme toggle
+1. Incrementally rebuild the RoadRiskForm with proper functionality
+2. Complete the implementation of the Culvert Sizing Tool with calculation algorithms
+3. Add photo capture functionality with device camera integration
+4. Implement PDF export for assessment reports
+5. Create visualization components for assessment results
+6. Add offline functionality for field use
+7. Implement user authentication for multi-user support
 
 ## Dependencies
 
 - React/React Native
-- React Router
+- React Router (for navigation)
 - Expo
 - AsyncStorage (for local data persistence)
 
 ## Known Issues
 
+- RoadRiskForm is currently a simple placeholder and needs to be rebuilt
 - Photo capture functionality is currently a placeholder
 - PDF export is simulated and will be fully implemented in the next version
 - GPS location functionality needs to be connected to device location services
