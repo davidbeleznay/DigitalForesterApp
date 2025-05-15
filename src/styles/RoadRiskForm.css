@@ -1,0 +1,158 @@
+/* Global styles for Road Risk Assessment form */
+
+.road-risk-form-container {
+  padding: 24px;
+  max-width: 900px;
+  margin: 0 auto;
+  background-color: #f8f9fa;
+  min-height: 100vh;
+  position: relative;
+  background-image: linear-gradient(135deg, #f8f9fa 0%, #eef1f5 100%);
+}
+
+.road-risk-header {
+  text-align: center;
+  margin-bottom: 35px;
+  position: relative;
+  padding: 20px 0;
+}
+
+.road-risk-header-accent {
+  position: absolute;
+  top: -24px;
+  left: 0;
+  right: 0;
+  height: 6px;
+  background: linear-gradient(90deg, #4CAF50, #1976d2);
+  border-radius: 0 0 3px 3px;
+  z-index: 1;
+}
+
+.road-risk-title {
+  font-size: 2.5rem;
+  font-weight: 700;
+  background: linear-gradient(135deg, #1976d2, #4CAF50);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  margin-bottom: 10px;
+  text-shadow: 0 2px 3px rgba(0,0,0,0.05);
+}
+
+.road-risk-subtitle {
+  color: #666;
+  font-size: 1.1rem;
+  max-width: 600px;
+  margin: 0 auto;
+  line-height: 1.5;
+}
+
+.breadcrumb-nav {
+  margin-top: 15px;
+  font-size: 0.9rem;
+  color: #777;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+}
+
+.breadcrumb-link {
+  color: #1976d2;
+  text-decoration: none;
+}
+
+.form-section {
+  background-color: #ffffff;
+  padding: 28px;
+  border-radius: 14px;
+  margin-bottom: 28px;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.06);
+  border: 1px solid #f0f0f0;
+  transition: all 0.3s ease;
+}
+
+.section-header {
+  position: relative;
+  color: #1976d2;
+  font-size: 1.6rem;
+  font-weight: 600;
+  padding-bottom: 15px;
+  margin-bottom: 28px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.section-accent {
+  display: inline-block;
+  width: 5px;
+  height: 24px;
+  background: linear-gradient(to bottom, #1976d2, #42a5f5);
+  margin-right: 12px;
+  vertical-align: middle;
+  border-radius: 3px;
+}
+
+.form-input {
+  width: 100%;
+  padding: 14px;
+  border-radius: 10px;
+  border: 1px solid #e0e0e0;
+  font-size: 1rem;
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  outline: none;
+  background-color: #fafafa;
+}
+
+.form-input:focus {
+  border-color: #1976d2;
+  box-shadow: 0 0 0 3px rgba(25, 118, 210, 0.2);
+  background-color: #ffffff;
+}
+
+.form-label {
+  display: block;
+  margin-bottom: 10px;
+  font-weight: 600;
+  color: #333;
+  font-size: 1rem;
+  position: relative;
+  padding-left: 12px;
+}
+
+.label-accent {
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 4px;
+  height: 16px;
+  background-color: #1976d2;
+  border-radius: 2px;
+  opacity: 0.7;
+}
+
+/* Animation keyframes */
+@keyframes shine {
+  0% { left: -100%; }
+  100% { left: 100%; }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Responsive styles */
+@media (max-width: 768px) {
+  .score-buttons {
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  .coordinate-inputs {
+    flex-direction: column;
+  }
+  
+  .action-buttons {
+    flex-direction: column;
+  }
+}

@@ -16,6 +16,7 @@ The application has been rebuilt from scratch to resolve persistent issues with 
 ## Key Features
 
 - **Road Risk Assessment**: Complete form with multiple risk factors, calculation of risk scores, photo integration and PDF export
+- **Optional Assessment Factors**: Geotechnical considerations and infrastructure elements for more comprehensive evaluations
 - **Culvert Sizing Tool**: Input form for watershed characteristics and culvert dimensions
 - **History Tracking**: Save assessment records with details and timestamps
 - **Local Storage**: Persist data across sessions with automatic saving of drafts
@@ -24,6 +25,15 @@ The application has been rebuilt from scratch to resolve persistent issues with 
 ## Changelog
 
 ### 2025-05-15
+- Added optional assessment factors to the Road Risk Assessment form:
+  - Geotechnical considerations (cut/fill slope height, bedrock condition, etc.)
+  - Infrastructure elements (road surface, ditch condition, culvert sizing/condition)
+- Added collapsible sections for optional assessment factors
+- Enhanced risk results summary to include optional assessment information
+- Improved radio button UI for optional assessments with color-coded risk levels
+- Enhanced form with better field grouping and visual hierarchy
+
+### 2025-05-14
 - Enhanced UI/UX for Road Risk Assessment with sophisticated visual design
 - Added animated transitions and interactive feedback for form interactions
 - Implemented sticky navigation and status messages for better user guidance
@@ -34,19 +44,13 @@ The application has been rebuilt from scratch to resolve persistent issues with 
 - Added breadcrumb navigation for easier app traversal
 - Improved photo gallery with better visual styling and interactions
 
-### 2025-05-14
+### 2025-05-08
 - Redesigned the RoadRiskForm UI with button-based factor selection interface
 - Changed from dropdown selects to interactive button grids for better usability
 - Implemented visual highlighting of selected factor values
 - Maintained color-coding for risk level indicators (green for low, orange for medium, red for high)
 - Fixed all syntax errors while providing an improved user experience
 - Added consistent section styling and improved visual hierarchy
-
-### 2025-05-08
-- Completed RoadRiskForm implementation with PDF preview and export functionality
-- Fixed code formatting issues in form button section
-- Ensured proper saving and restoration of form state
-- Added visual feedback for user actions through status messages
 
 ### 2025-05-04
 - Created fresh project with Expo
@@ -66,8 +70,10 @@ AI-Forester-App/
 │   ├── pages/            # Main form pages
 │   │   ├── RoadRiskForm.js
 │   │   └── HistoryPage.js
-│   └── screens/          # Screen components
-│       └── HomeScreen.js # Landing page with tool selection
+│   ├── screens/          # Screen components
+│   │   └── HomeScreen.js # Landing page with tool selection
+│   └── styles/           # CSS files for styling
+│       └── RoadRiskForm.css
 ```
 
 ## Technical Implementation Notes
@@ -79,9 +85,19 @@ AI-Forester-App/
 - Visually highlights selected values with appropriate colors
 - Calculates risk scores based on user-selected factor values
 - Provides user feedback through animated status messages
+- Includes optional assessment factors for more comprehensive evaluations
+- Uses modern collapsible sections for optional content
 - Includes placeholder functionality for photo capture and PDF export
 - Uses CSS transitions and animations for a more engaging experience
 - Implements responsive design patterns for all screen sizes
+
+### Road Risk Assessment Framework
+- Based on professional forestry practice standards for British Columbia
+- Includes core assessment (hazard and consequence factors)
+- Optional geotechnical and infrastructure assessments
+- Risk calculation with appropriate recommendations
+- Professional resource requirements based on risk level
+- Implementation follows EGBC/FPBC Forest Roads Guidelines
 
 ### UI Design Principles
 - Consistent color scheme with section-specific accents for better visual organization
