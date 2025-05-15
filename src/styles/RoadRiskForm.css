@@ -1,0 +1,329 @@
+/* Road Risk Form Styles */
+
+.road-risk-form {
+  padding: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.breadcrumb {
+  display: flex;
+  align-items: center;
+  margin-bottom: 20px;
+  font-size: 14px;
+}
+
+.breadcrumb-link {
+  color: #2196f3;
+  text-decoration: none;
+}
+
+.breadcrumb-separator {
+  margin: 0 10px;
+  color: #888;
+}
+
+.breadcrumb-current {
+  color: #666;
+  font-weight: 500;
+}
+
+.form-title {
+  font-size: 32px;
+  font-weight: 700;
+  color: #333;
+  margin-bottom: 30px;
+}
+
+.form-section {
+  background-color: #fff;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  margin-bottom: 30px;
+  padding: 25px;
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  font-size: 22px;
+  margin-bottom: 25px;
+  padding-bottom: 15px;
+  border-bottom: 1px solid #eee;
+  position: relative;
+}
+
+.section-accent {
+  width: 5px;
+  height: 24px;
+  border-radius: 3px;
+  margin-right: 15px;
+}
+
+.input-group {
+  display: flex;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+  gap: 20px;
+}
+
+@media (max-width: 768px) {
+  .input-group {
+    flex-direction: column;
+  }
+}
+
+.form-field {
+  flex: 1;
+  min-width: 250px;
+}
+
+.form-label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 500;
+  color: #333;
+}
+
+.form-input {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 16px;
+  transition: border-color 0.3s;
+}
+
+.form-input:focus {
+  border-color: #2196f3;
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(33, 150, 243, 0.1);
+}
+
+.coordinate-inputs {
+  display: flex;
+  gap: 20px;
+  margin-top: 20px;
+}
+
+.coordinate-group {
+  flex: 1;
+  background-color: #f5f9ff;
+  border-radius: 8px;
+  padding: 15px;
+  border: 1px solid #e1e8f0;
+}
+
+.coordinate-header {
+  font-size: 16px;
+  color: #0d47a1;
+  margin-bottom: 15px;
+  font-weight: 500;
+}
+
+.factor-group {
+  margin-bottom: 30px;
+}
+
+.factor-header {
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 15px;
+  color: #333;
+}
+
+.score-buttons {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.score-button {
+  flex: 1;
+  background-color: #f5f5f5;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 12px 8px;
+  min-width: 120px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.score-button.selected {
+  transform: scale(1.05);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.score-button.green { background-color: #e8f5e9; }
+.score-button.yellow { background-color: #fff8e1; }
+.score-button.orange { background-color: #fff3e0; }
+.score-button.red { background-color: #ffebee; }
+
+.score-button.green.selected { border-color: #2e7d32; }
+.score-button.yellow.selected { border-color: #f57f17; }
+.score-button.orange.selected { border-color: #e65100; }
+.score-button.red.selected { border-color: #b71c1c; }
+
+.score-value {
+  font-size: 20px;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.score-label {
+  font-size: 14px;
+  text-align: center;
+}
+
+.factor-total {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 20px;
+  padding: 15px;
+  background-color: #f5f5f5;
+  border-radius: 8px;
+  border: 1px solid #eee;
+}
+
+.factor-total-label {
+  font-weight: 600;
+  font-size: 18px;
+}
+
+.factor-total-value {
+  font-size: 24px;
+  font-weight: 700;
+  padding: 5px 15px;
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.optional-section-toggles {
+  display: flex;
+  gap: 15px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+}
+
+.optional-toggle {
+  display: flex;
+  align-items: center;
+  padding: 12px 20px;
+  border-radius: 8px;
+  background-color: white;
+  border: 1px solid #ddd;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.toggle-icon {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background-color: #f5f5f5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 10px;
+  font-weight: bold;
+}
+
+.toggle-text {
+  font-weight: 500;
+}
+
+.optional-section {
+  height: 0;
+  overflow: hidden;
+  transition: all 0.5s;
+  opacity: 0;
+}
+
+.optional-section.show {
+  height: auto;
+  opacity: 1;
+  margin-top: 20px;
+}
+
+.optional-description {
+  margin-bottom: 20px;
+  color: #666;
+  font-style: italic;
+}
+
+.buttonContainer {
+  margin-top: 30px;
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.calculateButton {
+  background-color: #2e7d32;
+  color: white;
+  padding: 15px;
+  border-radius: 8px;
+  font-size: 18px;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s;
+  flex: 1;
+}
+
+.calculateButton:hover {
+  background-color: #1b5e20;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+}
+
+.secondaryButtons {
+  display: flex;
+  gap: 15px;
+  flex: 1;
+}
+
+.secondaryButton {
+  background-color: #e8f5e9;
+  color: #2e7d32;
+  border: 1px solid #2e7d32;
+  padding: 12px;
+  border-radius: 8px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s;
+  flex: 1;
+}
+
+.secondaryButton:hover {
+  background-color: #c8e6c9;
+}
+
+.resetButton {
+  background-color: #fff3e0;
+  color: #ff9800;
+  border-color: #ff9800;
+}
+
+.resetButton:hover {
+  background-color: #ffe0b2;
+}
+
+@media (max-width: 768px) {
+  .score-buttons {
+    flex-direction: column;
+  }
+  
+  .coordinate-inputs {
+    flex-direction: column;
+  }
+  
+  .secondaryButtons {
+    flex-direction: column;
+  }
+}
