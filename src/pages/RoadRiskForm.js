@@ -1,849 +1,11 @@
-import React, { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-
-// Default values for form reset
-const defaultBasicInfo = {
-  roadName: '',
-  startKm: '',
-  endKm: '',
-  startLat: '',
-  startLong: '',
-  endLat: '',
-  endLong: '',
-  date: new Date().toISOString().split('T')[0],
-  inspector: ''
-};
-
-const defaultHazardFactors = {
-  terrainStability: 2,
-  slopeGrade: 2,
-  geologySoil: 2,
-  drainageConditions: 2,
-  roadFailureHistory: 2
-};
-
-const defaultConsequenceFactors = {
-  proximityToWater: 2,
-  drainageStructure: 2,
-  publicIndustrialUse: 2,
-  environmentalValue: 2
-};
-
-// Risk level colors
-const riskColors = {
-  veryLow: '#e3f2fd',
-  low: '#e8f5e9',
-  moderate: '#fff8e1',
-  high: '#ffebee',
-  veryHigh: '#fce4ec'
-};
-
-// Risk level text colors
-const riskTextColors = {
-  veryLow: '#0d47a1',
-  low: '#1b5e20',
-  moderate: '#ff8f00',
-  high: '#c62828',
-  veryHigh: '#880e4f'
-};
-
-// Button style colors based on score
-const buttonColors = {
-  2: {
-    active: '#4caf50',
-    inactive: '#ffffff',
-    textActive: '#ffffff',
-    textInactive: '#333333',
-    border: '#e0e0e0'
-  },
-  4: {
-    active: '#ffb300',
-    inactive: '#ffffff',
-    textActive: '#ffffff',
-    textInactive: '#333333',
-    border: '#e0e0e0'
-  },
-  6: {
-    active: '#ff9800',
-    inactive: '#ffffff',
-    textActive: '#ffffff',
-    textInactive: '#333333',
-    border: '#e0e0e0'
-  },
-  10: {
-    active: '#f44336',
-    inactive: '#ffffff',
-    textActive: '#ffffff',
-    textInactive: '#333333',
-    border: '#e0e0e0'
-  }
-};
-
-function RoadRiskForm() {
-  const navigate = useNavigate();
-  
-  // Basic info state
-  const [basicInfo, setBasicInfo] = useState({...defaultBasicInfo});
-  
-  // Hazard factors state
-  const [hazardFactors, setHazardFactors] = useState({...defaultHazardFactors});
-  
-  // Consequence factors state
-  const [consequenceFactors, setConsequenceFactors] = useState({...defaultConsequenceFactors});
-  
-  // Status message state
-  const [statusMessage, setStatusMessage] = useState('');
-  
-  // Photos (simplified placeholder)
-  const [photos, setPhotos] = useState([]);
-  
-  // Comments
-  const [comments, setComments] = useState('');
-  
-  // Calculate risk scores
-  const getTotalHazardScore = () => {
-    return Object.values(hazardFactors).reduce((sum, score) => sum + score, 0);
-  };
-  
-  const getTotalConsequenceScore = () => {
-    return Object.values(consequenceFactors).reduce((sum, score) => sum + score, 0);
-  };
-  
-  const getRiskScore = () => {
-    return getTotalHazardScore() * getTotalConsequenceScore();
-  };
-  
-  // Get risk category
-  const getRiskCategory = (score) => {
-    if (score > 1000) return { category: 'Very High', color: 'veryHigh' };
-    if (score >= 500) return { category: 'High', color: 'high' };
-    if (score >= 250) return { category: 'Moderate', color: 'moderate' };
-    if (score >= 150) return { category: 'Low', color: 'low' };
-    return { category: 'Very Low', color: 'veryLow' };
-  };
-  
-  // Helper function to show status messages
-  const showStatus = (message) => {
-    setStatusMessage(message);
-    setTimeout(() => setStatusMessage(''), 3000);
-  };
-  
-  // Handle basic info changes
-  const handleBasicInfoChange = (e) => {
-    const { name, value } = e.target;
-    const updatedBasicInfo = {
-      ...basicInfo,
-      [name]: value
-    };
-    setBasicInfo(updatedBasicInfo);
-    
-    // Auto-save to localStorage
-    saveToLocalStorage({
-      basicInfo: updatedBasicInfo,
-      hazardFactors,
-      consequenceFactors,
-      comments,
-      photos
-    });
-  };
-  
-  // Handle hazard factor changes
-  const handleHazardChange = (name, value) => {
-    const updatedHazardFactors = {
-      ...hazardFactors,
-      [name]: value
-    };
-    setHazardFactors(updatedHazardFactors);
-    
-    // Auto-save to localStorage
-    saveToLocalStorage({
-      basicInfo,
-      hazardFactors: updatedHazardFactors,
-      consequenceFactors,
-      comments,
-      photos
-    });
-  };
-  
-  // Handle consequence factor changes
-  const handleConsequenceChange = (name, value) => {
-    const updatedConsequenceFactors = {
-      ...consequenceFactors,
-      [name]: value
-    };
-    setConsequenceFactors(updatedConsequenceFactors);
-    
-    // Auto-save to localStorage
-    saveToLocalStorage({
-      basicInfo,
-      hazardFactors,
-      consequenceFactors: updatedConsequenceFactors,
-      comments,
-      photos
-    });
-  };
-  
-  // Handle comments change
-  const handleCommentsChange = (e) => {
-    const newComments = e.target.value;
-    setComments(newComments);
-    
-    // Auto-save to localStorage
-    saveToLocalStorage({
-      basicInfo,
-      hazardFactors,
-      consequenceFactors,
-      comments: newComments,
-      photos
-    });
-  };
-  
-  // Mock function to simulate getting current location
-  const handleGetLocation = (position) => {
-    // In a real implementation, this would use the browser's geolocation API
-    // For now we'll just simulate with random coordinates
-    const lat = (Math.random() * (49.5 - 48.5) + 48.5).toFixed(6);
-    const long = (-Math.random() * (123.5 - 122.5) - 122.5).toFixed(6);
-    
-    let updatedBasicInfo;
-    if (position === 'start') {
-      updatedBasicInfo = {
-        ...basicInfo,
-        startLat: lat,
-        startLong: long
-      };
-    } else {
-      updatedBasicInfo = {
-        ...basicInfo,
-        endLat: lat,
-        endLong: long
-      };
-    }
-    
-    setBasicInfo(updatedBasicInfo);
-    
-    // Auto-save to localStorage
-    saveToLocalStorage({
-      basicInfo: updatedBasicInfo,
-      hazardFactors,
-      consequenceFactors,
-      comments,
-      photos
-    });
-    
-    showStatus('Location captured successfully!');
-  };
-  
-  // Add photo placeholder
-  const handleAddPhoto = () => {
-    const mockPhoto = {
-      id: `photo-${Date.now()}`,
-      name: `Photo ${photos.length + 1}`,
-      url: 'https://via.placeholder.com/150',
-      timestamp: new Date().toISOString()
-    };
-    
-    const updatedPhotos = [...photos, mockPhoto];
-    setPhotos(updatedPhotos);
-    
-    // Auto-save to localStorage
-    saveToLocalStorage({
-      basicInfo,
-      hazardFactors,
-      consequenceFactors,
-      comments,
-      photos: updatedPhotos
-    });
-    
-    showStatus('Photo added successfully!');
-  };
-  
-  // Remove photo
-  const handleRemovePhoto = (id) => {
-    const updatedPhotos = photos.filter(photo => photo.id !== id);
-    setPhotos(updatedPhotos);
-    
-    // Auto-save to localStorage
-    saveToLocalStorage({
-      basicInfo,
-      hazardFactors,
-      consequenceFactors,
-      comments,
-      photos: updatedPhotos
-    });
-  };
-  
-  // Export to PDF placeholder
-  const handleExportPDF = () => {
-    showStatus('PDF export functionality will be implemented in the next version.');
-  };
-  
-  // Save form data to localStorage
-  const saveToLocalStorage = (formData) => {
-    const completeFormData = {
-      ...formData,
-      timestamp: new Date().toISOString()
-    };
-    
-    localStorage.setItem('roadRiskForm', JSON.stringify(completeFormData));
-  };
-  
-  // Save assessment to history
-  const handleSaveAssessment = () => {
-    // Check if road name is provided (minimal validation)
-    if (!basicInfo.roadName) {
-      showStatus('Please provide a road name before saving');
-      return;
-    }
-    
-    // Save the assessment to history
-    const assessmentData = {
-      type: 'roadRisk',
-      data: {
-        basicInfo,
-        hazardFactors,
-        consequenceFactors,
-        comments,
-        photos
-      },
-      photoCount: photos.length,
-      inspector: basicInfo.inspector,
-      completedAt: new Date().toISOString()
-    };
-    
-    // Get existing history or initialize new array
-    const existingHistory = localStorage.getItem('assessmentHistory');
-    const history = existingHistory ? JSON.parse(existingHistory) : [];
-    
-    // Add new assessment to history
-    history.unshift(assessmentData);
-    
-    // Save updated history
-    localStorage.setItem('assessmentHistory', JSON.stringify(history));
-    
-    showStatus('Assessment saved to history!');
-  };
-  
-  // Save draft explicitly
-  const handleSaveDraft = () => {
-    saveToLocalStorage({
-      basicInfo,
-      hazardFactors,
-      consequenceFactors,
-      comments,
-      photos
-    });
-    
-    showStatus('Road risk assessment draft saved successfully!');
-  };
-  
-  // Start a new assessment
-  const handleNewAssessment = () => {
-    // Reset all form fields to defaults
-    setBasicInfo({...defaultBasicInfo});
-    setHazardFactors({...defaultHazardFactors});
-    setConsequenceFactors({...defaultConsequenceFactors});
-    setComments('');
-    setPhotos([]);
-    
-    // Clear the saved draft
-    localStorage.removeItem('roadRiskForm');
-    
-    showStatus('Started new assessment');
-  };
-  
-  // Load saved data on component mount
-  useEffect(() => {
-    const savedData = localStorage.getItem('roadRiskForm');
-    if (savedData) {
-      try {
-        const parsedData = JSON.parse(savedData);
-        setBasicInfo(parsedData.basicInfo || {...defaultBasicInfo});
-        setHazardFactors(parsedData.hazardFactors || {...defaultHazardFactors});
-        setConsequenceFactors(parsedData.consequenceFactors || {...defaultConsequenceFactors});
-        setComments(parsedData.comments || '');
-        setPhotos(parsedData.photos || []);
-        
-        showStatus('Loaded saved draft');
-      } catch (error) {
-        console.error('Error loading saved data:', error);
-      }
-    }
-  }, []);
-  
-  // Calculate risk values for display
-  const hazardScore = getTotalHazardScore();
-  const consequenceScore = getTotalConsequenceScore();
-  const riskScore = getRiskScore();
-  const { category: riskCategory, color: riskColorKey } = getRiskCategory(riskScore);
-  
-  // Create a score option button
-  const ScoreButton = ({ factor, value, currentValue, onChange, label }) => {
-    const isSelected = currentValue === value;
-    return (
-      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-        <button
-          type="button"
-          onClick={() => onChange(factor, value)}
-          style={{
-            width: '100%',
-            padding: '15px 0',
-            margin: '5px 0',
-            backgroundColor: isSelected ? buttonColors[value].active : buttonColors[value].inactive,
-            color: isSelected ? buttonColors[value].textActive : buttonColors[value].textInactive,
-            border: `1px solid ${isSelected ? buttonColors[value].active : buttonColors[value].border}`,
-            borderRadius: '4px',
-            cursor: 'pointer',
-            fontWeight: 'bold',
-            fontSize: '1.1rem',
-            transition: 'all 0.2s ease',
-            outline: 'none'
-          }}
-        >
-          {value}
-        </button>
-        <div style={{ 
-          textAlign: 'center', 
-          fontSize: '0.85rem', 
-          color: '#777', 
-          marginTop: '5px',
-          maxWidth: '120px',
-          lineHeight: '1.3'
-        }}>
-          {label}
-        </div>
-      </div>
-    );
-  };
-  
-  return (
-    <div style={{ padding: '20px', maxWidth: '800px', margin: '0 auto' }}>
-      <h1 style={{ textAlign: 'center', marginBottom: '20px' }}>Road Risk Assessment</h1>
-      
-      {statusMessage && (
-        <div style={{ 
-          padding: '10px', 
-          backgroundColor: '#e8f5e9', 
-          borderRadius: '5px', 
-          marginBottom: '20px',
-          border: '1px solid #81c784',
-          color: '#2e7d32'
-        }}>
-          {statusMessage}
-        </div>
-      )}
-      
-      <div style={{ 
-        backgroundColor: '#ffffff', 
-        padding: '20px', 
-        borderRadius: '8px', 
-        marginBottom: '20px',
-        boxShadow: '0 2px 5px rgba(0,0,0,0.1)'
-      }}>
-        <h2 style={{ borderBottom: '1px solid #f0f0f0', paddingBottom: '10px', marginBottom: '20px' }}>Road Information</h2>
-        
-        <div style={{ marginBottom: '15px' }}>
-          <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
-            Road Name <span style={{ color: 'red' }}>*</span>
-          </label>
-          <input
-            type="text"
-            name="roadName"
-            value={basicInfo.roadName}
-            onChange={handleBasicInfoChange}
-            placeholder="e.g., Forest Service Road #137"
-            style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ddd' }}
-          />
-        </div>
-        
-        <div style={{ display: 'flex', gap: '15px', marginBottom: '15px' }}>
-          <div style={{ flex: 1 }}>
-            <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Start KM</label>
-            <input
-              type="number"
-              name="startKm"
-              value={basicInfo.startKm}
-              onChange={handleBasicInfoChange}
-              placeholder="e.g., 0.0"
-              style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ddd' }}
-            />
-          </div>
-          <div style={{ flex: 1 }}>
-            <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>End KM</label>
-            <input
-              type="number"
-              name="endKm"
-              value={basicInfo.endKm}
-              onChange={handleBasicInfoChange}
-              placeholder="e.g., 2.5"
-              style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ddd' }}
-            />
-          </div>
-        </div>
-        
-        <div style={{ marginBottom: '15px' }}>
-          <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Start Coordinates</label>
-          <div style={{ display: 'flex', gap: '10px' }}>
-            <input
-              type="text"
-              name="startLat"
-              value={basicInfo.startLat}
-              onChange={handleBasicInfoChange}
-              placeholder="Latitude"
-              style={{ flex: 1, padding: '8px', borderRadius: '4px', border: '1px solid #ddd' }}
-            />
-            <input
-              type="text"
-              name="startLong"
-              value={basicInfo.startLong}
-              onChange={handleBasicInfoChange}
-              placeholder="Longitude"
-              style={{ flex: 1, padding: '8px', borderRadius: '4px', border: '1px solid #ddd' }}
-            />
-            <button
-              type="button"
-              onClick={() => handleGetLocation('start')}
-              style={{
-                padding: '8px 12px',
-                backgroundColor: '#3498db',
-                color: 'white',
-                border: 'none',
-                borderRadius: '4px',
-                cursor: 'pointer'
-              }}
-            >
-              Get Location
-            </button>
-          </div>
-        </div>
-        
-        <div style={{ marginBottom: '15px' }}>
-          <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>End Coordinates</label>
-          <div style={{ display: 'flex', gap: '10px' }}>
-            <input
-              type="text"
-              name="endLat"
-              value={basicInfo.endLat}
-              onChange={handleBasicInfoChange}
-              placeholder="Latitude"
-              style={{ flex: 1, padding: '8px', borderRadius: '4px', border: '1px solid #ddd' }}
-            />
-            <input
-              type="text"
-              name="endLong"
-              value={basicInfo.endLong}
-              onChange={handleBasicInfoChange}
-              placeholder="Longitude"
-              style={{ flex: 1, padding: '8px', borderRadius: '4px', border: '1px solid #ddd' }}
-            />
-            <button
-              type="button"
-              onClick={() => handleGetLocation('end')}
-              style={{
-                padding: '8px 12px',
-                backgroundColor: '#3498db',
-                color: 'white',
-                border: 'none',
-                borderRadius: '4px',
-                cursor: 'pointer'
-              }}
-            >
-              Get Location
-            </button>
-          </div>
-        </div>
-        
-        <div style={{ display: 'flex', gap: '15px' }}>
-          <div style={{ flex: 1 }}>
-            <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Assessment Date</label>
-            <input
-              type="date"
-              name="date"
-              value={basicInfo.date}
-              onChange={handleBasicInfoChange}
-              style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ddd' }}
-            />
-          </div>
-          <div style={{ flex: 1 }}>
-            <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Inspector Name</label>
-            <input
-              type="text"
-              name="inspector"
-              value={basicInfo.inspector}
-              onChange={handleBasicInfoChange}
-              placeholder="Enter your name"
-              style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ddd' }}
-            />
-          </div>
-        </div>
-      </div>
-      
-      {/* Hazard Factors Section */}
-      <div style={{ 
-        backgroundColor: '#ffffff', 
-        padding: '20px', 
-        borderRadius: '8px', 
-        marginBottom: '20px',
-        boxShadow: '0 2px 5px rgba(0,0,0,0.1)'
-      }}>
-        <h2 style={{ color: '#2196f3', borderBottom: '1px solid #f0f0f0', paddingBottom: '10px', marginBottom: '20px' }}>
-          Hazard Factors (Likelihood)
-        </h2>
-        
-        <p style={{ color: '#666', marginBottom: '20px' }}>
-          Select the appropriate score for each factor
-        </p>
-        
-        {/* Terrain Stability */}
-        <div style={{ marginBottom: '30px' }}>
-          <h3 style={{ marginBottom: '15px' }}>Terrain Stability</h3>
-          <div style={{ display: 'flex', justifyContent: 'space-between', gap: '10px' }}>
-            <ScoreButton 
-              factor="terrainStability" 
-              value={2} 
-              currentValue={hazardFactors.terrainStability} 
-              onChange={handleHazardChange} 
-              label="Stable terrain (slopes <40%)" 
-            />
-            <ScoreButton 
-              factor="terrainStability" 
-              value={4} 
-              currentValue={hazardFactors.terrainStability} 
-              onChange={handleHazardChange} 
-              label="Moderately stable (slopes 40-60%)" 
-            />
-            <ScoreButton 
-              factor="terrainStability" 
-              value={6} 
-              currentValue={hazardFactors.terrainStability} 
-              onChange={handleHazardChange} 
-              label="Potentially unstable (slopes >60%)" 
-            />
-            <ScoreButton 
-              factor="terrainStability" 
-              value={10} 
-              currentValue={hazardFactors.terrainStability} 
-              onChange={handleHazardChange} 
-              label="Unstable terrain (Class IV/V)" 
-            />
-          </div>
-        </div>
-        
-        {/* Slope Grade */}
-        <div style={{ marginBottom: '30px' }}>
-          <h3 style={{ marginBottom: '15px' }}>Slope Grade</h3>
-          <div style={{ display: 'flex', justifyContent: 'space-between', gap: '10px' }}>
-            <ScoreButton 
-              factor="slopeGrade" 
-              value={2} 
-              currentValue={hazardFactors.slopeGrade} 
-              onChange={handleHazardChange} 
-              label="Low grade (<8%)" 
-            />
-            <ScoreButton 
-              factor="slopeGrade" 
-              value={4} 
-              currentValue={hazardFactors.slopeGrade} 
-              onChange={handleHazardChange} 
-              label="Moderate grade (8-12%)" 
-            />
-            <ScoreButton 
-              factor="slopeGrade" 
-              value={6} 
-              currentValue={hazardFactors.slopeGrade} 
-              onChange={handleHazardChange} 
-              label="Steep grade (12-18%)" 
-            />
-            <ScoreButton 
-              factor="slopeGrade" 
-              value={10} 
-              currentValue={hazardFactors.slopeGrade} 
-              onChange={handleHazardChange} 
-              label="Very steep grade (>18%)" 
-            />
-          </div>
-        </div>
-        
-        {/* Geology/Soil */}
-        <div style={{ marginBottom: '30px' }}>
-          <h3 style={{ marginBottom: '15px' }}>Geology/Soil</h3>
-          <div style={{ display: 'flex', justifyContent: 'space-between', gap: '10px' }}>
-            <ScoreButton 
-              factor="geologySoil" 
-              value={2} 
-              currentValue={hazardFactors.geologySoil} 
-              onChange={handleHazardChange} 
-              label="Cohesive, stable soils/bedrock" 
-            />
-            <ScoreButton 
-              factor="geologySoil" 
-              value={4} 
-              currentValue={hazardFactors.geologySoil} 
-              onChange={handleHazardChange} 
-              label="Moderately stable soils" 
-            />
-            <ScoreButton 
-              factor="geologySoil" 
-              value={6} 
-              currentValue={hazardFactors.geologySoil} 
-              onChange={handleHazardChange} 
-              label="Loose, erodible soils" 
-            />
-            <ScoreButton 
-              factor="geologySoil" 
-              value={10} 
-              currentValue={hazardFactors.geologySoil} 
-              onChange={handleHazardChange} 
-              label="Highly erodible soils/talus" 
-            />
-          </div>
-        </div>
-        
-        {/* Drainage Conditions */}
-        <div style={{ marginBottom: '30px' }}>
-          <h3 style={{ marginBottom: '15px' }}>Drainage Conditions</h3>
-          <div style={{ display: 'flex', justifyContent: 'space-between', gap: '10px' }}>
-            <ScoreButton 
-              factor="drainageConditions" 
-              value={2} 
-              currentValue={hazardFactors.drainageConditions} 
-              onChange={handleHazardChange} 
-              label="Well-drained, minimal surface water" 
-            />
-            <ScoreButton 
-              factor="drainageConditions" 
-              value={4} 
-              currentValue={hazardFactors.drainageConditions} 
-              onChange={handleHazardChange} 
-              label="Moderate drainage issues" 
-            />
-            <ScoreButton 
-              factor="drainageConditions" 
-              value={6} 
-              currentValue={hazardFactors.drainageConditions} 
-              onChange={handleHazardChange} 
-              label="Poor drainage, standing water" 
-            />
-            <ScoreButton 
-              factor="drainageConditions" 
-              value={10} 
-              currentValue={hazardFactors.drainageConditions} 
-              onChange={handleHazardChange} 
-              label="Severe drainage issues, seepage" 
-            />
-          </div>
-        </div>
-        
-        {/* Road Failure History */}
-        <div style={{ marginBottom: '30px' }}>
-          <h3 style={{ marginBottom: '15px' }}>Road Failure History</h3>
-          <div style={{ display: 'flex', justifyContent: 'space-between', gap: '10px' }}>
-            <ScoreButton 
-              factor="roadFailureHistory" 
-              value={2} 
-              currentValue={hazardFactors.roadFailureHistory} 
-              onChange={handleHazardChange} 
-              label="No previous failures" 
-            />
-            <ScoreButton 
-              factor="roadFailureHistory" 
-              value={4} 
-              currentValue={hazardFactors.roadFailureHistory} 
-              onChange={handleHazardChange} 
-              label="Minor historical issues" 
-            />
-            <ScoreButton 
-              factor="roadFailureHistory" 
-              value={6} 
-              currentValue={hazardFactors.roadFailureHistory} 
-              onChange={handleHazardChange} 
-              label="Moderate historical failures" 
-            />
-            <ScoreButton 
-              factor="roadFailureHistory" 
-              value={10} 
-              currentValue={hazardFactors.roadFailureHistory} 
-              onChange={handleHazardChange} 
-              label="Frequent/significant failures" 
-            />
-          </div>
-        </div>
-        
-        <div style={{ 
-          backgroundColor: '#f5f5f5', 
-          padding: '15px', 
-          borderRadius: '4px',
-          marginTop: '10px',
-          display: 'flex', 
-          justifyContent: 'space-between',
-          alignItems: 'center'
-        }}>
-          <span style={{ fontWeight: 'bold', fontSize: '1.1rem' }}>Total Hazard Score:</span>
-          <span style={{ 
-            fontWeight: 'bold', 
-            fontSize: '1.1rem',
-            padding: '5px 15px',
-            backgroundColor: '#e0e0e0',
-            borderRadius: '4px'
-          }}>{hazardScore}</span>
-        </div>
-      </div>
-      
-      {/* Consequence Factors Section */}
-      <div style={{ 
-        backgroundColor: '#ffffff', 
-        padding: '20px', 
-        borderRadius: '8px', 
-        marginBottom: '20px',
-        boxShadow: '0 2px 5px rgba(0,0,0,0.1)'
-      }}>
-        <h2 style={{ color: '#2196f3', borderBottom: '1px solid #f0f0f0', paddingBottom: '10px', marginBottom: '20px' }}>
-          Consequence Factors (Severity)
-        </h2>
-        
-        <p style={{ color: '#666', marginBottom: '20px' }}>
-          Select the appropriate score for each factor
-        </p>
-        
-        {/* Proximity to Water */}
-        <div style={{ marginBottom: '30px' }}>
-          <h3 style={{ marginBottom: '15px' }}>Proximity to Water</h3>
-          <div style={{ display: 'flex', justifyContent: 'space-between', gap: '10px' }}>
-            <ScoreButton 
-              factor="proximityToWater" 
-              value={2} 
-              currentValue={consequenceFactors.proximityToWater} 
-              onChange={handleConsequenceChange} 
-              label="No water nearby (>100m)" 
-            />
-            <ScoreButton 
-              factor="proximityToWater" 
-              value={4} 
-              currentValue={consequenceFactors.proximityToWater} 
-              onChange={handleConsequenceChange} 
-              label="Non-fish stream (30-100m)" 
-            />
-            <ScoreButton 
-              factor="proximityToWater" 
-              value={6} 
-              currentValue={consequenceFactors.proximityToWater} 
-              onChange={handleConsequenceChange} 
-              label="Fish stream (10-30m)" 
-            />
-            <ScoreButton 
-              factor="proximityToWater" 
-              value={10} 
-              currentValue={consequenceFactors.proximityToWater} 
-              onChange={handleConsequenceChange} 
-              label="Adjacent to fish stream (<10m)" 
-            />
-          </div>
-        </div>
-        
-        {/* Drainage Structure */}
-        <div style={{ marginBottom: '30px' }}>
-          <h3 style={{ marginBottom: '15px' }}>Drainage Structure</h3>
-          <div style={{ display: 'flex', justifyContent: 'space-between', gap: '10px' }}>
+              width: '5px',
+              height: '20px',
+              background: 'linear-gradient(to bottom, #673ab7, #9575cd)',
+              borderRadius: '2px'
+            }}></span>
+            Drainage Structure
+          </h3>
+          <div style={{ display: 'flex', justifyContent: 'space-between', gap: '14px' }}>
             <ScoreButton 
               factor="drainageStructure" 
               value={2} 
@@ -875,10 +37,38 @@ function RoadRiskForm() {
           </div>
         </div>
         
-        {/* Public/Industrial Use */}
-        <div style={{ marginBottom: '30px' }}>
-          <h3 style={{ marginBottom: '15px' }}>Public/Industrial Use</h3>
-          <div style={{ display: 'flex', justifyContent: 'space-between', gap: '10px' }}>
+        {/* Public/Industrial Use with Enhanced Styling */}
+        <div style={{ 
+          marginBottom: '40px',
+          padding: '20px',
+          borderRadius: '12px',
+          backgroundColor: 'rgba(103, 58, 183, 0.03)',
+          border: '1px solid rgba(103, 58, 183, 0.1)',
+          boxShadow: 'inset 0 1px 3px rgba(0,0,0,0.02)'
+        }}>
+          <h3 style={{ 
+            marginBottom: '18px', 
+            color: '#333',
+            fontSize: '1.2rem',
+            fontWeight: '600',
+            display: 'flex',
+            alignItems: 'center',
+            position: 'relative',
+            paddingLeft: '15px'
+          }}>
+            <span style={{
+              position: 'absolute',
+              left: 0,
+              top: '50%',
+              transform: 'translateY(-50%)',
+              width: '5px',
+              height: '20px',
+              background: 'linear-gradient(to bottom, #673ab7, #9575cd)',
+              borderRadius: '2px'
+            }}></span>
+            Public/Industrial Use
+          </h3>
+          <div style={{ display: 'flex', justifyContent: 'space-between', gap: '14px' }}>
             <ScoreButton 
               factor="publicIndustrialUse" 
               value={2} 
@@ -910,10 +100,38 @@ function RoadRiskForm() {
           </div>
         </div>
         
-        {/* Environmental Value */}
-        <div style={{ marginBottom: '30px' }}>
-          <h3 style={{ marginBottom: '15px' }}>Environmental Value</h3>
-          <div style={{ display: 'flex', justifyContent: 'space-between', gap: '10px' }}>
+        {/* Environmental Value with Enhanced Styling */}
+        <div style={{ 
+          marginBottom: '30px',
+          padding: '20px',
+          borderRadius: '12px',
+          backgroundColor: 'rgba(103, 58, 183, 0.03)',
+          border: '1px solid rgba(103, 58, 183, 0.1)',
+          boxShadow: 'inset 0 1px 3px rgba(0,0,0,0.02)'
+        }}>
+          <h3 style={{ 
+            marginBottom: '18px', 
+            color: '#333',
+            fontSize: '1.2rem',
+            fontWeight: '600',
+            display: 'flex',
+            alignItems: 'center',
+            position: 'relative',
+            paddingLeft: '15px'
+          }}>
+            <span style={{
+              position: 'absolute',
+              left: 0,
+              top: '50%',
+              transform: 'translateY(-50%)',
+              width: '5px',
+              height: '20px',
+              background: 'linear-gradient(to bottom, #673ab7, #9575cd)',
+              borderRadius: '2px'
+            }}></span>
+            Environmental Value
+          </h3>
+          <div style={{ display: 'flex', justifyContent: 'space-between', gap: '14px' }}>
             <ScoreButton 
               factor="environmentalValue" 
               value={2} 
@@ -946,157 +164,527 @@ function RoadRiskForm() {
         </div>
         
         <div style={{ 
-          backgroundColor: '#f5f5f5', 
-          padding: '15px', 
-          borderRadius: '4px',
-          marginTop: '10px',
+          background: 'linear-gradient(to right, rgba(103, 58, 183, 0.05), rgba(103, 58, 183, 0.1))', 
+          padding: '20px 24px', 
+          borderRadius: '12px',
           display: 'flex', 
           justifyContent: 'space-between',
-          alignItems: 'center'
+          alignItems: 'center',
+          boxShadow: 'inset 0 1px 3px rgba(0,0,0,0.05)',
+          border: '1px solid rgba(103, 58, 183, 0.15)'
         }}>
-          <span style={{ fontWeight: 'bold', fontSize: '1.1rem' }}>Total Consequence Score:</span>
           <span style={{ 
-            fontWeight: 'bold', 
+            fontWeight: '600', 
             fontSize: '1.1rem',
-            padding: '5px 15px',
-            backgroundColor: '#e0e0e0',
-            borderRadius: '4px'
+            color: '#333'
+          }}>Total Consequence Score:</span>
+          <span style={{ 
+            fontWeight: '700', 
+            fontSize: '1.4rem',
+            padding: '10px 22px',
+            background: 'linear-gradient(to bottom, #fff, #f9f9f9)',
+            borderRadius: '10px',
+            color: '#673ab7',
+            boxShadow: '0 3px 8px rgba(103, 58, 183, 0.15)',
+            border: '1px solid rgba(103, 58, 183, 0.2)'
           }}>{consequenceScore}</span>
         </div>
       </div>
       
-      {/* Risk Result Section */}
+      {/* Enhanced Risk Result Section with Better Styling, Gradients and Animations */}
       <div style={{ 
-        backgroundColor: riskColors[riskColorKey], 
-        padding: '20px', 
-        borderRadius: '8px', 
-        marginBottom: '20px',
-        boxShadow: '0 2px 5px rgba(0,0,0,0.1)',
+        background: `${riskColors[riskColorKey]}`, 
+        padding: '35px', 
+        borderRadius: '16px', 
+        marginBottom: '28px',
+        boxShadow: '0 8px 25px rgba(0,0,0,0.1)',
         position: 'relative',
-        overflow: 'hidden'
+        overflow: 'hidden',
+        border: `1px solid ${riskTextColors[riskColorKey]}30`,
+        transition: 'all 0.5s cubic-bezier(0.25, 0.8, 0.25, 1)'
       }}>
         <div style={{
           position: 'absolute',
           top: 0,
           right: 0,
-          backgroundColor: riskTextColors[riskColorKey],
+          background: `linear-gradient(135deg, ${riskTextColors[riskColorKey]}CC, ${riskTextColors[riskColorKey]})`,
           color: 'white',
-          padding: '5px 10px',
-          borderBottomLeftRadius: '8px',
-          fontWeight: 'bold'
+          padding: '10px 24px',
+          borderBottomLeftRadius: '16px',
+          fontWeight: '700',
+          fontSize: '1.1rem',
+          boxShadow: '0 3px 12px rgba(0,0,0,0.15)',
+          zIndex: 1,
+          display: 'flex',
+          alignItems: 'center',
+          gap: '10px'
         }}>
+          <span style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            width: '22px',
+            height: '22px',
+            backgroundColor: 'rgba(255,255,255,0.3)',
+            borderRadius: '50%',
+            fontSize: '0.8rem',
+            fontWeight: 'bold'
+          }}>!</span>
           {riskCategory} Risk
         </div>
         
-        <h2 style={{ borderBottom: '1px solid #f0f0f0', paddingBottom: '10px', marginBottom: '20px' }}>Risk Assessment Results</h2>
+        {/* Abstract background pattern for visual interest */}
+        <div style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          width: '100%',
+          height: '100%',
+          backgroundImage: 'radial-gradient(circle at 20% 80%, rgba(255,255,255,0.1) 0%, transparent 20%), radial-gradient(circle at 80% 30%, rgba(255,255,255,0.15) 0%, transparent 25%)',
+          pointerEvents: 'none'
+        }}></div>
         
-        <div style={{ marginBottom: '15px' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px', alignItems: 'center' }}>
-            <span style={{ fontWeight: 'bold' }}>Hazard Score:</span>
+        <h2 style={{ 
+          borderBottom: `1px solid ${riskTextColors[riskColorKey]}40`, 
+          paddingBottom: '15px', 
+          marginBottom: '25px',
+          color: riskTextColors[riskColorKey],
+          fontSize: '1.8rem',
+          fontWeight: '700'
+        }}>
+          <span style={{ 
+            display: 'inline-block', 
+            width: '5px', 
+            height: '24px', 
+            backgroundColor: riskTextColors[riskColorKey], 
+            marginRight: '12px', 
+            verticalAlign: 'middle',
+            borderRadius: '3px'
+          }}></span>
+          Risk Assessment Results
+        </h2>
+        
+        <div style={{ marginBottom: '30px' }}>
+          <div style={{ 
+            display: 'flex', 
+            justifyContent: 'space-between', 
+            marginBottom: '15px', 
+            alignItems: 'center' 
+          }}>
+            <span style={{ fontWeight: '600', fontSize: '1.1rem', color: '#333' }}>Hazard Score:</span>
             <span style={{ 
-              fontWeight: 'bold',
-              backgroundColor: 'rgba(255,255,255,0.7)',
-              padding: '5px 15px',
-              borderRadius: '4px'
+              fontWeight: '600',
+              fontSize: '1.1rem',
+              padding: '10px 20px',
+              background: 'rgba(255,255,255,0.7)',
+              borderRadius: '10px',
+              color: '#ff9800',
+              boxShadow: '0 3px 8px rgba(0,0,0,0.08)',
+              border: '1px solid rgba(255,255,255,0.3)'
             }}>{hazardScore}</span>
           </div>
           
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px', alignItems: 'center' }}>
-            <span style={{ fontWeight: 'bold' }}>Consequence Score:</span>
+          <div style={{ 
+            display: 'flex', 
+            justifyContent: 'space-between', 
+            marginBottom: '15px', 
+            alignItems: 'center' 
+          }}>
+            <span style={{ fontWeight: '600', fontSize: '1.1rem', color: '#333' }}>Consequence Score:</span>
             <span style={{ 
-              fontWeight: 'bold',
-              backgroundColor: 'rgba(255,255,255,0.7)',
-              padding: '5px 15px',
-              borderRadius: '4px'
+              fontWeight: '600',
+              fontSize: '1.1rem',
+              padding: '10px 20px',
+              background: 'rgba(255,255,255,0.7)',
+              borderRadius: '10px',
+              color: '#673ab7',
+              boxShadow: '0 3px 8px rgba(0,0,0,0.08)',
+              border: '1px solid rgba(255,255,255,0.3)'
             }}>{consequenceScore}</span>
           </div>
           
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px', alignItems: 'center' }}>
-            <span style={{ fontWeight: 'bold', fontSize: '1.1rem' }}>Risk Score:</span>
+          <div style={{ 
+            display: 'flex', 
+            justifyContent: 'space-between', 
+            marginBottom: '5px', 
+            alignItems: 'center',
+            marginTop: '30px',
+            backgroundColor: 'rgba(255,255,255,0.5)',
+            padding: '18px 24px',
+            borderRadius: '12px',
+            boxShadow: '0 4px 15px rgba(0,0,0,0.08)',
+            border: '1px solid rgba(255,255,255,0.4)'
+          }}>
             <span style={{ 
+              fontWeight: '700', 
+              fontSize: '1.4rem', 
+              color: '#333'
+            }}>Risk Score:</span>
+            <span style={{ 
+              fontWeight: '700',
+              fontSize: '1.8rem',
+              padding: '12px 25px',
+              backgroundColor: '#fff',
+              borderRadius: '12px',
+              color: riskTextColors[riskColorKey],
+              boxShadow: '0 5px 15px rgba(0,0,0,0.15)',
+              border: `1px solid ${riskTextColors[riskColorKey]}30`,
+              position: 'relative',
+              overflow: 'hidden'
+            }}>
+              {riskScore}
+              <span style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                width: '100%',
+                height: '4px',
+                background: `linear-gradient(to right, transparent, ${riskTextColors[riskColorKey]}70, transparent)`,
+                opacity: 0.7
+              }}></span>
+            </span>
+          </div>
+        </div>
+        
+        <div style={{ 
+          marginTop: '30px',
+          backgroundColor: 'rgba(255,255,255,0.7)',
+          padding: '25px',
+          borderRadius: '12px',
+          boxShadow: '0 4px 15px rgba(0,0,0,0.08)',
+          border: '1px solid rgba(255,255,255,0.4)',
+          position: 'relative'
+        }}>
+          <h3 style={{ 
+            margin: '0 0 15px 0', 
+            color: riskTextColors[riskColorKey], 
+            fontWeight: '600', 
+            fontSize: '1.2rem',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '12px'
+          }}>
+            <span style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              width: '28px',
+              height: '28px',
+              backgroundColor: riskTextColors[riskColorKey],
+              color: 'white',
+              borderRadius: '50%',
+              fontSize: '0.9rem',
               fontWeight: 'bold',
-              fontSize: '1.1rem',
-              backgroundColor: 'rgba(255,255,255,0.7)',
-              padding: '5px 15px',
-              borderRadius: '4px',
-              color: riskTextColors[riskColorKey]
-            }}>{riskScore}</span>
+              boxShadow: `0 3px 8px ${riskTextColors[riskColorKey]}50`
+            }}>!</span>
+            Professional Resource Requirements
+          </h3>
+          <p style={{ 
+            margin: 0, 
+            color: '#333', 
+            lineHeight: '1.7',
+            fontSize: '1.05rem',
+            paddingLeft: '40px'
+          }}>
+            {riskCategory === 'Very High' && 'Full professional team with CRP and specialist PORs. Geometric design required. Multiple field reviews.'}
+            {riskCategory === 'High' && 'CRP and road activity POR (may be same person for simple roads). Specialist consultation. Field reviews at critical stages.'}
+            {riskCategory === 'Moderate' && 'CRP and road activity POR oversight. Standard designs with field verification.'}
+            {riskCategory === 'Low' && 'Standard oversight by qualified professionals. Routine field reviews.'}
+            {riskCategory === 'Very Low' && 'Routine professional oversight.'}
+          </p>
+          {/* Recommended actions section */}
+          <div style={{
+            marginTop: '20px',
+            paddingTop: '20px',
+            borderTop: `1px solid ${riskTextColors[riskColorKey]}30`
+          }}>
+            <h4 style={{
+              color: riskTextColors[riskColorKey],
+              fontWeight: '600',
+              marginBottom: '12px',
+              fontSize: '1.1rem'
+            }}>Recommended Actions:</h4>
+            <ul style={{
+              paddingLeft: '60px',
+              margin: '0',
+              color: '#444',
+              fontSize: '1rem',
+              lineHeight: '1.6'
+            }}>
+              {riskCategory === 'Very High' && (
+                <>
+                  <li>Immediate closure or traffic restriction recommended</li>
+                  <li>Develop comprehensive remediation plan</li>
+                  <li>Schedule regular monitoring (minimum monthly)</li>
+                  <li>Install warning signage</li>
+                </>
+              )}
+              {riskCategory === 'High' && (
+                <>
+                  <li>Traffic restrictions during wet weather</li>
+                  <li>Develop remediation plan within 30 days</li>
+                  <li>Schedule monitoring after significant rain events</li>
+                  <li>Install cautionary signage</li>
+                </>
+              )}
+              {riskCategory === 'Moderate' && (
+                <>
+                  <li>Quarterly monitoring recommended</li>
+                  <li>Maintenance plans should address identified risks</li>
+                  <li>Consider improved drainage works</li>
+                </>
+              )}
+              {riskCategory === 'Low' && (
+                <>
+                  <li>Annual inspection recommended</li>
+                  <li>Include in routine maintenance scheduling</li>
+                </>
+              )}
+              {riskCategory === 'Very Low' && (
+                <>
+                  <li>Include in regular road inspection cycles</li>
+                  <li>No immediate action required</li>
+                </>
+              )}
+            </ul>
           </div>
         </div>
       </div>
       
-      {/* Photo Section */}
-      <div style={{ 
-        backgroundColor: '#ffffff', 
-        padding: '20px', 
-        borderRadius: '8px', 
-        marginBottom: '20px',
-        boxShadow: '0 2px 5px rgba(0,0,0,0.1)'
+      {/* Enhanced Photo Documentation Section with Better Styling */}
+      <div style={{
+        ...sectionStyle,
+        backgroundImage: 'linear-gradient(to bottom, #ffffff, #fafafa)',
+        borderTop: '4px solid #00bcd4'
       }}>
-        <h2 style={{ borderBottom: '1px solid #f0f0f0', paddingBottom: '10px', marginBottom: '20px' }}>Photo Documentation</h2>
+        <h2 style={{
+          ...sectionHeaderStyle,
+          color: '#00bcd4'
+        }}>
+          <span style={{ 
+            display: 'inline-block', 
+            width: '5px', 
+            height: '24px', 
+            background: 'linear-gradient(to bottom, #00bcd4, #4dd0e1)', 
+            marginRight: '12px', 
+            verticalAlign: 'middle',
+            borderRadius: '3px'
+          }}></span>
+          Photo Documentation
+        </h2>
         
         <button
           type="button"
           onClick={handleAddPhoto}
           style={{
-            padding: '10px 15px',
-            backgroundColor: '#3498db',
+            padding: '14px 22px',
+            background: 'linear-gradient(to bottom, #26c6da, #00bcd4)',
             color: 'white',
             border: 'none',
-            borderRadius: '4px',
+            borderRadius: '10px',
             cursor: 'pointer',
-            marginBottom: '15px'
+            fontWeight: '600',
+            fontSize: '1rem',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '10px',
+            marginBottom: '25px',
+            boxShadow: '0 4px 10px rgba(0, 188, 212, 0.25)',
+            transition: 'all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1)',
+            '&:hover': {
+              transform: 'translateY(-2px)',
+              boxShadow: '0 6px 15px rgba(0, 188, 212, 0.35)'
+            },
+            '&:active': {
+              transform: 'translateY(1px)',
+              boxShadow: '0 2px 5px rgba(0, 188, 212, 0.2)'
+            }
           }}
         >
-          Add Photo (Placeholder)
+          <span style={{
+            width: '26px',
+            height: '26px',
+            backgroundColor: 'rgba(255,255,255,0.2)',
+            borderRadius: '50%',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            fontSize: '1.3rem'
+          }}>
+            +
+          </span>
+          Add Photo
         </button>
         
-        {photos.length > 0 && (
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', marginTop: '15px' }}>
+        {photos.length > 0 ? (
+          <div style={{ 
+            display: 'flex', 
+            flexWrap: 'wrap', 
+            gap: '20px', 
+            marginTop: '20px'
+          }}>
             {photos.map(photo => (
-              <div key={photo.id} style={{ position: 'relative', width: '150px', marginBottom: '10px' }}>
-                <img
-                  src={photo.url}
-                  alt={photo.name}
-                  style={{ width: '100%', height: '150px', objectFit: 'cover', borderRadius: '4px' }}
-                />
-                <button
-                  type="button"
-                  onClick={() => handleRemovePhoto(photo.id)}
-                  style={{
-                    position: 'absolute',
-                    top: '5px',
-                    right: '5px',
-                    backgroundColor: 'rgba(231, 76, 60, 0.8)',
-                    color: 'white',
-                    border: 'none',
-                    borderRadius: '50%',
-                    width: '25px',
-                    height: '25px',
-                    cursor: 'pointer',
+              <div 
+                key={photo.id} 
+                style={{ 
+                  position: 'relative', 
+                  width: '200px', 
+                  marginBottom: '20px',
+                  borderRadius: '12px',
+                  overflow: 'hidden',
+                  boxShadow: '0 5px 15px rgba(0,0,0,0.12)',
+                  transition: 'all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1)',
+                  transform: 'translateY(0)',
+                  '&:hover': {
+                    transform: 'translateY(-5px)',
+                    boxShadow: '0 8px 20px rgba(0,0,0,0.18)'
+                  },
+                  backgroundColor: '#fff'
+                }}
+              >
+                <div style={{
+                  position: 'relative',
+                  overflow: 'hidden',
+                  height: '200px'
+                }}>
+                  <img
+                    src={photo.url}
+                    alt={photo.name}
+                    style={{ 
+                      width: '100%', 
+                      height: '100%', 
+                      objectFit: 'cover',
+                      transition: 'all 0.5s ease',
+                      '&:hover': {
+                        transform: 'scale(1.05)'
+                      }
+                    }}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => handleRemovePhoto(photo.id)}
+                    style={{
+                      position: 'absolute',
+                      top: '10px',
+                      right: '10px',
+                      backgroundColor: 'rgba(231, 76, 60, 0.85)',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '50%',
+                      width: '32px',
+                      height: '32px',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontSize: '1.2rem',
+                      boxShadow: '0 3px 8px rgba(0,0,0,0.2)',
+                      transition: 'all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1)',
+                      '&:hover': {
+                        backgroundColor: 'rgba(231, 76, 60, 1)',
+                        transform: 'scale(1.1)'
+                      }
+                    }}
+                  >
+                    ×
+                  </button>
+                </div>
+                <div style={{ 
+                  padding: '15px', 
+                  backgroundColor: '#fff',
+                  borderTop: '1px solid #f0f0f0'
+                }}>
+                  <div style={{ 
+                    fontSize: '1rem', 
+                    fontWeight: '600',
+                    marginBottom: '5px',
+                    color: '#333'
+                  }}>
+                    {photo.name}
+                  </div>
+                  <div style={{ 
+                    fontSize: '0.8rem', 
+                    color: '#777',
                     display: 'flex',
                     alignItems: 'center',
-                    justifyContent: 'center'
-                  }}
-                >
-                  ×
-                </button>
-                <div style={{ fontSize: '0.8rem', marginTop: '5px' }}>{photo.name}</div>
+                    gap: '5px'
+                  }}>
+                    <span style={{
+                      width: '14px',
+                      height: '14px',
+                      borderRadius: '50%',
+                      border: '1px solid #aaa',
+                      display: 'inline-flex',
+                      justifyContent: 'center',
+                      alignItems: 'center',
+                      fontSize: '0.7rem',
+                      color: '#777'
+                    }}>
+                      🕒
+                    </span>
+                    {new Date(photo.timestamp).toLocaleString(undefined, {
+                      month: 'short',
+                      day: 'numeric',
+                      hour: '2-digit',
+                      minute: '2-digit'
+                    })}
+                  </div>
+                </div>
               </div>
             ))}
+          </div>
+        ) : (
+          <div style={{
+            padding: '40px 20px',
+            backgroundColor: '#f9f9fa',
+            borderRadius: '12px',
+            border: '2px dashed #ddd',
+            textAlign: 'center',
+            color: '#777',
+            transition: 'all 0.3s ease'
+          }}>
+            <div style={{ 
+              fontSize: '3rem', 
+              marginBottom: '15px',
+              color: '#00bcd4'
+            }}>📷</div>
+            <p style={{ 
+              margin: '0',
+              fontSize: '1.1rem',
+              fontWeight: '500'
+            }}>No photos added yet</p>
+            <p style={{
+              margin: '10px 0 0 0',
+              fontSize: '0.95rem',
+              color: '#999'
+            }}>
+              Click the button above to add photos documenting road conditions
+            </p>
           </div>
         )}
       </div>
       
-      {/* Comments Section */}
-      <div style={{ 
-        backgroundColor: '#ffffff', 
-        padding: '20px', 
-        borderRadius: '8px', 
-        marginBottom: '20px',
-        boxShadow: '0 2px 5px rgba(0,0,0,0.1)'
+      {/* Enhanced Comments Section with Better Styling */}
+      <div style={{
+        ...sectionStyle,
+        backgroundImage: 'linear-gradient(to bottom, #ffffff, #fafafa)',
+        borderTop: '4px solid #ff5722'
       }}>
-        <h2 style={{ borderBottom: '1px solid #f0f0f0', paddingBottom: '10px', marginBottom: '20px' }}>Comments & Observations</h2>
+        <h2 style={{
+          ...sectionHeaderStyle,
+          color: '#ff5722'
+        }}>
+          <span style={{ 
+            display: 'inline-block', 
+            width: '5px', 
+            height: '24px', 
+            background: 'linear-gradient(to bottom, #ff5722, #ff7043)', 
+            marginRight: '12px', 
+            verticalAlign: 'middle',
+            borderRadius: '3px'
+          }}></span>
+          Comments & Observations
+        </h2>
         
         <textarea
           name="comments"
@@ -1105,32 +693,116 @@ function RoadRiskForm() {
           placeholder="Enter any additional observations, notes, or specific concerns about the road section..."
           style={{
             width: '100%',
-            height: '100px',
-            padding: '8px',
-            borderRadius: '4px',
-            border: '1px solid #ddd',
-            resize: 'vertical'
+            minHeight: '150px',
+            padding: '18px',
+            borderRadius: '12px',
+            border: '1px solid #e0e0e0',
+            resize: 'vertical',
+            fontSize: '1rem',
+            lineHeight: '1.6',
+            outline: 'none',
+            transition: 'all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1)',
+            backgroundColor: '#fafafa',
+            boxShadow: 'inset 0 1px 3px rgba(0,0,0,0.05)',
+            '&:focus': {
+              borderColor: '#ff5722',
+              boxShadow: '0 0 0 3px rgba(255, 87, 34, 0.1)',
+              backgroundColor: '#fff'
+            }
           }}
         />
+        
+        {/* Comment instruction */}
+        <div style={{
+          marginTop: '12px',
+          display: 'flex',
+          alignItems: 'flex-start',
+          gap: '10px',
+          fontSize: '0.9rem',
+          color: '#666',
+          padding: '10px 15px',
+          borderRadius: '8px',
+          backgroundColor: 'rgba(255, 87, 34, 0.05)',
+          border: '1px solid rgba(255, 87, 34, 0.1)'
+        }}>
+          <span style={{
+            color: '#ff5722',
+            fontSize: '1.2rem',
+            lineHeight: '1'
+          }}>💡</span>
+          <span>Include details about observed drainage patterns, erosion signs, vegetation conditions, or any other factors that may affect road stability.</span>
+        </div>
       </div>
       
-      {/* Action Buttons */}
-      <div style={{ display: 'flex', gap: '10px', marginBottom: '20px' }}>
+      {/* Enhanced Action Buttons with Better Styling and Animations */}
+      <div style={{ 
+        display: 'flex', 
+        gap: '20px', 
+        marginBottom: '30px',
+        position: 'sticky',
+        bottom: '20px',
+        zIndex: 10,
+        padding: '20px',
+        borderRadius: '16px',
+        backgroundColor: 'rgba(255, 255, 255, 0.9)',
+        backdropFilter: 'blur(10px)',
+        boxShadow: '0 5px 20px rgba(0,0,0,0.1)',
+        border: '1px solid rgba(255, 255, 255, 0.7)'
+      }}>
         <button
           type="button"
           onClick={handleSaveAssessment}
           style={{
             flex: 1,
-            padding: '12px',
-            backgroundColor: '#4CAF50',
+            padding: '16px',
+            background: 'linear-gradient(45deg, #43a047, #66bb6a)',
             color: 'white',
             border: 'none',
-            borderRadius: '4px',
+            borderRadius: '10px',
             cursor: 'pointer',
-            fontWeight: 'bold'
+            fontWeight: '600',
+            fontSize: '1.1rem',
+            boxShadow: '0 4px 10px rgba(76, 175, 80, 0.25)',
+            transition: 'all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1)',
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            gap: '10px',
+            position: 'relative',
+            overflow: 'hidden',
+            '&:hover': {
+              boxShadow: '0 6px 14px rgba(76, 175, 80, 0.35)',
+              transform: 'translateY(-2px)'
+            },
+            '&:active': {
+              transform: 'translateY(1px)',
+              boxShadow: '0 2px 5px rgba(76, 175, 80, 0.2)'
+            }
           }}
         >
+          <span style={{
+            width: '24px',
+            height: '24px',
+            backgroundColor: 'rgba(255,255,255,0.2)',
+            borderRadius: '50%',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            fontSize: '0.9rem'
+          }}>
+            ✓
+          </span>
           Save Assessment
+          <span style={{
+            position: 'absolute',
+            top: 0,
+            left: '-100%',
+            width: '100%',
+            height: '100%',
+            background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent)',
+            animation: 'shine 2s infinite',
+            pointerEvents: 'none'
+          }}></span>
         </button>
         
         <button
@@ -1138,33 +810,80 @@ function RoadRiskForm() {
           onClick={handleSaveDraft}
           style={{
             flex: 1,
-            padding: '12px',
-            backgroundColor: '#ffffff',
-            color: '#3498db',
-            border: '1px solid #3498db',
-            borderRadius: '4px',
+            padding: '16px',
+            background: 'linear-gradient(45deg, #f5f5f5, #ffffff)',
+            color: '#1976d2',
+            border: '1px solid #1976d2',
+            borderRadius: '10px',
             cursor: 'pointer',
-            fontWeight: 'bold'
+            fontWeight: '600',
+            fontSize: '1.1rem',
+            transition: 'all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1)',
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            gap: '10px',
+            boxShadow: '0 2px 5px rgba(25, 118, 210, 0.1)',
+            '&:hover': {
+              backgroundColor: '#f0f7ff',
+              boxShadow: '0 4px 8px rgba(25, 118, 210, 0.15)',
+              transform: 'translateY(-2px)'
+            },
+            '&:active': {
+              transform: 'translateY(1px)',
+              boxShadow: 'none'
+            }
           }}
         >
+          <span style={{
+            width: '24px',
+            height: '24px',
+            backgroundColor: 'rgba(25, 118, 210, 0.1)',
+            borderRadius: '50%',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            fontSize: '0.9rem',
+            color: '#1976d2'
+          }}>
+            💾
+          </span>
           Save Draft
         </button>
       </div>
       
-      <div style={{ display: 'flex', gap: '10px', marginBottom: '30px' }}>
+      <div style={{ display: 'flex', gap: '20px', marginBottom: '40px' }}>
         <button
           type="button"
           onClick={handleExportPDF}
           style={{
             flex: 1,
-            padding: '12px',
-            backgroundColor: '#f5f5f5',
+            padding: '16px',
+            background: 'linear-gradient(45deg, #f5f5f5, #eeeeee)',
             color: '#333',
             border: '1px solid #ddd',
-            borderRadius: '4px',
-            cursor: 'pointer'
+            borderRadius: '10px',
+            cursor: 'pointer',
+            fontWeight: '500',
+            fontSize: '1rem',
+            transition: 'all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1)',
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            gap: '10px',
+            boxShadow: '0 2px 5px rgba(0,0,0,0.05)',
+            '&:hover': {
+              backgroundColor: '#e9e9e9',
+              boxShadow: '0 4px 8px rgba(0,0,0,0.08)',
+              transform: 'translateY(-2px)'
+            }
           }}
         >
+          <span style={{
+            fontSize: '1.2rem'
+          }}>
+            📄
+          </span>
           Export PDF
         </button>
         
@@ -1173,34 +892,66 @@ function RoadRiskForm() {
           onClick={handleNewAssessment}
           style={{
             flex: 1,
-            padding: '12px',
-            backgroundColor: '#f5f5f5',
-            color: '#333',
-            border: '1px solid #ddd',
-            borderRadius: '4px',
-            cursor: 'pointer'
+            padding: '16px',
+            background: 'linear-gradient(45deg, #eceff1, #cfd8dc)',
+            color: '#455a64',
+            border: '1px solid #b0bec5',
+            borderRadius: '10px',
+            cursor: 'pointer',
+            fontWeight: '500',
+            fontSize: '1rem',
+            transition: 'all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1)',
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            gap: '10px',
+            boxShadow: '0 2px 5px rgba(0,0,0,0.05)',
+            '&:hover': {
+              backgroundColor: '#cfd8dc',
+              boxShadow: '0 4px 8px rgba(0,0,0,0.08)',
+              transform: 'translateY(-2px)'
+            }
           }}
         >
+          <span style={{
+            fontSize: '1.2rem'
+          }}>
+            🔄
+          </span>
           New Assessment
         </button>
       </div>
       
-      <Link
-        to="/"
-        style={{
-          display: 'block',
-          padding: '12px',
-          backgroundColor: '#f5f5f5',
-          color: '#666',
-          border: '1px solid #ddd',
-          borderRadius: '4px',
-          textDecoration: 'none',
-          textAlign: 'center',
-          marginBottom: '30px'
-        }}
-      >
-        Back to Home
-      </Link>
+      {/* Add global animation styles */}
+      <style>
+        {`
+          @keyframes shine {
+            0% { left: -100%; }
+            100% { left: 100%; }
+          }
+          
+          @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+          }
+          
+          /* Add responsive styles for mobile */
+          @media (max-width: 768px) {
+            .score-buttons {
+              flex-direction: column;
+              gap: 10px;
+            }
+            
+            .coordinate-inputs {
+              flex-direction: column;
+            }
+            
+            .action-buttons {
+              flex-direction: column;
+            }
+          }
+        `}
+      </style>
     </div>
   );
 }
