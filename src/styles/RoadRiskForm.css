@@ -379,6 +379,213 @@
   box-shadow: 0 2px 5px rgba(0,0,0,0.1);
 }
 
+/* Assessment Tables */
+.assessment-table {
+  width: 100%;
+  border-collapse: collapse;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  overflow: hidden;
+  margin-bottom: 20px;
+}
+
+.assessment-table th, 
+.assessment-table td {
+  padding: 12px 15px;
+  text-align: left;
+  border-bottom: 1px solid #ddd;
+}
+
+.assessment-table th {
+  background-color: #f5f5f5;
+  font-weight: 600;
+  color: #333;
+}
+
+.assessment-table tr:last-child td {
+  border-bottom: none;
+}
+
+.assessment-table tr:hover {
+  background-color: #f9f9f9;
+}
+
+/* Photo Upload Section */
+.photo-upload-section {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 15px;
+  margin-top: 10px;
+}
+
+.photo-upload-box {
+  width: calc(25% - 15px);
+  min-width: 180px;
+  border: 2px dashed #ccc;
+  border-radius: 8px;
+  padding: 15px 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.photo-upload-box:hover {
+  border-color: #2196f3;
+  background-color: #f5f9ff;
+}
+
+.upload-placeholder {
+  color: #2196f3;
+  font-size: 18px;
+  margin-bottom: 10px;
+}
+
+.upload-label {
+  color: #666;
+  font-size: 14px;
+  margin: 0;
+}
+
+/* Comments */
+.comments-area {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 16px;
+  min-height: 120px;
+  resize: vertical;
+}
+
+.comments-area:focus {
+  border-color: #2196f3;
+  outline: none;
+}
+
+/* Results Styles */
+.results-summary {
+  margin-bottom: 30px;
+}
+
+.results-card {
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+  padding: 20px;
+  border: 1px solid #eee;
+}
+
+.results-subtitle {
+  font-size: 20px;
+  color: #333;
+  margin-bottom: 15px;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 10px;
+}
+
+.results-calculation {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 15px;
+  margin-bottom: 25px;
+  padding-bottom: 20px;
+  border-bottom: 1px dashed #eee;
+}
+
+.calc-group {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.calc-operator {
+  font-size: 24px;
+  font-weight: 600;
+  color: #666;
+}
+
+.calc-label {
+  font-size: 14px;
+  color: #666;
+  margin-bottom: 5px;
+}
+
+.calc-value {
+  font-size: 24px;
+  font-weight: 700;
+  padding: 5px 15px;
+  background-color: #f5f5f5;
+  border-radius: 6px;
+  min-width: 60px;
+  text-align: center;
+}
+
+.risk-total {
+  background-color: #e3f2fd;
+  color: #0d47a1;
+}
+
+.risk-category {
+  border-radius: 8px;
+  padding: 15px;
+  margin-top: 20px;
+  margin-bottom: 20px;
+  color: white;
+  text-align: center;
+}
+
+.risk-category-label {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 10px;
+}
+
+.risk-category-value {
+  font-size: 32px;
+  font-weight: 700;
+}
+
+.category-requirements {
+  margin-top: 25px;
+  padding: 15px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  background-color: #f9f9f9;
+}
+
+.requirements-header {
+  font-size: 18px;
+  margin-bottom: 15px;
+  color: #333;
+}
+
+.requirements-content p {
+  margin-bottom: 10px;
+  line-height: 1.5;
+}
+
+.action-recommendations {
+  margin-top: 30px;
+}
+
+.recommendations-header {
+  font-size: 18px;
+  color: #333;
+  margin-bottom: 15px;
+}
+
+.recommendations-list {
+  padding-left: 20px;
+}
+
+.recommendations-list li {
+  margin-bottom: 10px;
+  line-height: 1.5;
+}
+
 /* Responsive adjustments */
 @media (max-width: 768px) {
   .form-nav {
@@ -416,6 +623,14 @@
   }
   
   .form-field {
+    width: 100%;
+  }
+
+  .results-calculation {
+    flex-direction: column;
+  }
+
+  .photo-upload-box {
     width: 100%;
   }
 }
