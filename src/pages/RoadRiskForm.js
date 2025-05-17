@@ -48,6 +48,40 @@ function RoadRiskForm() {
     };
   });
 
+  // State for optional assessment toggles
+  const [optionalAssessments, setOptionalAssessments] = useState(() => {
+    const savedAssessments = localStorage.getItem('roadRiskOptionalAssessments');
+    return savedAssessments ? JSON.parse(savedAssessments) : {
+      geotechnicalEnabled: false,
+      infrastructureEnabled: false,
+      comments: ''
+    };
+  });
+
+  // State for geotechnical factors
+  const [geotechnicalFactors, setGeotechnicalFactors] = useState(() => {
+    const savedFactors = localStorage.getItem('roadRiskGeotechnicalFactors');
+    return savedFactors ? JSON.parse(savedFactors) : {
+      cutSlopeHeight: 'low',
+      fillSlopeHeight: 'low',
+      bedrockCondition: 'low',
+      groundwaterConditions: 'low',
+      erosionEvidence: 'low'
+    };
+  });
+
+  // State for infrastructure factors
+  const [infrastructureFactors, setInfrastructureFactors] = useState(() => {
+    const savedFactors = localStorage.getItem('roadRiskInfrastructureFactors');
+    return savedFactors ? JSON.parse(savedFactors) : {
+      roadSurfaceType: 'low',
+      ditchCondition: 'low',
+      culvertSizing: 'low',
+      culvertCondition: 'low',
+      roadAge: 'low'
+    };
+  });
+
   // State for hazard scores explanation
   const hazardScoreExplanations = {
     terrainStability: {
@@ -124,6 +158,21 @@ function RoadRiskForm() {
   useEffect(() => {
     localStorage.setItem('roadRiskConsequenceFactors', JSON.stringify(consequenceFactors));
   }, [consequenceFactors]);
+
+  // Save optional assessments to localStorage when they change
+  useEffect(() => {
+    localStorage.setItem('roadRiskOptionalAssessments', JSON.stringify(optionalAssessments));
+  }, [optionalAssessments]);
+
+  // Save geotechnical factors to localStorage when they change
+  useEffect(() => {
+    localStorage.setItem('roadRiskGeotechnicalFactors', JSON.stringify(geotechnicalFactors));
+  }, [geotechnicalFactors]);
+
+  // Save infrastructure factors to localStorage when they change
+  useEffect(() => {
+    localStorage.setItem('roadRiskInfrastructureFactors', JSON.stringify(infrastructureFactors));
+  }, [infrastructureFactors]);
   
   // Handle basic info input changes
   const handleBasicInfoChange = (e) => {
@@ -139,6 +188,38 @@ function RoadRiskForm() {
   // Handle consequence factor selection
   const handleConsequenceFactorChange = (factor, value) => {
     setConsequenceFactors(prev => ({ ...prev, [factor]: value }));
+  };
+
+  // Handle optional assessment toggle
+  const handleOptionalAssessmentToggle = (assessment) => {
+    setOptionalAssessments(prev => ({ 
+      ...prev, 
+      [assessment]: !prev[assessment] 
+    }));
+  };
+
+  // Handle comments change
+  const handleCommentsChange = (e) => {
+    setOptionalAssessments(prev => ({
+      ...prev,
+      comments: e.target.value
+    }));
+  };
+
+  // Handle geotechnical factor change
+  const handleGeotechnicalFactorChange = (factor, value) => {
+    setGeotechnicalFactors(prev => ({
+      ...prev,
+      [factor]: value
+    }));
+  };
+
+  // Handle infrastructure factor change
+  const handleInfrastructureFactorChange = (factor, value) => {
+    setInfrastructureFactors(prev => ({
+      ...prev,
+      [factor]: value
+    }));
   };
 
   // Calculate hazard score
@@ -190,8 +271,8 @@ function RoadRiskForm() {
     return { category: 'Very Low', color: '#388e3c' };
   };
   
-  // Use GPS location for coordinates
-  const handleUseGpsLocation = () => {
+  // Use GPS location for start coordinates
+  const handleUseStartGpsLocation = () => {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (position) => {
@@ -200,7 +281,28 @@ function RoadRiskForm() {
             startLat: position.coords.latitude.toFixed(6),
             startLong: position.coords.longitude.toFixed(6)
           }));
-          alert('GPS coordinates captured successfully!');
+          alert('GPS coordinates captured successfully for start point!');
+        },
+        (error) => {
+          alert(`Error getting location: ${error.message}`);
+        }
+      );
+    } else {
+      alert('Geolocation is not supported by this browser/device');
+    }
+  };
+
+  // Use GPS location for end coordinates
+  const handleUseEndGpsLocation = () => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          setBasicInfo(prev => ({
+            ...prev,
+            endLat: position.coords.latitude.toFixed(6),
+            endLong: position.coords.longitude.toFixed(6)
+          }));
+          alert('GPS coordinates captured successfully for end point!');
         },
         (error) => {
           alert(`Error getting location: ${error.message}`);
@@ -245,6 +347,28 @@ function RoadRiskForm() {
         drainageStructure: null,
         publicIndustrialUse: null,
         environmentalValue: null
+      });
+
+      setOptionalAssessments({
+        geotechnicalEnabled: false,
+        infrastructureEnabled: false,
+        comments: ''
+      });
+
+      setGeotechnicalFactors({
+        cutSlopeHeight: 'low',
+        fillSlopeHeight: 'low',
+        bedrockCondition: 'low',
+        groundwaterConditions: 'low',
+        erosionEvidence: 'low'
+      });
+
+      setInfrastructureFactors({
+        roadSurfaceType: 'low',
+        ditchCondition: 'low',
+        culvertSizing: 'low',
+        culvertCondition: 'low',
+        roadAge: 'low'
       });
       
       alert('Form has been reset.');
@@ -427,7 +551,7 @@ function RoadRiskForm() {
               <button 
                 type="button" 
                 className="gps-button" 
-                onClick={handleUseGpsLocation}
+                onClick={handleUseStartGpsLocation}
               >
                 Use Current GPS Location
               </button>
@@ -462,6 +586,14 @@ function RoadRiskForm() {
                   />
                 </div>
               </div>
+              
+              <button 
+                type="button" 
+                className="gps-button" 
+                onClick={handleUseEndGpsLocation}
+              >
+                Use Current GPS Location
+              </button>
             </div>
           </div>
 
@@ -725,101 +857,431 @@ function RoadRiskForm() {
           </h2>
           
           <p className="section-description">
-            Additional assessments for more detailed evaluation.
+            Additional assessments for more detailed evaluation. Enable the assessments that apply to this road segment.
           </p>
           
           {/* Geotechnical Considerations */}
           <div className="factor-group">
-            <h3 className="factor-header">Geotechnical Considerations</h3>
-            <table className="assessment-table">
-              <thead>
-                <tr>
-                  <th>Factor</th>
-                  <th>Low Risk</th>
-                  <th>Moderate Risk</th>
-                  <th>High Risk</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td>Cut Slope Height</td>
-                  <td>&lt;3m</td>
-                  <td>3-6m</td>
-                  <td>&gt;6m</td>
-                </tr>
-                <tr>
-                  <td>Fill Slope Height</td>
-                  <td>&lt;3m</td>
-                  <td>3-6m</td>
-                  <td>&gt;6m</td>
-                </tr>
-                <tr>
-                  <td>Bedrock Condition</td>
-                  <td>Minimal jointing, favorable orientation</td>
-                  <td>Moderate jointing</td>
-                  <td>Highly fractured, adverse orientation</td>
-                </tr>
-                <tr>
-                  <td>Groundwater Conditions</td>
-                  <td>Dry, no seepage</td>
-                  <td>Seasonal seepage</td>
-                  <td>Persistent seepage, springs</td>
-                </tr>
-                <tr>
-                  <td>Erosion Evidence</td>
-                  <td>None</td>
-                  <td>Minor rilling/gullying</td>
-                  <td>Active erosion, undercutting</td>
-                </tr>
-              </tbody>
-            </table>
+            <div className="toggle-header">
+              <h3 className="factor-header">Geotechnical Considerations</h3>
+              <label className="toggle-switch">
+                <input 
+                  type="checkbox" 
+                  checked={optionalAssessments.geotechnicalEnabled}
+                  onChange={() => handleOptionalAssessmentToggle('geotechnicalEnabled')}
+                />
+                <span className="toggle-slider"></span>
+              </label>
+            </div>
+            
+            {optionalAssessments.geotechnicalEnabled && (
+              <div className="assessment-table-container">
+                <table className="assessment-table">
+                  <thead>
+                    <tr>
+                      <th>Factor</th>
+                      <th>Low Risk</th>
+                      <th>Moderate Risk</th>
+                      <th>High Risk</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>Cut Slope Height</td>
+                      <td>
+                        <label className="radio-container">
+                          <input 
+                            type="radio" 
+                            name="cutSlopeHeight"
+                            checked={geotechnicalFactors.cutSlopeHeight === 'low'}
+                            onChange={() => handleGeotechnicalFactorChange('cutSlopeHeight', 'low')}
+                          />
+                          <span className="radio-label">&lt;3m</span>
+                        </label>
+                      </td>
+                      <td>
+                        <label className="radio-container">
+                          <input 
+                            type="radio" 
+                            name="cutSlopeHeight"
+                            checked={geotechnicalFactors.cutSlopeHeight === 'moderate'}
+                            onChange={() => handleGeotechnicalFactorChange('cutSlopeHeight', 'moderate')}
+                          />
+                          <span className="radio-label">3-6m</span>
+                        </label>
+                      </td>
+                      <td>
+                        <label className="radio-container">
+                          <input 
+                            type="radio" 
+                            name="cutSlopeHeight"
+                            checked={geotechnicalFactors.cutSlopeHeight === 'high'}
+                            onChange={() => handleGeotechnicalFactorChange('cutSlopeHeight', 'high')}
+                          />
+                          <span className="radio-label">&gt;6m</span>
+                        </label>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>Fill Slope Height</td>
+                      <td>
+                        <label className="radio-container">
+                          <input 
+                            type="radio" 
+                            name="fillSlopeHeight"
+                            checked={geotechnicalFactors.fillSlopeHeight === 'low'}
+                            onChange={() => handleGeotechnicalFactorChange('fillSlopeHeight', 'low')}
+                          />
+                          <span className="radio-label">&lt;3m</span>
+                        </label>
+                      </td>
+                      <td>
+                        <label className="radio-container">
+                          <input 
+                            type="radio" 
+                            name="fillSlopeHeight"
+                            checked={geotechnicalFactors.fillSlopeHeight === 'moderate'}
+                            onChange={() => handleGeotechnicalFactorChange('fillSlopeHeight', 'moderate')}
+                          />
+                          <span className="radio-label">3-6m</span>
+                        </label>
+                      </td>
+                      <td>
+                        <label className="radio-container">
+                          <input 
+                            type="radio" 
+                            name="fillSlopeHeight"
+                            checked={geotechnicalFactors.fillSlopeHeight === 'high'}
+                            onChange={() => handleGeotechnicalFactorChange('fillSlopeHeight', 'high')}
+                          />
+                          <span className="radio-label">&gt;6m</span>
+                        </label>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>Bedrock Condition</td>
+                      <td>
+                        <label className="radio-container">
+                          <input 
+                            type="radio" 
+                            name="bedrockCondition"
+                            checked={geotechnicalFactors.bedrockCondition === 'low'}
+                            onChange={() => handleGeotechnicalFactorChange('bedrockCondition', 'low')}
+                          />
+                          <span className="radio-label">Minimal jointing, favorable orientation</span>
+                        </label>
+                      </td>
+                      <td>
+                        <label className="radio-container">
+                          <input 
+                            type="radio" 
+                            name="bedrockCondition"
+                            checked={geotechnicalFactors.bedrockCondition === 'moderate'}
+                            onChange={() => handleGeotechnicalFactorChange('bedrockCondition', 'moderate')}
+                          />
+                          <span className="radio-label">Moderate jointing</span>
+                        </label>
+                      </td>
+                      <td>
+                        <label className="radio-container">
+                          <input 
+                            type="radio" 
+                            name="bedrockCondition"
+                            checked={geotechnicalFactors.bedrockCondition === 'high'}
+                            onChange={() => handleGeotechnicalFactorChange('bedrockCondition', 'high')}
+                          />
+                          <span className="radio-label">Highly fractured, adverse orientation</span>
+                        </label>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>Groundwater Conditions</td>
+                      <td>
+                        <label className="radio-container">
+                          <input 
+                            type="radio" 
+                            name="groundwaterConditions"
+                            checked={geotechnicalFactors.groundwaterConditions === 'low'}
+                            onChange={() => handleGeotechnicalFactorChange('groundwaterConditions', 'low')}
+                          />
+                          <span className="radio-label">Dry, no seepage</span>
+                        </label>
+                      </td>
+                      <td>
+                        <label className="radio-container">
+                          <input 
+                            type="radio" 
+                            name="groundwaterConditions"
+                            checked={geotechnicalFactors.groundwaterConditions === 'moderate'}
+                            onChange={() => handleGeotechnicalFactorChange('groundwaterConditions', 'moderate')}
+                          />
+                          <span className="radio-label">Seasonal seepage</span>
+                        </label>
+                      </td>
+                      <td>
+                        <label className="radio-container">
+                          <input 
+                            type="radio" 
+                            name="groundwaterConditions"
+                            checked={geotechnicalFactors.groundwaterConditions === 'high'}
+                            onChange={() => handleGeotechnicalFactorChange('groundwaterConditions', 'high')}
+                          />
+                          <span className="radio-label">Persistent seepage, springs</span>
+                        </label>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>Erosion Evidence</td>
+                      <td>
+                        <label className="radio-container">
+                          <input 
+                            type="radio" 
+                            name="erosionEvidence"
+                            checked={geotechnicalFactors.erosionEvidence === 'low'}
+                            onChange={() => handleGeotechnicalFactorChange('erosionEvidence', 'low')}
+                          />
+                          <span className="radio-label">None</span>
+                        </label>
+                      </td>
+                      <td>
+                        <label className="radio-container">
+                          <input 
+                            type="radio" 
+                            name="erosionEvidence"
+                            checked={geotechnicalFactors.erosionEvidence === 'moderate'}
+                            onChange={() => handleGeotechnicalFactorChange('erosionEvidence', 'moderate')}
+                          />
+                          <span className="radio-label">Minor rilling/gullying</span>
+                        </label>
+                      </td>
+                      <td>
+                        <label className="radio-container">
+                          <input 
+                            type="radio" 
+                            name="erosionEvidence"
+                            checked={geotechnicalFactors.erosionEvidence === 'high'}
+                            onChange={() => handleGeotechnicalFactorChange('erosionEvidence', 'high')}
+                          />
+                          <span className="radio-label">Active erosion, undercutting</span>
+                        </label>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            )}
           </div>
           
           {/* Infrastructure Elements */}
           <div className="factor-group">
-            <h3 className="factor-header">Infrastructure Elements</h3>
-            <table className="assessment-table">
-              <thead>
-                <tr>
-                  <th>Factor</th>
-                  <th>Low Risk</th>
-                  <th>Moderate Risk</th>
-                  <th>High Risk</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td>Road Surface Type</td>
-                  <td>Well-maintained gravel</td>
-                  <td>Basic gravel, some rutting</td>
-                  <td>Native material, significant rutting</td>
-                </tr>
-                <tr>
-                  <td>Ditch Condition</td>
-                  <td>Clean, well-defined</td>
-                  <td>Partially vegetated, minor deposits</td>
-                  <td>Filled with sediment/debris</td>
-                </tr>
-                <tr>
-                  <td>Culvert Sizing</td>
-                  <td>Adequately sized, aligned with natural drainage</td>
-                  <td>Slightly undersized</td>
-                  <td>Significantly undersized, misaligned</td>
-                </tr>
-                <tr>
-                  <td>Culvert Condition</td>
-                  <td>Good condition, no deformation</td>
-                  <td>Minor deformation/rusting</td>
-                  <td>Significant deformation, crushed ends</td>
-                </tr>
-                <tr>
-                  <td>Road Age</td>
-                  <td>&lt;5 years</td>
-                  <td>5-15 years</td>
-                  <td>&gt;15 years without major maintenance</td>
-                </tr>
-              </tbody>
-            </table>
+            <div className="toggle-header">
+              <h3 className="factor-header">Infrastructure Elements</h3>
+              <label className="toggle-switch">
+                <input 
+                  type="checkbox" 
+                  checked={optionalAssessments.infrastructureEnabled}
+                  onChange={() => handleOptionalAssessmentToggle('infrastructureEnabled')}
+                />
+                <span className="toggle-slider"></span>
+              </label>
+            </div>
+            
+            {optionalAssessments.infrastructureEnabled && (
+              <div className="assessment-table-container">
+                <table className="assessment-table">
+                  <thead>
+                    <tr>
+                      <th>Factor</th>
+                      <th>Low Risk</th>
+                      <th>Moderate Risk</th>
+                      <th>High Risk</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>Road Surface Type</td>
+                      <td>
+                        <label className="radio-container">
+                          <input 
+                            type="radio" 
+                            name="roadSurfaceType"
+                            checked={infrastructureFactors.roadSurfaceType === 'low'}
+                            onChange={() => handleInfrastructureFactorChange('roadSurfaceType', 'low')}
+                          />
+                          <span className="radio-label">Well-maintained gravel</span>
+                        </label>
+                      </td>
+                      <td>
+                        <label className="radio-container">
+                          <input 
+                            type="radio" 
+                            name="roadSurfaceType"
+                            checked={infrastructureFactors.roadSurfaceType === 'moderate'}
+                            onChange={() => handleInfrastructureFactorChange('roadSurfaceType', 'moderate')}
+                          />
+                          <span className="radio-label">Basic gravel, some rutting</span>
+                        </label>
+                      </td>
+                      <td>
+                        <label className="radio-container">
+                          <input 
+                            type="radio" 
+                            name="roadSurfaceType"
+                            checked={infrastructureFactors.roadSurfaceType === 'high'}
+                            onChange={() => handleInfrastructureFactorChange('roadSurfaceType', 'high')}
+                          />
+                          <span className="radio-label">Native material, significant rutting</span>
+                        </label>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>Ditch Condition</td>
+                      <td>
+                        <label className="radio-container">
+                          <input 
+                            type="radio" 
+                            name="ditchCondition"
+                            checked={infrastructureFactors.ditchCondition === 'low'}
+                            onChange={() => handleInfrastructureFactorChange('ditchCondition', 'low')}
+                          />
+                          <span className="radio-label">Clean, well-defined</span>
+                        </label>
+                      </td>
+                      <td>
+                        <label className="radio-container">
+                          <input 
+                            type="radio" 
+                            name="ditchCondition"
+                            checked={infrastructureFactors.ditchCondition === 'moderate'}
+                            onChange={() => handleInfrastructureFactorChange('ditchCondition', 'moderate')}
+                          />
+                          <span className="radio-label">Partially vegetated, minor deposits</span>
+                        </label>
+                      </td>
+                      <td>
+                        <label className="radio-container">
+                          <input 
+                            type="radio" 
+                            name="ditchCondition"
+                            checked={infrastructureFactors.ditchCondition === 'high'}
+                            onChange={() => handleInfrastructureFactorChange('ditchCondition', 'high')}
+                          />
+                          <span className="radio-label">Filled with sediment/debris</span>
+                        </label>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>Culvert Sizing</td>
+                      <td>
+                        <label className="radio-container">
+                          <input 
+                            type="radio" 
+                            name="culvertSizing"
+                            checked={infrastructureFactors.culvertSizing === 'low'}
+                            onChange={() => handleInfrastructureFactorChange('culvertSizing', 'low')}
+                          />
+                          <span className="radio-label">Adequately sized, aligned with natural drainage</span>
+                        </label>
+                      </td>
+                      <td>
+                        <label className="radio-container">
+                          <input 
+                            type="radio" 
+                            name="culvertSizing"
+                            checked={infrastructureFactors.culvertSizing === 'moderate'}
+                            onChange={() => handleInfrastructureFactorChange('culvertSizing', 'moderate')}
+                          />
+                          <span className="radio-label">Slightly undersized</span>
+                        </label>
+                      </td>
+                      <td>
+                        <label className="radio-container">
+                          <input 
+                            type="radio" 
+                            name="culvertSizing"
+                            checked={infrastructureFactors.culvertSizing === 'high'}
+                            onChange={() => handleInfrastructureFactorChange('culvertSizing', 'high')}
+                          />
+                          <span className="radio-label">Significantly undersized, misaligned</span>
+                        </label>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>Culvert Condition</td>
+                      <td>
+                        <label className="radio-container">
+                          <input 
+                            type="radio" 
+                            name="culvertCondition"
+                            checked={infrastructureFactors.culvertCondition === 'low'}
+                            onChange={() => handleInfrastructureFactorChange('culvertCondition', 'low')}
+                          />
+                          <span className="radio-label">Good condition, no deformation</span>
+                        </label>
+                      </td>
+                      <td>
+                        <label className="radio-container">
+                          <input 
+                            type="radio" 
+                            name="culvertCondition"
+                            checked={infrastructureFactors.culvertCondition === 'moderate'}
+                            onChange={() => handleInfrastructureFactorChange('culvertCondition', 'moderate')}
+                          />
+                          <span className="radio-label">Minor deformation/rusting</span>
+                        </label>
+                      </td>
+                      <td>
+                        <label className="radio-container">
+                          <input 
+                            type="radio" 
+                            name="culvertCondition"
+                            checked={infrastructureFactors.culvertCondition === 'high'}
+                            onChange={() => handleInfrastructureFactorChange('culvertCondition', 'high')}
+                          />
+                          <span className="radio-label">Significant deformation, crushed ends</span>
+                        </label>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>Road Age</td>
+                      <td>
+                        <label className="radio-container">
+                          <input 
+                            type="radio" 
+                            name="roadAge"
+                            checked={infrastructureFactors.roadAge === 'low'}
+                            onChange={() => handleInfrastructureFactorChange('roadAge', 'low')}
+                          />
+                          <span className="radio-label">&lt;5 years</span>
+                        </label>
+                      </td>
+                      <td>
+                        <label className="radio-container">
+                          <input 
+                            type="radio" 
+                            name="roadAge"
+                            checked={infrastructureFactors.roadAge === 'moderate'}
+                            onChange={() => handleInfrastructureFactorChange('roadAge', 'moderate')}
+                          />
+                          <span className="radio-label">5-15 years</span>
+                        </label>
+                      </td>
+                      <td>
+                        <label className="radio-container">
+                          <input 
+                            type="radio" 
+                            name="roadAge"
+                            checked={infrastructureFactors.roadAge === 'high'}
+                            onChange={() => handleInfrastructureFactorChange('roadAge', 'high')}
+                          />
+                          <span className="radio-label">&gt;15 years without major maintenance</span>
+                        </label>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            )}
           </div>
           
           {/* Photo Documentation */}
@@ -853,6 +1315,8 @@ function RoadRiskForm() {
               className="comments-area" 
               placeholder="Enter additional observations, notes or special considerations..."
               rows={5}
+              value={optionalAssessments.comments}
+              onChange={handleCommentsChange}
             ></textarea>
           </div>
           
