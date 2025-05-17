@@ -28,52 +28,85 @@ function RoadRiskForm() {
     // Load from localStorage if available, otherwise use default values
     const savedFactors = localStorage.getItem('roadRiskHazardFactors');
     return savedFactors ? JSON.parse(savedFactors) : {
-      hillslopeGradient: null,
-      streamConnectivity: null,
-      pastSlides: null,
-      roadGradient: null,
-      roadWidth: null,
-      runoutZones: null
+      terrainStability: null,
+      slopeGrade: null,
+      geologySoil: null,
+      drainageConditions: null,
+      roadFailureHistory: null
+    };
+  });
+
+  // State for consequence factors
+  const [consequenceFactors, setConsequenceFactors] = useState(() => {
+    // Load from localStorage if available, otherwise use default values
+    const savedFactors = localStorage.getItem('roadRiskConsequenceFactors');
+    return savedFactors ? JSON.parse(savedFactors) : {
+      proximityToWater: null,
+      drainageStructure: null,
+      publicIndustrialUse: null,
+      environmentalValue: null
     };
   });
 
   // State for hazard scores explanation
   const hazardScoreExplanations = {
-    hillslopeGradient: {
-      1: 'Low: < 30% gradient',
-      2: 'Moderate: 30-50% gradient',
-      3: 'High: 50-70% gradient',
-      4: 'Very High: > 70% gradient'
+    terrainStability: {
+      2: 'Stable terrain (slopes <40%)',
+      4: 'Moderately stable (slopes 40-60%)',
+      6: 'Potentially unstable (slopes >60%)',
+      10: 'Unstable terrain (Class IV/V or high frequency/vuln.)'
     },
-    streamConnectivity: {
-      1: 'Low: No direct connection to stream',
-      2: 'Moderate: Indirect connectivity, buffer present',
-      3: 'High: Direct connectivity, minor stream',
-      4: 'Very High: Direct connectivity, fish-bearing stream'
+    slopeGrade: {
+      2: 'Low grade (<8%)',
+      4: 'Moderate grade (8-12%)',
+      6: 'Steep grade (12-18%)',
+      10: 'Very steep grade (>18%)'
     },
-    pastSlides: {
-      1: 'Low: No history of slides',
-      2: 'Moderate: Minor past failures',
-      3: 'High: Several past failures',
-      4: 'Very High: Ongoing or recent major failures'
+    geologySoil: {
+      2: 'Cohesive, stable soils/bedrock',
+      4: 'Moderately stable soils',
+      6: 'Loose, erodible soils',
+      10: 'Highly erodible soils/talus deposits'
     },
-    roadGradient: {
-      1: 'Low: < 8% grade',
-      2: 'Moderate: 8-12% grade',
-      3: 'High: 12-18% grade',
-      4: 'Very High: > 18% grade'
+    drainageConditions: {
+      2: 'Well-drained, minimal surface water',
+      4: 'Moderate drainage issues',
+      6: 'Poor drainage, standing water',
+      10: 'Severe drainage issues, seepage/springs'
     },
-    roadWidth: {
-      1: 'Low: > 5.5m wide',
-      2: 'Moderate: 4.5-5.5m wide',
-      3: 'High: 3.5-4.5m wide',
-      4: 'Very High: < 3.5m wide'
+    roadFailureHistory: {
+      2: 'No previous failures',
+      4: 'Minor historical issues',
+      6: 'Moderate historical failures',
+      10: 'Frequent/significant failures'
+    }
+  };
+
+  // State for consequence scores explanation
+  const consequenceScoreExplanations = {
+    proximityToWater: {
+      2: 'No water resources nearby (>100m)',
+      4: 'Non-fish bearing stream (30-100m)',
+      6: 'Fish bearing stream (10-30m)',
+      10: 'Adjacent to fish stream (<10m) or drinking water intake'
     },
-    runoutZones: {
-      1: 'Low: No runout hazard',
-      2: 'Moderate: Potential minor runout',
-      3: 'High: Significant runout potential',
-      4: 'Very High: Major runout hazard present'
+    drainageStructure: {
+      2: 'Adequate for 100+ year events',
+      4: 'Adequate for 50-year events',
+      6: 'Adequate for 25-year events',
+      10: 'Undersized or deteriorating'
+    },
+    publicIndustrialUse: {
+      2: 'Minimal use (wilderness road)',
+      4: 'Low volume industrial use',
+      6: 'Moderate public/industrial use',
+      10: 'High volume/mainline road'
+    },
+    environmentalValue: {
+      2: 'No significant values',
+      4: 'Standard riparian/wildlife values',
+      6: 'Important habitat or cultural areas',
+      10: 'Critical habitat or culturally significant site'
     }
   };
   
@@ -86,6 +119,11 @@ function RoadRiskForm() {
   useEffect(() => {
     localStorage.setItem('roadRiskHazardFactors', JSON.stringify(hazardFactors));
   }, [hazardFactors]);
+
+  // Save consequence factors to localStorage when they change
+  useEffect(() => {
+    localStorage.setItem('roadRiskConsequenceFactors', JSON.stringify(consequenceFactors));
+  }, [consequenceFactors]);
   
   // Handle basic info input changes
   const handleBasicInfoChange = (e) => {
@@ -96,6 +134,11 @@ function RoadRiskForm() {
   // Handle hazard factor selection
   const handleHazardFactorChange = (factor, value) => {
     setHazardFactors(prev => ({ ...prev, [factor]: value }));
+  };
+
+  // Handle consequence factor selection
+  const handleConsequenceFactorChange = (factor, value) => {
+    setConsequenceFactors(prev => ({ ...prev, [factor]: value }));
   };
 
   // Calculate hazard score
@@ -111,6 +154,40 @@ function RoadRiskForm() {
     });
     
     return factorCount > 0 ? total : 0;
+  };
+
+  // Calculate consequence score
+  const calculateConsequenceScore = () => {
+    let total = 0;
+    let factorCount = 0;
+    
+    Object.values(consequenceFactors).forEach(value => {
+      if (value !== null) {
+        total += value;
+        factorCount++;
+      }
+    });
+    
+    return factorCount > 0 ? total : 0;
+  };
+
+  // Calculate total risk score (hazard x consequence)
+  const calculateRiskScore = () => {
+    const hazardScore = calculateHazardScore();
+    const consequenceScore = calculateConsequenceScore();
+    
+    return hazardScore * consequenceScore;
+  };
+
+  // Determine risk category
+  const getRiskCategory = () => {
+    const riskScore = calculateRiskScore();
+    
+    if (riskScore >= 300) return { category: 'Very High', color: '#d32f2f' };
+    if (riskScore >= 200) return { category: 'High', color: '#f57c00' };
+    if (riskScore >= 100) return { category: 'Moderate', color: '#fbc02d' };
+    if (riskScore >= 50) return { category: 'Low', color: '#689f38' };
+    return { category: 'Very Low', color: '#388e3c' };
   };
   
   // Use GPS location for coordinates
@@ -156,12 +233,18 @@ function RoadRiskForm() {
       });
       
       setHazardFactors({
-        hillslopeGradient: null,
-        streamConnectivity: null,
-        pastSlides: null,
-        roadGradient: null,
-        roadWidth: null,
-        runoutZones: null
+        terrainStability: null,
+        slopeGrade: null,
+        geologySoil: null,
+        drainageConditions: null,
+        roadFailureHistory: null
+      });
+
+      setConsequenceFactors({
+        proximityToWater: null,
+        drainageStructure: null,
+        publicIndustrialUse: null,
+        environmentalValue: null
       });
       
       alert('Form has been reset.');
@@ -171,10 +254,10 @@ function RoadRiskForm() {
   // Get color class for score button
   const getScoreButtonColorClass = (score) => {
     switch (score) {
-      case 1: return 'green';
-      case 2: return 'yellow';
-      case 3: return 'orange';
-      case 4: return 'red';
+      case 2: return 'green';
+      case 4: return 'yellow';
+      case 6: return 'orange';
+      case 10: return 'red';
       default: return '';
     }
   };
@@ -408,109 +491,91 @@ function RoadRiskForm() {
             Select the appropriate rating for each factor based on field observations.
           </p>
           
-          {/* Hillslope Gradient */}
+          {/* Terrain Stability */}
           <div className="factor-group">
-            <h3 className="factor-header">Hillslope Gradient</h3>
+            <h3 className="factor-header">Terrain Stability</h3>
             <div className="score-buttons">
-              {[1, 2, 3, 4].map((score) => (
+              {[2, 4, 6, 10].map((score) => (
                 <button
-                  key={`hillslope-${score}`}
+                  key={`terrain-${score}`}
                   type="button"
-                  className={`score-button ${getScoreButtonColorClass(score)} ${hazardFactors.hillslopeGradient === score ? 'selected' : ''}`}
-                  onClick={() => handleHazardFactorChange('hillslopeGradient', score)}
+                  className={`score-button ${getScoreButtonColorClass(score)} ${hazardFactors.terrainStability === score ? 'selected' : ''}`}
+                  onClick={() => handleHazardFactorChange('terrainStability', score)}
                 >
                   <span className="score-value">{score}</span>
-                  <span className="score-label">{hazardScoreExplanations.hillslopeGradient[score]}</span>
+                  <span className="score-label">{hazardScoreExplanations.terrainStability[score]}</span>
                 </button>
               ))}
             </div>
           </div>
           
-          {/* Stream Connectivity */}
+          {/* Slope Grade */}
           <div className="factor-group">
-            <h3 className="factor-header">Connectivity to Stream</h3>
+            <h3 className="factor-header">Slope Grade</h3>
             <div className="score-buttons">
-              {[1, 2, 3, 4].map((score) => (
+              {[2, 4, 6, 10].map((score) => (
                 <button
-                  key={`stream-${score}`}
+                  key={`slope-${score}`}
                   type="button"
-                  className={`score-button ${getScoreButtonColorClass(score)} ${hazardFactors.streamConnectivity === score ? 'selected' : ''}`}
-                  onClick={() => handleHazardFactorChange('streamConnectivity', score)}
+                  className={`score-button ${getScoreButtonColorClass(score)} ${hazardFactors.slopeGrade === score ? 'selected' : ''}`}
+                  onClick={() => handleHazardFactorChange('slopeGrade', score)}
                 >
                   <span className="score-value">{score}</span>
-                  <span className="score-label">{hazardScoreExplanations.streamConnectivity[score]}</span>
+                  <span className="score-label">{hazardScoreExplanations.slopeGrade[score]}</span>
                 </button>
               ))}
             </div>
           </div>
           
-          {/* History of Past Slides */}
+          {/* Geology/Soil */}
           <div className="factor-group">
-            <h3 className="factor-header">History of Past Slides</h3>
+            <h3 className="factor-header">Geology/Soil</h3>
             <div className="score-buttons">
-              {[1, 2, 3, 4].map((score) => (
+              {[2, 4, 6, 10].map((score) => (
                 <button
-                  key={`slides-${score}`}
+                  key={`geology-${score}`}
                   type="button"
-                  className={`score-button ${getScoreButtonColorClass(score)} ${hazardFactors.pastSlides === score ? 'selected' : ''}`}
-                  onClick={() => handleHazardFactorChange('pastSlides', score)}
+                  className={`score-button ${getScoreButtonColorClass(score)} ${hazardFactors.geologySoil === score ? 'selected' : ''}`}
+                  onClick={() => handleHazardFactorChange('geologySoil', score)}
                 >
                   <span className="score-value">{score}</span>
-                  <span className="score-label">{hazardScoreExplanations.pastSlides[score]}</span>
+                  <span className="score-label">{hazardScoreExplanations.geologySoil[score]}</span>
                 </button>
               ))}
             </div>
           </div>
           
-          {/* Road Gradient */}
+          {/* Drainage Conditions */}
           <div className="factor-group">
-            <h3 className="factor-header">Road Gradient</h3>
+            <h3 className="factor-header">Drainage Conditions</h3>
             <div className="score-buttons">
-              {[1, 2, 3, 4].map((score) => (
+              {[2, 4, 6, 10].map((score) => (
                 <button
-                  key={`road-gradient-${score}`}
+                  key={`drainage-${score}`}
                   type="button"
-                  className={`score-button ${getScoreButtonColorClass(score)} ${hazardFactors.roadGradient === score ? 'selected' : ''}`}
-                  onClick={() => handleHazardFactorChange('roadGradient', score)}
+                  className={`score-button ${getScoreButtonColorClass(score)} ${hazardFactors.drainageConditions === score ? 'selected' : ''}`}
+                  onClick={() => handleHazardFactorChange('drainageConditions', score)}
                 >
                   <span className="score-value">{score}</span>
-                  <span className="score-label">{hazardScoreExplanations.roadGradient[score]}</span>
+                  <span className="score-label">{hazardScoreExplanations.drainageConditions[score]}</span>
                 </button>
               ))}
             </div>
           </div>
           
-          {/* Road Width */}
+          {/* Road Failure History */}
           <div className="factor-group">
-            <h3 className="factor-header">Road Width</h3>
+            <h3 className="factor-header">Road Failure History</h3>
             <div className="score-buttons">
-              {[1, 2, 3, 4].map((score) => (
+              {[2, 4, 6, 10].map((score) => (
                 <button
-                  key={`road-width-${score}`}
+                  key={`failure-${score}`}
                   type="button"
-                  className={`score-button ${getScoreButtonColorClass(score)} ${hazardFactors.roadWidth === score ? 'selected' : ''}`}
-                  onClick={() => handleHazardFactorChange('roadWidth', score)}
+                  className={`score-button ${getScoreButtonColorClass(score)} ${hazardFactors.roadFailureHistory === score ? 'selected' : ''}`}
+                  onClick={() => handleHazardFactorChange('roadFailureHistory', score)}
                 >
                   <span className="score-value">{score}</span>
-                  <span className="score-label">{hazardScoreExplanations.roadWidth[score]}</span>
-                </button>
-              ))}
-            </div>
-          </div>
-          
-          {/* Runout Zones */}
-          <div className="factor-group">
-            <h3 className="factor-header">Runout Zones</h3>
-            <div className="score-buttons">
-              {[1, 2, 3, 4].map((score) => (
-                <button
-                  key={`runout-${score}`}
-                  type="button"
-                  className={`score-button ${getScoreButtonColorClass(score)} ${hazardFactors.runoutZones === score ? 'selected' : ''}`}
-                  onClick={() => handleHazardFactorChange('runoutZones', score)}
-                >
-                  <span className="score-value">{score}</span>
-                  <span className="score-label">{hazardScoreExplanations.runoutZones[score]}</span>
+                  <span className="score-label">{hazardScoreExplanations.roadFailureHistory[score]}</span>
                 </button>
               ))}
             </div>
@@ -551,18 +616,85 @@ function RoadRiskForm() {
           
           <p className="section-description">
             Evaluate the potential impacts if a road failure were to occur.
+            Select the appropriate rating for each consequence factor.
           </p>
           
-          <div className="form-placeholder">
-            <p>Consequence factors assessment will be implemented here.</p>
-            <ul>
-              <li>Water Quality</li>
-              <li>Public Safety</li>
-              <li>Forest Values</li>
-              <li>Infrastructure Values</li>
-              <li>Environmental Value</li>
-              <li>Public/Industrial Use</li>
-            </ul>
+          {/* Proximity to Water */}
+          <div className="factor-group">
+            <h3 className="factor-header">Proximity to Water</h3>
+            <div className="score-buttons">
+              {[2, 4, 6, 10].map((score) => (
+                <button
+                  key={`water-${score}`}
+                  type="button"
+                  className={`score-button ${getScoreButtonColorClass(score)} ${consequenceFactors.proximityToWater === score ? 'selected' : ''}`}
+                  onClick={() => handleConsequenceFactorChange('proximityToWater', score)}
+                >
+                  <span className="score-value">{score}</span>
+                  <span className="score-label">{consequenceScoreExplanations.proximityToWater[score]}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+          
+          {/* Drainage Structure */}
+          <div className="factor-group">
+            <h3 className="factor-header">Drainage Structure</h3>
+            <div className="score-buttons">
+              {[2, 4, 6, 10].map((score) => (
+                <button
+                  key={`drainage-structure-${score}`}
+                  type="button"
+                  className={`score-button ${getScoreButtonColorClass(score)} ${consequenceFactors.drainageStructure === score ? 'selected' : ''}`}
+                  onClick={() => handleConsequenceFactorChange('drainageStructure', score)}
+                >
+                  <span className="score-value">{score}</span>
+                  <span className="score-label">{consequenceScoreExplanations.drainageStructure[score]}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+          
+          {/* Public/Industrial Use */}
+          <div className="factor-group">
+            <h3 className="factor-header">Public/Industrial Use</h3>
+            <div className="score-buttons">
+              {[2, 4, 6, 10].map((score) => (
+                <button
+                  key={`public-use-${score}`}
+                  type="button"
+                  className={`score-button ${getScoreButtonColorClass(score)} ${consequenceFactors.publicIndustrialUse === score ? 'selected' : ''}`}
+                  onClick={() => handleConsequenceFactorChange('publicIndustrialUse', score)}
+                >
+                  <span className="score-value">{score}</span>
+                  <span className="score-label">{consequenceScoreExplanations.publicIndustrialUse[score]}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+          
+          {/* Environmental Value */}
+          <div className="factor-group">
+            <h3 className="factor-header">Environmental Value</h3>
+            <div className="score-buttons">
+              {[2, 4, 6, 10].map((score) => (
+                <button
+                  key={`env-value-${score}`}
+                  type="button"
+                  className={`score-button ${getScoreButtonColorClass(score)} ${consequenceFactors.environmentalValue === score ? 'selected' : ''}`}
+                  onClick={() => handleConsequenceFactorChange('environmentalValue', score)}
+                >
+                  <span className="score-value">{score}</span>
+                  <span className="score-label">{consequenceScoreExplanations.environmentalValue[score]}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+          
+          {/* Consequence Total Score */}
+          <div className="factor-total">
+            <span className="factor-total-label">Consequence Total Score:</span>
+            <span className="factor-total-value">{calculateConsequenceScore()}</span>
           </div>
           
           <div className="section-nav-buttons">
@@ -596,14 +728,132 @@ function RoadRiskForm() {
             Additional assessments for more detailed evaluation.
           </p>
           
-          <div className="form-placeholder">
-            <p>Optional assessments will be implemented here.</p>
-            <ul>
-              <li>Geotechnical Considerations</li>
-              <li>Infrastructure Elements</li>
-              <li>Photo Documentation</li>
-              <li>Comments & Observations</li>
-            </ul>
+          {/* Geotechnical Considerations */}
+          <div className="factor-group">
+            <h3 className="factor-header">Geotechnical Considerations</h3>
+            <table className="assessment-table">
+              <thead>
+                <tr>
+                  <th>Factor</th>
+                  <th>Low Risk</th>
+                  <th>Moderate Risk</th>
+                  <th>High Risk</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Cut Slope Height</td>
+                  <td>&lt;3m</td>
+                  <td>3-6m</td>
+                  <td>&gt;6m</td>
+                </tr>
+                <tr>
+                  <td>Fill Slope Height</td>
+                  <td>&lt;3m</td>
+                  <td>3-6m</td>
+                  <td>&gt;6m</td>
+                </tr>
+                <tr>
+                  <td>Bedrock Condition</td>
+                  <td>Minimal jointing, favorable orientation</td>
+                  <td>Moderate jointing</td>
+                  <td>Highly fractured, adverse orientation</td>
+                </tr>
+                <tr>
+                  <td>Groundwater Conditions</td>
+                  <td>Dry, no seepage</td>
+                  <td>Seasonal seepage</td>
+                  <td>Persistent seepage, springs</td>
+                </tr>
+                <tr>
+                  <td>Erosion Evidence</td>
+                  <td>None</td>
+                  <td>Minor rilling/gullying</td>
+                  <td>Active erosion, undercutting</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          
+          {/* Infrastructure Elements */}
+          <div className="factor-group">
+            <h3 className="factor-header">Infrastructure Elements</h3>
+            <table className="assessment-table">
+              <thead>
+                <tr>
+                  <th>Factor</th>
+                  <th>Low Risk</th>
+                  <th>Moderate Risk</th>
+                  <th>High Risk</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Road Surface Type</td>
+                  <td>Well-maintained gravel</td>
+                  <td>Basic gravel, some rutting</td>
+                  <td>Native material, significant rutting</td>
+                </tr>
+                <tr>
+                  <td>Ditch Condition</td>
+                  <td>Clean, well-defined</td>
+                  <td>Partially vegetated, minor deposits</td>
+                  <td>Filled with sediment/debris</td>
+                </tr>
+                <tr>
+                  <td>Culvert Sizing</td>
+                  <td>Adequately sized, aligned with natural drainage</td>
+                  <td>Slightly undersized</td>
+                  <td>Significantly undersized, misaligned</td>
+                </tr>
+                <tr>
+                  <td>Culvert Condition</td>
+                  <td>Good condition, no deformation</td>
+                  <td>Minor deformation/rusting</td>
+                  <td>Significant deformation, crushed ends</td>
+                </tr>
+                <tr>
+                  <td>Road Age</td>
+                  <td>&lt;5 years</td>
+                  <td>5-15 years</td>
+                  <td>&gt;15 years without major maintenance</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          
+          {/* Photo Documentation */}
+          <div className="factor-group">
+            <h3 className="factor-header">Photo Documentation</h3>
+            <p>Capture photos of key features to document current conditions.</p>
+            <div className="photo-upload-section">
+              <div className="photo-upload-box">
+                <div className="upload-placeholder">+ Add Photo</div>
+                <p className="upload-label">Road Surface</p>
+              </div>
+              <div className="photo-upload-box">
+                <div className="upload-placeholder">+ Add Photo</div>
+                <p className="upload-label">Drainage Features</p>
+              </div>
+              <div className="photo-upload-box">
+                <div className="upload-placeholder">+ Add Photo</div>
+                <p className="upload-label">Slope Conditions</p>
+              </div>
+              <div className="photo-upload-box">
+                <div className="upload-placeholder">+ Add Photo</div>
+                <p className="upload-label">Problem Areas</p>
+              </div>
+            </div>
+          </div>
+          
+          {/* Comments & Observations */}
+          <div className="factor-group">
+            <h3 className="factor-header">Comments & Observations</h3>
+            <textarea 
+              className="comments-area" 
+              placeholder="Enter additional observations, notes or special considerations..."
+              rows={5}
+            ></textarea>
           </div>
           
           <div className="section-nav-buttons">
@@ -637,14 +887,117 @@ function RoadRiskForm() {
             View the risk assessment results and recommendations.
           </p>
           
-          <div className="form-placeholder">
-            <p>Results summary will be displayed here.</p>
-            <ul>
-              <li>Hazard Score: {calculateHazardScore()}</li>
-              <li>Consequence Score</li>
-              <li>Overall Risk Rating</li>
-              <li>Professional Resource Requirements</li>
-              <li>Recommended Actions</li>
+          <div className="results-summary">
+            <div className="results-card">
+              <h3 className="results-subtitle">Risk Calculation</h3>
+              <div className="results-calculation">
+                <div className="calc-group">
+                  <span className="calc-label">Hazard Score:</span>
+                  <span className="calc-value">{calculateHazardScore()}</span>
+                </div>
+                <div className="calc-operator">×</div>
+                <div className="calc-group">
+                  <span className="calc-label">Consequence Score:</span>
+                  <span className="calc-value">{calculateConsequenceScore()}</span>
+                </div>
+                <div className="calc-operator">=</div>
+                <div className="calc-group">
+                  <span className="calc-label">Risk Score:</span>
+                  <span className="calc-value risk-total">{calculateRiskScore()}</span>
+                </div>
+              </div>
+              
+              <div className="risk-category" style={{ backgroundColor: getRiskCategory().color }}>
+                <h3 className="risk-category-label">Risk Category</h3>
+                <div className="risk-category-value">{getRiskCategory().category}</div>
+              </div>
+              
+              <div className="category-requirements">
+                <h3 className="requirements-header">Professional Requirements</h3>
+                {getRiskCategory().category === 'Very High' && (
+                  <div className="requirements-content">
+                    <p><strong>Professional Team:</strong> Full professional team with CRP and specialist PORs. Geometric design required. Multiple field reviews.</p>
+                    <p><strong>Inspection Frequency:</strong> Frequent during wet season, annual otherwise.</p>
+                    <p><strong>Documentation:</strong> Formal assurance statements, detailed documentation package, LRM database entry, inspections and risk mitigation.</p>
+                  </div>
+                )}
+                {getRiskCategory().category === 'High' && (
+                  <div className="requirements-content">
+                    <p><strong>Professional Team:</strong> CRP and road activity POR (may be same person for simple roads). Specialist consultation. Field reviews at critical stages.</p>
+                    <p><strong>Inspection Frequency:</strong> Annual.</p>
+                    <p><strong>Documentation:</strong> Assurance statements, documentation of field reviews, maintenance/inspection or deactivation plans.</p>
+                  </div>
+                )}
+                {getRiskCategory().category === 'Moderate' && (
+                  <div className="requirements-content">
+                    <p><strong>Professional Team:</strong> CRP and road activity POR oversight. Standard designs with field verification.</p>
+                    <p><strong>Inspection Frequency:</strong> Bi-annual.</p>
+                    <p><strong>Documentation:</strong> Basic assurance documentation, regular monitoring schedule.</p>
+                  </div>
+                )}
+                {getRiskCategory().category === 'Low' && (
+                  <div className="requirements-content">
+                    <p><strong>Professional Team:</strong> Standard oversight by qualified professionals. Routine field reviews.</p>
+                    <p><strong>Inspection Frequency:</strong> Not official.</p>
+                    <p><strong>Documentation:</strong> Standard recordkeeping for events.</p>
+                  </div>
+                )}
+                {getRiskCategory().category === 'Very Low' && (
+                  <div className="requirements-content">
+                    <p><strong>Professional Team:</strong> Routine professional oversight.</p>
+                    <p><strong>Inspection Frequency:</strong> During routine maintenance.</p>
+                    <p><strong>Documentation:</strong> Basic documentation in Quick Capture app.</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+          
+          <div className="action-recommendations">
+            <h3 className="recommendations-header">Recommended Actions</h3>
+            <ul className="recommendations-list">
+              {getRiskCategory().category === 'Very High' && (
+                <>
+                  <li>Immediate professional assessment required</li>
+                  <li>Implement access controls until remediation complete</li>
+                  <li>Develop comprehensive risk mitigation plan</li>
+                  <li>Schedule frequent monitoring during wet season</li>
+                  <li>Allocate budget for major engineering works</li>
+                </>
+              )}
+              {getRiskCategory().category === 'High' && (
+                <>
+                  <li>Professional assessment required within 30 days</li>
+                  <li>Develop maintenance/inspection plan</li>
+                  <li>Consider temporary drainage improvements</li>
+                  <li>Schedule annual professional inspection</li>
+                  <li>Plan for potential major repairs in next budget cycle</li>
+                </>
+              )}
+              {getRiskCategory().category === 'Moderate' && (
+                <>
+                  <li>Schedule professional field verification</li>
+                  <li>Implement standard monitoring protocol</li>
+                  <li>Conduct routine maintenance of drainage structures</li>
+                  <li>Document changes in conditions</li>
+                  <li>Review during bi-annual inspection cycle</li>
+                </>
+              )}
+              {getRiskCategory().category === 'Low' && (
+                <>
+                  <li>Maintain standard documentation</li>
+                  <li>Include in routine maintenance schedule</li>
+                  <li>No immediate action required</li>
+                  <li>Monitor during normal operations</li>
+                </>
+              )}
+              {getRiskCategory().category === 'Very Low' && (
+                <>
+                  <li>No specific action required</li>
+                  <li>Document in Quick Capture app during routine visits</li>
+                  <li>Follow standard maintenance procedures</li>
+                </>
+              )}
             </ul>
           </div>
           
