@@ -22,16 +22,95 @@ function RoadRiskForm() {
       assessor: ''
     };
   });
+
+  // State for hazard factors
+  const [hazardFactors, setHazardFactors] = useState(() => {
+    // Load from localStorage if available, otherwise use default values
+    const savedFactors = localStorage.getItem('roadRiskHazardFactors');
+    return savedFactors ? JSON.parse(savedFactors) : {
+      hillslopeGradient: null,
+      streamConnectivity: null,
+      pastSlides: null,
+      roadGradient: null,
+      roadWidth: null,
+      runoutZones: null
+    };
+  });
+
+  // State for hazard scores explanation
+  const hazardScoreExplanations = {
+    hillslopeGradient: {
+      1: 'Low: < 30% gradient',
+      2: 'Moderate: 30-50% gradient',
+      3: 'High: 50-70% gradient',
+      4: 'Very High: > 70% gradient'
+    },
+    streamConnectivity: {
+      1: 'Low: No direct connection to stream',
+      2: 'Moderate: Indirect connectivity, buffer present',
+      3: 'High: Direct connectivity, minor stream',
+      4: 'Very High: Direct connectivity, fish-bearing stream'
+    },
+    pastSlides: {
+      1: 'Low: No history of slides',
+      2: 'Moderate: Minor past failures',
+      3: 'High: Several past failures',
+      4: 'Very High: Ongoing or recent major failures'
+    },
+    roadGradient: {
+      1: 'Low: < 8% grade',
+      2: 'Moderate: 8-12% grade',
+      3: 'High: 12-18% grade',
+      4: 'Very High: > 18% grade'
+    },
+    roadWidth: {
+      1: 'Low: > 5.5m wide',
+      2: 'Moderate: 4.5-5.5m wide',
+      3: 'High: 3.5-4.5m wide',
+      4: 'Very High: < 3.5m wide'
+    },
+    runoutZones: {
+      1: 'Low: No runout hazard',
+      2: 'Moderate: Potential minor runout',
+      3: 'High: Significant runout potential',
+      4: 'Very High: Major runout hazard present'
+    }
+  };
   
   // Save basic info to localStorage when it changes
   useEffect(() => {
     localStorage.setItem('roadRiskBasicInfo', JSON.stringify(basicInfo));
   }, [basicInfo]);
   
+  // Save hazard factors to localStorage when they change
+  useEffect(() => {
+    localStorage.setItem('roadRiskHazardFactors', JSON.stringify(hazardFactors));
+  }, [hazardFactors]);
+  
   // Handle basic info input changes
   const handleBasicInfoChange = (e) => {
     const { name, value } = e.target;
     setBasicInfo(prev => ({ ...prev, [name]: value }));
+  };
+
+  // Handle hazard factor selection
+  const handleHazardFactorChange = (factor, value) => {
+    setHazardFactors(prev => ({ ...prev, [factor]: value }));
+  };
+
+  // Calculate hazard score
+  const calculateHazardScore = () => {
+    let total = 0;
+    let factorCount = 0;
+    
+    Object.values(hazardFactors).forEach(value => {
+      if (value !== null) {
+        total += value;
+        factorCount++;
+      }
+    });
+    
+    return factorCount > 0 ? total : 0;
   };
   
   // Use GPS location for coordinates
@@ -75,8 +154,28 @@ function RoadRiskForm() {
         assessmentDate: new Date().toISOString().split('T')[0],
         assessor: ''
       });
-      // In future steps, we'll add reset logic for other form sections too
+      
+      setHazardFactors({
+        hillslopeGradient: null,
+        streamConnectivity: null,
+        pastSlides: null,
+        roadGradient: null,
+        roadWidth: null,
+        runoutZones: null
+      });
+      
       alert('Form has been reset.');
+    }
+  };
+
+  // Get color class for score button
+  const getScoreButtonColorClass = (score) => {
+    switch (score) {
+      case 1: return 'green';
+      case 2: return 'yellow';
+      case 3: return 'orange';
+      case 4: return 'red';
+      default: return '';
     }
   };
 
@@ -306,18 +405,121 @@ function RoadRiskForm() {
           
           <p className="section-description">
             Evaluate the physical conditions that could contribute to road instability or failure.
+            Select the appropriate rating for each factor based on field observations.
           </p>
           
-          <div className="form-placeholder">
-            <p>Hazard factors assessment will be implemented here in the next step.</p>
-            <ul>
-              <li>Hillslope Gradient</li>
-              <li>Connectivity to Stream</li>
-              <li>History of Past Slides</li>
-              <li>Road Gradient</li>
-              <li>Road Width</li>
-              <li>Runout Zones</li>
-            </ul>
+          {/* Hillslope Gradient */}
+          <div className="factor-group">
+            <h3 className="factor-header">Hillslope Gradient</h3>
+            <div className="score-buttons">
+              {[1, 2, 3, 4].map((score) => (
+                <button
+                  key={`hillslope-${score}`}
+                  type="button"
+                  className={`score-button ${getScoreButtonColorClass(score)} ${hazardFactors.hillslopeGradient === score ? 'selected' : ''}`}
+                  onClick={() => handleHazardFactorChange('hillslopeGradient', score)}
+                >
+                  <span className="score-value">{score}</span>
+                  <span className="score-label">{hazardScoreExplanations.hillslopeGradient[score]}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+          
+          {/* Stream Connectivity */}
+          <div className="factor-group">
+            <h3 className="factor-header">Connectivity to Stream</h3>
+            <div className="score-buttons">
+              {[1, 2, 3, 4].map((score) => (
+                <button
+                  key={`stream-${score}`}
+                  type="button"
+                  className={`score-button ${getScoreButtonColorClass(score)} ${hazardFactors.streamConnectivity === score ? 'selected' : ''}`}
+                  onClick={() => handleHazardFactorChange('streamConnectivity', score)}
+                >
+                  <span className="score-value">{score}</span>
+                  <span className="score-label">{hazardScoreExplanations.streamConnectivity[score]}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+          
+          {/* History of Past Slides */}
+          <div className="factor-group">
+            <h3 className="factor-header">History of Past Slides</h3>
+            <div className="score-buttons">
+              {[1, 2, 3, 4].map((score) => (
+                <button
+                  key={`slides-${score}`}
+                  type="button"
+                  className={`score-button ${getScoreButtonColorClass(score)} ${hazardFactors.pastSlides === score ? 'selected' : ''}`}
+                  onClick={() => handleHazardFactorChange('pastSlides', score)}
+                >
+                  <span className="score-value">{score}</span>
+                  <span className="score-label">{hazardScoreExplanations.pastSlides[score]}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+          
+          {/* Road Gradient */}
+          <div className="factor-group">
+            <h3 className="factor-header">Road Gradient</h3>
+            <div className="score-buttons">
+              {[1, 2, 3, 4].map((score) => (
+                <button
+                  key={`road-gradient-${score}`}
+                  type="button"
+                  className={`score-button ${getScoreButtonColorClass(score)} ${hazardFactors.roadGradient === score ? 'selected' : ''}`}
+                  onClick={() => handleHazardFactorChange('roadGradient', score)}
+                >
+                  <span className="score-value">{score}</span>
+                  <span className="score-label">{hazardScoreExplanations.roadGradient[score]}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+          
+          {/* Road Width */}
+          <div className="factor-group">
+            <h3 className="factor-header">Road Width</h3>
+            <div className="score-buttons">
+              {[1, 2, 3, 4].map((score) => (
+                <button
+                  key={`road-width-${score}`}
+                  type="button"
+                  className={`score-button ${getScoreButtonColorClass(score)} ${hazardFactors.roadWidth === score ? 'selected' : ''}`}
+                  onClick={() => handleHazardFactorChange('roadWidth', score)}
+                >
+                  <span className="score-value">{score}</span>
+                  <span className="score-label">{hazardScoreExplanations.roadWidth[score]}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+          
+          {/* Runout Zones */}
+          <div className="factor-group">
+            <h3 className="factor-header">Runout Zones</h3>
+            <div className="score-buttons">
+              {[1, 2, 3, 4].map((score) => (
+                <button
+                  key={`runout-${score}`}
+                  type="button"
+                  className={`score-button ${getScoreButtonColorClass(score)} ${hazardFactors.runoutZones === score ? 'selected' : ''}`}
+                  onClick={() => handleHazardFactorChange('runoutZones', score)}
+                >
+                  <span className="score-value">{score}</span>
+                  <span className="score-label">{hazardScoreExplanations.runoutZones[score]}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+          
+          {/* Hazard Total Score */}
+          <div className="factor-total">
+            <span className="factor-total-label">Hazard Total Score:</span>
+            <span className="factor-total-value">{calculateHazardScore()}</span>
           </div>
           
           <div className="section-nav-buttons">
@@ -438,7 +640,7 @@ function RoadRiskForm() {
           <div className="form-placeholder">
             <p>Results summary will be displayed here.</p>
             <ul>
-              <li>Hazard Score</li>
+              <li>Hazard Score: {calculateHazardScore()}</li>
               <li>Consequence Score</li>
               <li>Overall Risk Rating</li>
               <li>Professional Resource Requirements</li>
