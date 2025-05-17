@@ -23,6 +23,13 @@ The application has been rebuilt from scratch to resolve persistent issues with 
 
 ## Changelog
 
+### 2025-05-17
+- Implemented Hazard Factors section in the Road Risk Assessment form
+- Added visual score selection buttons with color-coding (green, yellow, orange, red)
+- Implemented state management for hazard factors with localStorage persistence
+- Added automatic hazard score calculation based on selected factors
+- Enhanced form UI with interactive score buttons and better visual feedback
+
 ### 2025-05-15
 - Removed React Navigation dependencies and switched to React Router for all navigation
 - Fixed RoadRiskForm component to resolve syntax errors
@@ -64,7 +71,7 @@ AI-Forester-App/
 │   │   ├── MainNavigator.js # Secondary router layer
 │   │   └── CulvertToolNavigator.js # Culvert-specific routes
 │   ├── pages/            # Main form pages
-│   │   ├── RoadRiskForm.js  # Simple placeholder for now
+│   │   ├── RoadRiskForm.js  # Road Risk Assessment form with sections
 │   │   └── HistoryPage.js   # History viewing page
 │   ├── screens/          # Screen components
 │   │   ├── HomeScreen.js    # Landing page with tool selection
@@ -85,9 +92,12 @@ AI-Forester-App/
 - Created clean, minimal interfaces for easier incremental development
 
 ### RoadRiskForm Component
-- Created minimal component that will be expanded incrementally
-- Set up proper routing and navigation between screens
-- Established basic structure with proper import/export and React Router integration
+- Implemented multi-section form with tabbed navigation
+- Basic Information section with text inputs and GPS location capture
+- Hazard Factors section with interactive score selection and automatic calculation
+- Form sections for Consequence Factors, Optional Assessments, and Results (placeholders)
+- Added localStorage persistence for form data
+- Implemented reset and save functionality
 
 ### Navigation Structure
 - AppRouter: Top-level router that sets up the main routes (/home, /road-risk, /culvert, /history)
@@ -96,11 +106,11 @@ AI-Forester-App/
 
 ## Next Steps
 
-1. Incrementally rebuild the RoadRiskForm with proper functionality
-2. Complete the implementation of the Culvert Sizing Tool with calculation algorithms
-3. Add photo capture functionality with device camera integration
-4. Implement PDF export for assessment reports
-5. Create visualization components for assessment results
+1. Implement the Consequence Factors section with interactive score selection
+2. Create the Optional Assessments section with photo capture and additional inputs
+3. Build the Results visualization with risk matrix and recommendations
+4. Complete the implementation of the Culvert Sizing Tool with calculation algorithms
+5. Implement PDF export for assessment reports
 6. Add offline functionality for field use
 7. Implement user authentication for multi-user support
 
@@ -113,10 +123,11 @@ AI-Forester-App/
 
 ## Known Issues
 
-- RoadRiskForm is currently a simple placeholder and needs to be rebuilt
-- Photo capture functionality is currently a placeholder
+- Consequence Factors section is currently a placeholder
+- Optional Assessments section is currently a placeholder
+- Results section is currently a placeholder showing only the hazard score
 - PDF export is simulated and will be fully implemented in the next version
-- GPS location functionality needs to be connected to device location services
+- GPS location functionality needs to be tested with real device location services
 
 ## Contributing
 
