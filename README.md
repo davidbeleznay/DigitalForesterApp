@@ -24,6 +24,15 @@ The application has been rebuilt from scratch to resolve persistent issues with 
 ## Changelog
 
 ### 2025-05-17
+- Added GPS location capture for both start and end coordinates
+- Implemented interactive optional assessments with toggle switches
+- Created selectable geotechnical considerations with radio buttons
+- Added selectable infrastructure elements with radio buttons
+- Enhanced form state management to persist optional assessment selections
+- Improved mobile responsiveness for tables and form elements
+- Added comments field with localStorage persistence
+
+### 2025-05-16
 - Implemented Consequence Factors section with four key factors from BC forestry guidelines
 - Added risk calculation logic (Hazard × Consequence) following BC forestry standards
 - Created visual risk results section with color-coded risk categorization
@@ -32,14 +41,14 @@ The application has been rebuilt from scratch to resolve persistent issues with 
 - Enhanced the UI with better visual feedback for selections
 - Added photo upload placeholders and comments section
 
-### 2025-05-16
+### 2025-05-15
 - Implemented Hazard Factors section in the Road Risk Assessment form
 - Added visual score selection buttons with color-coding (green, yellow, orange, red)
 - Implemented state management for hazard factors with localStorage persistence
 - Added automatic hazard score calculation based on selected factors
 - Enhanced form UI with interactive score buttons and better visual feedback
 
-### 2025-05-15
+### 2025-05-14
 - Removed React Navigation dependencies and switched to React Router for all navigation
 - Fixed RoadRiskForm component to resolve syntax errors
 - Simplified navigation structure with direct routing
@@ -48,14 +57,6 @@ The application has been rebuilt from scratch to resolve persistent issues with 
 - Updated MainNavigator to use consistent React Router approach
 - Fixed project structure for better maintainability
 - Added clear navigation paths between all screens
-
-### 2025-05-14
-- Redesigned the RoadRiskForm UI with button-based factor selection interface
-- Changed from dropdown selects to interactive button grids for better usability
-- Implemented visual highlighting of selected factor values
-- Maintained color-coding for risk level indicators (green for low, orange for medium, red for high)
-- Fixed all syntax errors while providing an improved user experience
-- Added consistent section styling and improved visual hierarchy
 
 ### 2025-05-08
 - Completed RoadRiskForm implementation with PDF preview and export functionality
@@ -102,10 +103,10 @@ AI-Forester-App/
 
 ### RoadRiskForm Component
 - Implemented multi-section form with tabbed navigation
-- Basic Information section with text inputs and GPS location capture
+- Basic Information section with text inputs and GPS location capture for both start and end points
 - Hazard Factors section with interactive score selection and automatic calculation
 - Consequence Factors section with BC forestry-standard assessment criteria
-- Optional Assessments section with geotechnical and infrastructure considerations
+- Optional Assessments section with toggleable geotechnical and infrastructure considerations
 - Results section with risk calculation, categorization, and professional requirements
 - Added localStorage persistence for all form data
 - Implemented reset and save functionality
