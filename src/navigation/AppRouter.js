@@ -2,7 +2,7 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import HomeScreen from '../screens/HomeScreen';
 import CulvertToolNavigator from './CulvertToolNavigator';
-import RoadRiskForm from '../pages/RoadRiskForm';
+import RoadRiskNavigator from './RoadRiskNavigator';
 import HistoryPage from '../pages/HistoryPage';
 
 const AppRouter = () => {
@@ -11,7 +11,7 @@ const AppRouter = () => {
       <Routes>
         <Route path="/" element={<HomeScreen />} />
         <Route path="/culvert/*" element={<CulvertToolNavigator />} />
-        <Route path="/road-risk" element={<RoadRiskForm />} />
+        <Route path="/road-risk/*" element={<RoadRiskNavigator />} />
         <Route path="/history" element={<HistoryPage />} />
       </Routes>
     </Router>
