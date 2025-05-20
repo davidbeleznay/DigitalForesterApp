@@ -10,11 +10,25 @@ const HomeScreen = () => {
   };
   
   const navigateToRoadRisk = () => {
+    // Clear any saved form data to start a new assessment
+    localStorage.removeItem('roadRiskBasicInfo');
+    localStorage.removeItem('roadRiskHazardFactors');
+    localStorage.removeItem('roadRiskConsequenceFactors');
+    localStorage.removeItem('roadRiskOptionalAssessments');
+    localStorage.removeItem('roadRiskGeotechnicalFactors');
+    localStorage.removeItem('roadRiskInfrastructureFactors');
+    
+    // Navigate directly to a new assessment
     navigate('/road-risk');
   };
   
   const navigateToHistory = () => {
     navigate('/history');
+  };
+  
+  // Navigation to edit an existing road risk assessment
+  const navigateToRoadRiskEdit = (id) => {
+    navigate(`/road-risk/edit/${id}`);
   };
   
   // Get assessments from localStorage
@@ -62,6 +76,7 @@ const HomeScreen = () => {
   
   // Get and combine all assessments
   const [recentAssessments, setRecentAssessments] = useState([]);
+  const [recentRoadRiskAssessments, setRecentRoadRiskAssessments] = useState([]);
   
   useEffect(() => {
     // Get assessments from unified assessmentHistory
@@ -96,6 +111,14 @@ const HomeScreen = () => {
       .slice(0, 5); // Only show the 5 most recent assessments
     
     setRecentAssessments(allAssessments);
+    
+    // Filter for just road risk assessments and keep only the top 2
+    const roadRiskOnly = [...formattedAssessments, ...formattedLegacyDrafts]
+      .filter(assessment => assessment.type === 'roadRisk')
+      .sort((a, b) => new Date(b.date) - new Date(a.date))
+      .slice(0, 2); // Only the top 2 most recent Road Risk assessments
+    
+    setRecentRoadRiskAssessments(roadRiskOnly);
   }, []);
   
   const formatDate = (dateString) => {
@@ -157,6 +180,40 @@ const HomeScreen = () => {
         </div>
       </div>
       
+      {/* Recent Road Risk Assessments */}
+      {recentRoadRiskAssessments.length > 0 && (
+        <div className="drafts-section">
+          <h2 className="section-title">Recent Road Risk Assessments</h2>
+          
+          <div className="draft-list">
+            {recentRoadRiskAssessments.map(assessment => (
+              <div className="draft-item" key={assessment.id} onClick={() => navigateToRoadRiskEdit(assessment.id)}>
+                <div className="draft-info">
+                  <div className="draft-name">
+                    {assessment.title}
+                  </div>
+                  <div className="draft-location">
+                    {getLocationString(assessment.location)}
+                  </div>
+                </div>
+                
+                <div className="draft-meta">
+                  <div className="draft-type road-risk">
+                    {assessment.toolType}
+                  </div>
+                  <div className="draft-date">{formatDate(assessment.date)}</div>
+                </div>
+                
+                <div className="continue-button">
+                  Open →
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+      
+      {/* All Recent Assessments */}
       {recentAssessments.length > 0 && (
         <div className="drafts-section">
           <h2 className="section-title">Recent Assessments</h2>
