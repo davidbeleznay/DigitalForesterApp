@@ -24,6 +24,17 @@ The application has been rebuilt from scratch to resolve persistent issues with 
 ## Changelog
 
 ### 2025-05-20
+- Fixed UI styling issues with comprehensive CSS improvements
+- Enhanced form layout with proper spacing and visual hierarchy
+- Added fixed action bar at the bottom for consistent button placement
+- Improved navigation between form sections with clearer indicators
+- Added better styling for input fields, buttons, and form elements
+- Implemented responsive design for mobile devices
+- Enhanced comment fields with proper styling and spacing
+- Added style improvements for risk category override section
+- Improved road risk form with more professional appearance
+
+### 2025-05-19
 - Improved Road Risk Assessment flow to open new form directly when clicking from home screen
 - Added comment fields for hazard and consequence factors
 - Implemented risk category override functionality with reason documentation
@@ -99,10 +110,21 @@ AI-Forester-App/
 │   └── styles/           # CSS files for styling
 │       ├── index.css
 │       ├── RoadRiskForm.css # Styles for Road Risk form
+│       ├── form-elements.css # Styles for generic form elements
+│       ├── form-sections.css # Styles for form sections and layout
 │       └── culvert-form.css # Styles for Culvert Tool
 ```
 
 ## Technical Implementation Notes
+
+### UI/UX Styling Improvements
+- Fixed formatting issues with comprehensive CSS enhancements
+- Added fixed action bar with consistent button placement
+- Improved form navigation with better visual indicators
+- Enhanced input fields with proper styling and focus states
+- Added responsive designs for different screen sizes
+- Implemented better spacing and visual hierarchy throughout the form
+- Created consistent styling for all form elements and sections
 
 ### Road Risk Assessment Improvements
 - Simplified user flow to create new assessment directly when selecting the tool
@@ -127,14 +149,6 @@ AI-Forester-App/
 - Results section with risk calculation, categorization, and professional requirements
 - Added localStorage persistence for all form data
 - Implemented reset and save functionality
-
-### Risk Assessment Implementation
-- Used official BC forestry scoring methodology with 2, 4, 6, 10 scale
-- Implemented hazard × consequence calculation for risk scoring
-- Added risk categorization with five levels (Very Low, Low, Moderate, High, Very High)
-- Displayed appropriate professional requirements for each risk level
-- Created custom recommended actions based on risk category
-- Added ability to override calculated category with justification
 
 ### Navigation Structure
 - AppRouter: Top-level router that sets up the main routes (/, /road-risk, /road-risk/edit/:id, /culvert/*, /history)
