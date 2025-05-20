@@ -36,12 +36,10 @@ const CulvertResultScreen = () => {
   }
 
   // Determine the governing method and final recommendation
-  const californiaSize = results.selectedPipeSize;
-  const hydraulicSize = results.hydraulicUpsizedPipeSize;
-  const finalSize = hydraulicSize > californiaSize ? hydraulicSize : californiaSize;
-  const governingMethod = hydraulicSize > californiaSize ? 
-    "Hydraulic Calculation (Manning's)" : 
-    "California Method";
+  const californiaSize = results.californiaSize;
+  const hydraulicSize = results.hydraulicSize;
+  const finalSize = results.finalSize;
+  const governingMethod = results.governingMethod;
   
   // Extract form values from location state
   const formValues = location.state?.formValues || {};
