@@ -24,15 +24,13 @@ The application has been rebuilt from scratch to resolve persistent issues with 
 ## Changelog
 
 ### 2025-05-20
-- Implemented new Road Risk Assessment navigation flow
-- Created RoadRiskNavigator component for improved routing
-- Added InputScreen with "New Assessment" button functionality
-- Created EditScreen for editing existing assessments
-- Implemented unified assessment storage in assessmentHistory
-- Fixed issue with Road Risk routing in AppRouter
-- Added ability to create new assessments separate from history
-- Enhanced styling for Road Risk Assessment screens
-- Updated project structure to match Culvert Tool navigation pattern
+- Improved Road Risk Assessment flow to open new form directly when clicking from home screen
+- Added comment fields for hazard and consequence factors
+- Implemented risk category override functionality with reason documentation
+- Fixed navigation flow for Road Risk Assessment tool
+- Updated home screen to display 2 most recent Road Risk assessments
+- Enhanced form state management to include comments and overrides
+- Improved usability with clearer interaction patterns
 
 ### 2025-05-17
 - Added GPS location capture for both start and end coordinates
@@ -89,17 +87,15 @@ AI-Forester-App/
 │   ├── components/       # Reusable UI components
 │   ├── navigation/       # Router configuration
 │   │   ├── AppRouter.js  # Main router using React Router
-│   │   ├── CulvertToolNavigator.js # Culvert-specific routes
-│   │   └── RoadRiskNavigator.js # Road Risk-specific routes
+│   │   └── CulvertToolNavigator.js # Culvert-specific routes
 │   ├── pages/            # Main form pages
-│   │   ├── RoadRiskForm.js  # Legacy Road Risk form (being replaced)
+│   │   ├── RoadRiskForm.js  # Legacy Road Risk form
 │   │   └── HistoryPage.js   # History viewing page
 │   ├── screens/          # Screen components
 │   │   ├── HomeScreen.js    # Landing page with tool selection
 │   │   ├── culvert/         # Culvert tool screens
 │   │   └── roadRisk/        # Road Risk Assessment screens
-│   │       ├── InputScreen.js # New assessment list screen
-│   │       └── EditScreen.js # Assessment editing screen
+│   │       └── EditScreen.js # Road Risk assessment form
 │   └── styles/           # CSS files for styling
 │       ├── index.css
 │       ├── RoadRiskForm.css # Styles for Road Risk form
@@ -108,20 +104,19 @@ AI-Forester-App/
 
 ## Technical Implementation Notes
 
-### New Road Risk Assessment Flow
-- Implemented two-screen pattern matching the Culvert Tool: InputScreen + EditScreen
-- Created RoadRiskNavigator for managing routes within the tool
-- Replaced direct form access with a list-based approach
-- Added "New Assessment" button for creating fresh assessments
-- Implemented proper loading and saving of assessment data
-- Created unified assessment storage in localStorage:assessmentHistory
+### Road Risk Assessment Improvements
+- Simplified user flow to create new assessment directly when selecting the tool
+- Added factor-specific comment fields for detailed documentation
+- Implemented risk category override capability with justification field
+- Created consistent assessment storage in localStorage
+- Added support for viewing recent assessments on the home screen
 
-### Bug Fixes Applied
-- Fixed routing for Road Risk Assessment to match Culvert Tool pattern
-- Implemented proper saving to assessment history
-- Added ability to create new assessments without overwriting existing ones
-- Enhanced form state management to handle both new and existing assessments
-- Fixed usability issues for assessment creation and editing
+### Form Enhancements
+- Added comprehensive comment fields for all hazard and consequence factors
+- Implemented override functionality for risk categorization with reasons
+- Enhanced visual feedback for user selections and comments
+- Improved data persistence for complete assessment history
+- Added general comments sections for each factor category
 
 ### RoadRiskForm Component
 - Implemented multi-section form with tabbed navigation
@@ -139,10 +134,10 @@ AI-Forester-App/
 - Added risk categorization with five levels (Very Low, Low, Moderate, High, Very High)
 - Displayed appropriate professional requirements for each risk level
 - Created custom recommended actions based on risk category
+- Added ability to override calculated category with justification
 
 ### Navigation Structure
-- AppRouter: Top-level router that sets up the main routes (/, /road-risk/*, /culvert/*, /history)
-- RoadRiskNavigator: Specialized router for Road Risk Assessment screens (/, /edit/:id)
+- AppRouter: Top-level router that sets up the main routes (/, /road-risk, /road-risk/edit/:id, /culvert/*, /history)
 - CulvertToolNavigator: Specialized router for the Culvert Tool's multi-screen workflow
 
 ## Next Steps
