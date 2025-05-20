@@ -763,16 +763,17 @@ const CulvertSizingForm = () => {
     
     // Create enhanced calculationResults object
     const calculationResults = {
-      recommendedSize: results.selectedPipeSize,
+      // finalSize is the overall recommended pipe size from the calculator
+      recommendedSize: results.finalSize,
       shape: "Circular",
       material: formValues.pipeRoughness === "0.024" ? "Corrugated Metal Pipe (CMP)" : 
                formValues.pipeRoughness === "0.012" ? "Smooth HDPE" : "Concrete",
       manningsN: parseFloat(formValues.pipeRoughness),
       hwdCriterion: `HW/D ≤ ${formValues.maxHwdRatio}`,
       climateChangeFactor: 1.20, // Assuming climate factor of 1.2
-      governingMethod: "Hydraulic Calculation (Manning's)",
-      californiaMethodSize: results.californiaMethodSize || results.selectedPipeSize,
-      hydraulicCalculationSize: results.selectedPipeSize,
+      governingMethod: results.governingMethod,
+      californiaMethodSize: results.californiaSize,
+      hydraulicCalculationSize: results.hydraulicSize,
       bankfullArea: parseFloat(results.streamArea),
       endArea: parseFloat(results.requiredCulvertArea),
       designDischarge: parseFloat(results.bankfullFlow),
