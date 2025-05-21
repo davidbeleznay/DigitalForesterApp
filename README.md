@@ -24,8 +24,13 @@ The application has been rebuilt from scratch to resolve persistent issues with 
 ## Changelog
 
 ### 2025-05-21
+- Added Hazard Factors section with interactive scoring buttons and live total calculation
+- Implemented color-coded risk scoring system (green, yellow, orange, red) with descriptions
+- Added factor-specific comment fields for detailed documentation
+- Enhanced form state management to include hazard factors and comments
+- Improved save functionality to include hazard data in assessments
 - Implemented full form fields for Basic Information section in Road Risk Assessment
-- Added placeholders for other form sections (Hazard Factors, Consequence Factors, etc.)
+- Added placeholders for other form sections (Consequence Factors, Optional Assessments, etc.)
 - Enhanced GPS location capture functionality
 - Added form validation for required fields
 - Fixed EditScreen.js implementation with proper handler functions
@@ -129,10 +134,20 @@ AI-Forester-App/
 
 ## Technical Implementation Notes
 
+### Hazard Factors Implementation
+- Added four hazard factors: Slope Stability, Drainage Patterns, Road Surface Condition, and Traffic Volume
+- Implemented interactive score buttons (1-4) with color coding (green, yellow, orange, red)
+- Added detailed descriptions for each score level to guide assessors
+- Created factor-specific comment fields to document observations
+- Added general comments section for overall hazard notes
+- Implemented automatic calculation of hazard total score
+- Added proper state management for hazard factors and comments
+
 ### Form Implementation Progress
 - Completed Basic Information section with all necessary input fields
 - Added GPS location capture with browser geolocation API
-- Created placeholder sections for Hazard Factors, Consequence Factors, etc.
+- Implemented Hazard Factors section with interactive scoring
+- Created placeholder sections for Consequence Factors, Optional Assessments, etc.
 - Implemented section navigation with "Continue to..." buttons
 - Added validation for required fields (Road Name, Assessor)
 - Created responsive layout for all screen sizes
@@ -144,6 +159,7 @@ AI-Forester-App/
 - Added form reset functionality with confirmation dialog
 - Created unique ID generation for new assessments and drafts
 - Ensured proper data structure for compatibility with HistoryPage view
+- Updated save functions to include hazard data in saved assessments
 
 ### UI/UX Styling Improvements
 - Fixed formatting issues with comprehensive CSS enhancements
@@ -161,26 +177,19 @@ AI-Forester-App/
 - Created consistent assessment storage in localStorage
 - Added support for viewing recent assessments on the home screen
 
-### Form Enhancements
-- Added comprehensive comment fields for all hazard and consequence factors
-- Implemented override functionality for risk categorization with reasons
-- Enhanced visual feedback for user selections and comments
-- Improved data persistence for complete assessment history
-- Added general comments sections for each factor category
-
 ### Navigation Structure
 - AppRouter: Top-level router that sets up the main routes (/, /road-risk, /road-risk/edit/:id, /culvert/*, /history)
 - CulvertToolNavigator: Specialized router for the Culvert Tool's multi-screen workflow
 
 ## Next Steps
 
-1. Implement the Hazard Factors section with interactive scoring buttons
-2. Build the Consequence Factors section with assessment criteria
-3. Develop the Optional Assessments section with toggles and selections
-4. Create the Results section with risk calculation and categorization
-5. Connect photo upload functionality with device camera integration
-6. Implement PDF export for assessment reports
-7. Complete the implementation of the Culvert Sizing Tool with calculation algorithms
+1. Implement the Consequence Factors section with interactive scoring buttons
+2. Build the Optional Assessments section with toggles and selections
+3. Create the Results section with risk calculation and categorization
+4. Connect photo upload functionality with device camera integration
+5. Implement PDF export for assessment reports
+6. Complete the implementation of the Culvert Sizing Tool with calculation algorithms
+7. Add offline functionality for field use
 
 ## Dependencies
 
