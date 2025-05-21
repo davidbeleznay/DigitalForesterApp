@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
 import '../../styles/RoadRiskForm.css';
 
@@ -23,8 +23,95 @@ function EditScreen() {
     assessor: ''
   });
 
-  // Rest of the component state and functions remain the same...
-  // (Keeping this comment brief to focus on the UI changes)
+  // Handler for saving assessment
+  const handleSaveAssessment = () => {
+    // Create unique ID for assessment
+    const assessmentId = id || `road-risk-${Date.now()}`;
+    
+    // Build assessment object
+    const assessment = {
+      id: assessmentId,
+      type: 'roadRisk',
+      dateCreated: new Date().toISOString(),
+      data: {
+        basicInfo: { ...basicInfo },
+        // Include other data properties from other sections
+      },
+      status: 'completed'
+    };
+    
+    // Get existing history or initialize empty array
+    const historyData = localStorage.getItem('assessmentHistory');
+    const assessmentHistory = historyData ? JSON.parse(historyData) : [];
+    
+    // Add new assessment or update existing one
+    const updatedHistory = isNewAssessment
+      ? [assessment, ...assessmentHistory]
+      : assessmentHistory.map(item => item.id === id ? assessment : item);
+    
+    // Save to localStorage
+    localStorage.setItem('assessmentHistory', JSON.stringify(updatedHistory));
+    
+    // Navigate to history page
+    navigate('/history');
+    
+    // Show confirmation message
+    alert('Assessment saved successfully!');
+  };
+  
+  // Handler for saving as draft
+  const handleSaveDraft = () => {
+    // Create unique ID for the draft
+    const draftId = id || `road-risk-draft-${Date.now()}`;
+    
+    // Build draft assessment object
+    const draft = {
+      id: draftId,
+      type: 'roadRisk',
+      dateCreated: new Date().toISOString(),
+      data: {
+        basicInfo: { ...basicInfo }
+        // Include other data properties from other sections
+      },
+      status: 'draft'
+    };
+    
+    // Get existing drafts or initialize empty array
+    const draftsData = localStorage.getItem('assessmentDrafts');
+    const assessmentDrafts = draftsData ? JSON.parse(draftsData) : [];
+    
+    // Add new draft or update existing one
+    const updatedDrafts = isNewAssessment
+      ? [draft, ...assessmentDrafts]
+      : assessmentDrafts.map(item => item.id === id ? draft : item);
+    
+    // Save to localStorage
+    localStorage.setItem('assessmentDrafts', JSON.stringify(updatedDrafts));
+    
+    // Show confirmation message
+    alert('Draft saved successfully!');
+  };
+  
+  // Handler for resetting form
+  const handleResetForm = () => {
+    if (window.confirm('Are you sure you want to reset the form? All unsaved changes will be lost.')) {
+      // Reset basic info
+      setBasicInfo({
+        roadName: '',
+        startKm: '',
+        endKm: '',
+        startLat: '',
+        startLong: '',
+        endLat: '',
+        endLong: '',
+        assessmentDate: new Date().toISOString().split('T')[0],
+        assessor: ''
+      });
+      
+      // Reset active section to 'basic'
+      setActiveSection('basic');
+    }
+  };
 
   // Modified render for action buttons
   return (
