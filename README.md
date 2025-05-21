@@ -23,6 +23,13 @@ The application has been rebuilt from scratch to resolve persistent issues with 
 
 ## Changelog
 
+### 2025-05-21
+- Fixed EditScreen.js implementation with proper handler functions
+- Added localStorage integration for saving assessments and drafts
+- Implemented form reset functionality with confirmation dialog
+- Cleaned up unused variables and improved code organization
+- Enhanced error handling for form submission
+
 ### 2025-05-20
 - Fixed UI styling issues with comprehensive CSS improvements
 - Enhanced form layout with proper spacing and visual hierarchy
@@ -116,6 +123,13 @@ AI-Forester-App/
 ```
 
 ## Technical Implementation Notes
+
+### Data Storage Implementation
+- Added SaveAssessment functionality in EditScreen.js with localStorage persistence
+- Implemented draft saving capability with separate storage structure
+- Added form reset functionality with confirmation dialog
+- Created unique ID generation for new assessments and drafts
+- Ensured proper data structure for compatibility with HistoryPage view
 
 ### UI/UX Styling Improvements
 - Fixed formatting issues with comprehensive CSS enhancements
