@@ -31,13 +31,18 @@ function EditScreen() {
     trafficVolume: 0
   });
   
-  // State for hazard comments
-  const [hazardComments, setHazardComments] = useState({
-    slopeStability: '',
-    drainagePatterns: '',
-    roadSurfaceCondition: '',
-    trafficVolume: '',
-    general: ''
+  // State for consequence factors
+  const [consequenceFactors, setConsequenceFactors] = useState({
+    downstreamResources: 0,
+    publicSafety: 0,
+    environmentalImpact: 0,
+    economicConsequences: 0
+  });
+  
+  // State for comments
+  const [comments, setComments] = useState({
+    hazardGeneral: '',
+    consequenceGeneral: ''
   });
 
   // Handle input changes for basic info
@@ -57,10 +62,18 @@ function EditScreen() {
     }));
   };
   
-  // Handle hazard comment changes
-  const handleHazardCommentChange = (e) => {
+  // Handle consequence factor score selection
+  const handleConsequenceScoreSelect = (factor, score) => {
+    setConsequenceFactors(prevState => ({
+      ...prevState,
+      [factor]: score
+    }));
+  };
+  
+  // Handle comment changes
+  const handleCommentChange = (e) => {
     const { name, value } = e.target;
-    setHazardComments(prevState => ({
+    setComments(prevState => ({
       ...prevState,
       [name]: value
     }));
@@ -69,6 +82,27 @@ function EditScreen() {
   // Calculate total hazard score
   const calculateHazardTotal = () => {
     return Object.values(hazardFactors).reduce((sum, score) => sum + score, 0);
+  };
+  
+  // Calculate total consequence score
+  const calculateConsequenceTotal = () => {
+    return Object.values(consequenceFactors).reduce((sum, score) => sum + score, 0);
+  };
+  
+  // Calculate risk score (hazard × consequence)
+  const calculateRiskScore = () => {
+    return calculateHazardTotal() * calculateConsequenceTotal();
+  };
+  
+  // Get risk category based on risk score
+  const getRiskCategory = () => {
+    const riskScore = calculateRiskScore();
+    
+    if (riskScore > 100) return { level: 'Very High', color: '#F44336' };
+    if (riskScore >= 75) return { level: 'High', color: '#FF9800' };
+    if (riskScore >= 50) return { level: 'Moderate', color: '#FFC107' };
+    if (riskScore >= 25) return { level: 'Low', color: '#4CAF50' };
+    return { level: 'Very Low', color: '#2196F3' };
   };
 
   // Function to get current location
@@ -121,9 +155,12 @@ function EditScreen() {
       data: {
         basicInfo: { ...basicInfo },
         hazardFactors: { ...hazardFactors },
-        hazardComments: { ...hazardComments },
+        consequenceFactors: { ...consequenceFactors },
+        comments: { ...comments },
         hazardTotal: calculateHazardTotal(),
-        // Include other data properties from other sections
+        consequenceTotal: calculateConsequenceTotal(),
+        riskScore: calculateRiskScore(),
+        riskCategory: getRiskCategory().level
       },
       status: 'completed'
     };
@@ -160,9 +197,12 @@ function EditScreen() {
       data: {
         basicInfo: { ...basicInfo },
         hazardFactors: { ...hazardFactors },
-        hazardComments: { ...hazardComments },
+        consequenceFactors: { ...consequenceFactors },
+        comments: { ...comments },
         hazardTotal: calculateHazardTotal(),
-        // Include other data properties from other sections
+        consequenceTotal: calculateConsequenceTotal(),
+        riskScore: calculateRiskScore(),
+        riskCategory: getRiskCategory().level
       },
       status: 'draft'
     };
@@ -207,13 +247,18 @@ function EditScreen() {
         trafficVolume: 0
       });
       
-      // Reset hazard comments
-      setHazardComments({
-        slopeStability: '',
-        drainagePatterns: '',
-        roadSurfaceCondition: '',
-        trafficVolume: '',
-        general: ''
+      // Reset consequence factors
+      setConsequenceFactors({
+        downstreamResources: 0,
+        publicSafety: 0,
+        environmentalImpact: 0,
+        economicConsequences: 0
+      });
+      
+      // Reset comments
+      setComments({
+        hazardGeneral: '',
+        consequenceGeneral: ''
       });
       
       // Reset active section to 'basic'
@@ -509,18 +554,6 @@ function EditScreen() {
                   </div>
                 </div>
               </div>
-              
-              <div className="factor-comment">
-                <label htmlFor="slopeStability">Comments on slope stability:</label>
-                <textarea 
-                  id="slopeStability"
-                  name="slopeStability"
-                  value={hazardComments.slopeStability}
-                  onChange={handleHazardCommentChange}
-                  placeholder="Enter observations about slope stability..."
-                  rows="3"
-                ></textarea>
-              </div>
             </div>
             
             {/* Drainage Patterns Factor */}
@@ -567,18 +600,6 @@ function EditScreen() {
                     Very high risk: Severe drainage issues, failed culverts, active erosion
                   </div>
                 </div>
-              </div>
-              
-              <div className="factor-comment">
-                <label htmlFor="drainagePatterns">Comments on drainage patterns:</label>
-                <textarea 
-                  id="drainagePatterns"
-                  name="drainagePatterns"
-                  value={hazardComments.drainagePatterns}
-                  onChange={handleHazardCommentChange}
-                  placeholder="Enter observations about drainage patterns..."
-                  rows="3"
-                ></textarea>
               </div>
             </div>
             
@@ -627,18 +648,6 @@ function EditScreen() {
                   </div>
                 </div>
               </div>
-              
-              <div className="factor-comment">
-                <label htmlFor="roadSurfaceCondition">Comments on road surface condition:</label>
-                <textarea 
-                  id="roadSurfaceCondition"
-                  name="roadSurfaceCondition"
-                  value={hazardComments.roadSurfaceCondition}
-                  onChange={handleHazardCommentChange}
-                  placeholder="Enter observations about road surface condition..."
-                  rows="3"
-                ></textarea>
-              </div>
             </div>
             
             {/* Traffic Volume Factor */}
@@ -686,18 +695,6 @@ function EditScreen() {
                   </div>
                 </div>
               </div>
-              
-              <div className="factor-comment">
-                <label htmlFor="trafficVolume">Comments on traffic volume:</label>
-                <textarea 
-                  id="trafficVolume"
-                  name="trafficVolume"
-                  value={hazardComments.trafficVolume}
-                  onChange={handleHazardCommentChange}
-                  placeholder="Enter observations about traffic volume..."
-                  rows="3"
-                ></textarea>
-              </div>
             </div>
             
             {/* Hazard Factors Total */}
@@ -708,14 +705,14 @@ function EditScreen() {
             
             {/* General Comments */}
             <div className="form-group">
-              <label htmlFor="general" className="form-label">General Hazard Comments:</label>
+              <label htmlFor="hazardGeneral" className="form-label">Hazard Comments:</label>
               <textarea 
-                id="general"
-                name="general"
+                id="hazardGeneral"
+                name="hazardGeneral"
                 className="comments-area"
-                value={hazardComments.general}
-                onChange={handleHazardCommentChange}
-                placeholder="Add any additional comments or observations about hazards on this road segment..."
+                value={comments.hazardGeneral}
+                onChange={handleCommentChange}
+                placeholder="Add any comments or observations about hazards on this road segment..."
                 rows="4"
               ></textarea>
             </div>
@@ -749,18 +746,215 @@ function EditScreen() {
             
             <p className="section-description">
               Assess the potential consequences if a failure were to occur on this road segment.
+              Select the score that best represents the potential impact for each consequence factor.
             </p>
             
-            {/* Placeholder for consequence factors - will implement in next phase */}
-            <div className="form-placeholder">
-              <p>Consequence factors assessment will be implemented in the next phase.</p>
-              <p>This will include factors such as:</p>
-              <ul>
-                <li>Downstream resources at risk</li>
-                <li>Public safety risk</li>
-                <li>Environmental impact</li>
-                <li>Economic consequences</li>
-              </ul>
+            {/* Downstream Resources Factor */}
+            <div className="factor-group">
+              <h3 className="factor-header">1. Downstream Resources at Risk</h3>
+              
+              <div className="score-buttons">
+                <div 
+                  className={`score-button green ${consequenceFactors.downstreamResources === 1 ? 'selected' : ''}`}
+                  onClick={() => handleConsequenceScoreSelect('downstreamResources', 1)}
+                >
+                  <div className="score-value">1</div>
+                  <div className="score-label">
+                    Low risk: No significant resource values downstream
+                  </div>
+                </div>
+                
+                <div 
+                  className={`score-button yellow ${consequenceFactors.downstreamResources === 2 ? 'selected' : ''}`}
+                  onClick={() => handleConsequenceScoreSelect('downstreamResources', 2)}
+                >
+                  <div className="score-value">2</div>
+                  <div className="score-label">
+                    Moderate risk: Some resources at distant downstream locations
+                  </div>
+                </div>
+                
+                <div 
+                  className={`score-button orange ${consequenceFactors.downstreamResources === 3 ? 'selected' : ''}`}
+                  onClick={() => handleConsequenceScoreSelect('downstreamResources', 3)}
+                >
+                  <div className="score-value">3</div>
+                  <div className="score-label">
+                    High risk: Important resources in immediate vicinity
+                  </div>
+                </div>
+                
+                <div 
+                  className={`score-button red ${consequenceFactors.downstreamResources === 4 ? 'selected' : ''}`}
+                  onClick={() => handleConsequenceScoreSelect('downstreamResources', 4)}
+                >
+                  <div className="score-value">4</div>
+                  <div className="score-label">
+                    Very high risk: Critical resources directly downstream
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            {/* Public Safety Factor */}
+            <div className="factor-group">
+              <h3 className="factor-header">2. Public Safety Risk</h3>
+              
+              <div className="score-buttons">
+                <div 
+                  className={`score-button green ${consequenceFactors.publicSafety === 1 ? 'selected' : ''}`}
+                  onClick={() => handleConsequenceScoreSelect('publicSafety', 1)}
+                >
+                  <div className="score-value">1</div>
+                  <div className="score-label">
+                    Low risk: Rarely used by public, minimal safety concern
+                  </div>
+                </div>
+                
+                <div 
+                  className={`score-button yellow ${consequenceFactors.publicSafety === 2 ? 'selected' : ''}`}
+                  onClick={() => handleConsequenceScoreSelect('publicSafety', 2)}
+                >
+                  <div className="score-value">2</div>
+                  <div className="score-label">
+                    Moderate risk: Occasionally used by public, some safety concerns
+                  </div>
+                </div>
+                
+                <div 
+                  className={`score-button orange ${consequenceFactors.publicSafety === 3 ? 'selected' : ''}`}
+                  onClick={() => handleConsequenceScoreSelect('publicSafety', 3)}
+                >
+                  <div className="score-value">3</div>
+                  <div className="score-label">
+                    High risk: Regularly used by public, significant safety concerns
+                  </div>
+                </div>
+                
+                <div 
+                  className={`score-button red ${consequenceFactors.publicSafety === 4 ? 'selected' : ''}`}
+                  onClick={() => handleConsequenceScoreSelect('publicSafety', 4)}
+                >
+                  <div className="score-value">4</div>
+                  <div className="score-label">
+                    Very high risk: Heavy public use, serious safety concerns
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            {/* Environmental Impact Factor */}
+            <div className="factor-group">
+              <h3 className="factor-header">3. Environmental Impact</h3>
+              
+              <div className="score-buttons">
+                <div 
+                  className={`score-button green ${consequenceFactors.environmentalImpact === 1 ? 'selected' : ''}`}
+                  onClick={() => handleConsequenceScoreSelect('environmentalImpact', 1)}
+                >
+                  <div className="score-value">1</div>
+                  <div className="score-label">
+                    Low risk: Minimal environmental sensitivity in the area
+                  </div>
+                </div>
+                
+                <div 
+                  className={`score-button yellow ${consequenceFactors.environmentalImpact === 2 ? 'selected' : ''}`}
+                  onClick={() => handleConsequenceScoreSelect('environmentalImpact', 2)}
+                >
+                  <div className="score-value">2</div>
+                  <div className="score-label">
+                    Moderate risk: Some sensitive environmental features nearby
+                  </div>
+                </div>
+                
+                <div 
+                  className={`score-button orange ${consequenceFactors.environmentalImpact === 3 ? 'selected' : ''}`}
+                  onClick={() => handleConsequenceScoreSelect('environmentalImpact', 3)}
+                >
+                  <div className="score-value">3</div>
+                  <div className="score-label">
+                    High risk: Significant sensitive environmental features in vicinity
+                  </div>
+                </div>
+                
+                <div 
+                  className={`score-button red ${consequenceFactors.environmentalImpact === 4 ? 'selected' : ''}`}
+                  onClick={() => handleConsequenceScoreSelect('environmentalImpact', 4)}
+                >
+                  <div className="score-value">4</div>
+                  <div className="score-label">
+                    Very high risk: Critical environmental resources directly impacted
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            {/* Economic Consequences Factor */}
+            <div className="factor-group">
+              <h3 className="factor-header">4. Economic Consequences</h3>
+              
+              <div className="score-buttons">
+                <div 
+                  className={`score-button green ${consequenceFactors.economicConsequences === 1 ? 'selected' : ''}`}
+                  onClick={() => handleConsequenceScoreSelect('economicConsequences', 1)}
+                >
+                  <div className="score-value">1</div>
+                  <div className="score-label">
+                    Low risk: Minor economic impact if road is damaged
+                  </div>
+                </div>
+                
+                <div 
+                  className={`score-button yellow ${consequenceFactors.economicConsequences === 2 ? 'selected' : ''}`}
+                  onClick={() => handleConsequenceScoreSelect('economicConsequences', 2)}
+                >
+                  <div className="score-value">2</div>
+                  <div className="score-label">
+                    Moderate risk: Moderate economic impact, alternative routes available
+                  </div>
+                </div>
+                
+                <div 
+                  className={`score-button orange ${consequenceFactors.economicConsequences === 3 ? 'selected' : ''}`}
+                  onClick={() => handleConsequenceScoreSelect('economicConsequences', 3)}
+                >
+                  <div className="score-value">3</div>
+                  <div className="score-label">
+                    High risk: Significant economic impact, limited alternative routes
+                  </div>
+                </div>
+                
+                <div 
+                  className={`score-button red ${consequenceFactors.economicConsequences === 4 ? 'selected' : ''}`}
+                  onClick={() => handleConsequenceScoreSelect('economicConsequences', 4)}
+                >
+                  <div className="score-value">4</div>
+                  <div className="score-label">
+                    Very high risk: Severe economic impact, no alternative routes
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            {/* Consequence Factors Total */}
+            <div className="factor-total">
+              <div className="factor-total-label">Total Consequence Score:</div>
+              <div className="factor-total-value">{calculateConsequenceTotal()}</div>
+            </div>
+            
+            {/* General Comments */}
+            <div className="form-group">
+              <label htmlFor="consequenceGeneral" className="form-label">Consequence Comments:</label>
+              <textarea 
+                id="consequenceGeneral"
+                name="consequenceGeneral"
+                className="comments-area"
+                value={comments.consequenceGeneral}
+                onChange={handleCommentChange}
+                placeholder="Add any comments or observations about potential consequences of road failure..."
+                rows="4"
+              ></textarea>
             </div>
             
             <div className="navigation-hint">
@@ -837,16 +1031,119 @@ function EditScreen() {
               Review your assessment results and recommended actions.
             </p>
             
-            {/* Placeholder for results - will implement in next phase */}
-            <div className="form-placeholder">
-              <p>Results calculation and display will be implemented in the next phase.</p>
-              <p>This will include:</p>
-              <ul>
-                <li>Overall risk score</li>
-                <li>Risk classification</li>
-                <li>Recommended actions</li>
-                <li>PDF report generation</li>
-              </ul>
+            {/* Results Calculation */}
+            <div className="results-summary">
+              <div className="results-card">
+                <h3 className="results-subtitle">Risk Calculation</h3>
+                
+                <div className="results-calculation">
+                  <div className="calc-group">
+                    <div className="calc-label">Hazard Score</div>
+                    <div className="calc-value">{calculateHazardTotal()}</div>
+                  </div>
+                  
+                  <div className="calc-operator">×</div>
+                  
+                  <div className="calc-group">
+                    <div className="calc-label">Consequence Score</div>
+                    <div className="calc-value">{calculateConsequenceTotal()}</div>
+                  </div>
+                  
+                  <div className="calc-operator">=</div>
+                  
+                  <div className="calc-group">
+                    <div className="calc-label">Risk Score</div>
+                    <div className="calc-value risk-total">{calculateRiskScore()}</div>
+                  </div>
+                </div>
+                
+                {calculateRiskScore() > 0 && (
+                  <div 
+                    className="risk-category" 
+                    style={{ backgroundColor: getRiskCategory().color }}
+                  >
+                    <div className="risk-category-label">Risk Category:</div>
+                    <div className="risk-category-value">{getRiskCategory().level}</div>
+                  </div>
+                )}
+                
+                {calculateRiskScore() === 0 && (
+                  <div className="form-placeholder">
+                    <p>Complete all hazard and consequence factors to see your risk category.</p>
+                  </div>
+                )}
+                
+                {calculateRiskScore() > 0 && (
+                  <div className="category-requirements">
+                    <h3 className="requirements-header">Professional Requirements:</h3>
+                    <div className="requirements-content">
+                      {getRiskCategory().level === 'Very High' && (
+                        <p>This road segment requires immediate attention from a qualified professional. A detailed assessment should be conducted as soon as possible. Consider temporary closures or restrictions until remediation is complete.</p>
+                      )}
+                      
+                      {getRiskCategory().level === 'High' && (
+                        <p>This road segment requires assessment by a qualified professional. Develop a mitigation plan to address identified risks and implement remedial actions within a defined timeframe.</p>
+                      )}
+                      
+                      {getRiskCategory().level === 'Moderate' && (
+                        <p>This road segment should be monitored regularly. Consider having a qualified professional review specific areas of concern. Develop a preventative maintenance plan.</p>
+                      )}
+                      
+                      {(getRiskCategory().level === 'Low' || getRiskCategory().level === 'Very Low') && (
+                        <p>This road segment requires routine maintenance and periodic monitoring. Follow standard operational practices for forest road management.</p>
+                      )}
+                    </div>
+                  </div>
+                )}
+                
+                {calculateRiskScore() > 0 && (
+                  <div className="action-recommendations">
+                    <h3 className="recommendations-header">Recommended Actions:</h3>
+                    
+                    <ul className="recommendations-list">
+                      {getRiskCategory().level === 'Very High' && (
+                        <>
+                          <li>Implement immediate risk control measures</li>
+                          <li>Schedule professional engineering assessment</li>
+                          <li>Consider temporary road closure if public safety is at risk</li>
+                          <li>Develop detailed remediation plan</li>
+                          <li>Monitor continuously during remediation</li>
+                        </>
+                      )}
+                      
+                      {getRiskCategory().level === 'High' && (
+                        <>
+                          <li>Schedule professional assessment within 30 days</li>
+                          <li>Implement interim risk control measures</li>
+                          <li>Develop remediation plan for identified hazards</li>
+                          <li>Establish regular monitoring schedule</li>
+                          <li>Consider usage restrictions if necessary</li>
+                        </>
+                      )}
+                      
+                      {getRiskCategory().level === 'Moderate' && (
+                        <>
+                          <li>Monitor road conditions on a regular schedule</li>
+                          <li>Address maintenance issues promptly</li>
+                          <li>Develop maintenance plan for specific problem areas</li>
+                          <li>Consider assessment by qualified personnel for specific concerns</li>
+                          <li>Maintain good documentation of conditions and actions</li>
+                        </>
+                      )}
+                      
+                      {(getRiskCategory().level === 'Low' || getRiskCategory().level === 'Very Low') && (
+                        <>
+                          <li>Maintain regular inspection schedule</li>
+                          <li>Follow standard maintenance procedures</li>
+                          <li>Document any changes in conditions</li>
+                          <li>Address minor issues during routine maintenance</li>
+                          <li>Update assessment if conditions change significantly</li>
+                        </>
+                      )}
+                    </ul>
+                  </div>
+                )}
+              </div>
             </div>
             
             <div className="navigation-hint">
