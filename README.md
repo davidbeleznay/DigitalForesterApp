@@ -24,13 +24,19 @@ The application has been rebuilt from scratch to resolve persistent issues with 
 ## Changelog
 
 ### 2025-05-21
+- Implemented Consequence Factors section with four key assessment criteria
+- Added risk score calculation (Hazard × Consequence) with color-coded risk categorization
+- Created Results section with professional requirements and recommended actions
+- Simplified comment fields to a single box per major section
+- Added specific descriptions for each factor and score level
+- Enhanced total score calculation for hazard and consequence factors
+- Added conditional content in Results section based on risk level
 - Added Hazard Factors section with interactive scoring buttons and live total calculation
 - Implemented color-coded risk scoring system (green, yellow, orange, red) with descriptions
-- Added factor-specific comment fields for detailed documentation
 - Enhanced form state management to include hazard factors and comments
 - Improved save functionality to include hazard data in assessments
 - Implemented full form fields for Basic Information section in Road Risk Assessment
-- Added placeholders for other form sections (Consequence Factors, Optional Assessments, etc.)
+- Added placeholders for other form sections (Optional Assessments, etc.)
 - Enhanced GPS location capture functionality
 - Added form validation for required fields
 - Fixed EditScreen.js implementation with proper handler functions
@@ -134,12 +140,27 @@ AI-Forester-App/
 
 ## Technical Implementation Notes
 
+### Results Section Implementation
+- Added risk calculation display (Hazard Score × Consequence Score = Risk Score)
+- Implemented risk categorization logic based on total risk score
+- Created color-coded risk categories (Very Low, Low, Moderate, High, Very High)
+- Added dynamic professional requirements based on risk category
+- Implemented recommended actions list that changes based on risk level
+- Created conditional display of results for incomplete assessments
+
+### Consequence Factors Implementation
+- Added four consequence factors: Downstream Resources, Public Safety, Environmental Impact, and Economic Consequences
+- Implemented interactive score buttons (1-4) with color coding (green, yellow, orange, red)
+- Added detailed descriptions for each score level to guide assessors
+- Created general comment field for consequence observations
+- Implemented automatic calculation of consequence total score
+- Added proper state management for consequence factors and comments
+
 ### Hazard Factors Implementation
 - Added four hazard factors: Slope Stability, Drainage Patterns, Road Surface Condition, and Traffic Volume
 - Implemented interactive score buttons (1-4) with color coding (green, yellow, orange, red)
 - Added detailed descriptions for each score level to guide assessors
-- Created factor-specific comment fields to document observations
-- Added general comments section for overall hazard notes
+- Created general comment field for hazard observations
 - Implemented automatic calculation of hazard total score
 - Added proper state management for hazard factors and comments
 
@@ -147,7 +168,9 @@ AI-Forester-App/
 - Completed Basic Information section with all necessary input fields
 - Added GPS location capture with browser geolocation API
 - Implemented Hazard Factors section with interactive scoring
-- Created placeholder sections for Consequence Factors, Optional Assessments, etc.
+- Implemented Consequence Factors section with interactive scoring
+- Implemented Results section with risk calculation and recommendations
+- Created placeholder section for Optional Assessments
 - Implemented section navigation with "Continue to..." buttons
 - Added validation for required fields (Road Name, Assessor)
 - Created responsive layout for all screen sizes
@@ -159,7 +182,7 @@ AI-Forester-App/
 - Added form reset functionality with confirmation dialog
 - Created unique ID generation for new assessments and drafts
 - Ensured proper data structure for compatibility with HistoryPage view
-- Updated save functions to include hazard data in saved assessments
+- Updated save functions to include hazard and consequence data in saved assessments
 
 ### UI/UX Styling Improvements
 - Fixed formatting issues with comprehensive CSS enhancements
@@ -170,26 +193,19 @@ AI-Forester-App/
 - Implemented better spacing and visual hierarchy throughout the form
 - Created consistent styling for all form elements and sections
 
-### Road Risk Assessment Improvements
-- Simplified user flow to create new assessment directly when selecting the tool
-- Added factor-specific comment fields for detailed documentation
-- Implemented risk category override capability with justification field
-- Created consistent assessment storage in localStorage
-- Added support for viewing recent assessments on the home screen
-
 ### Navigation Structure
 - AppRouter: Top-level router that sets up the main routes (/, /road-risk, /road-risk/edit/:id, /culvert/*, /history)
 - CulvertToolNavigator: Specialized router for the Culvert Tool's multi-screen workflow
 
 ## Next Steps
 
-1. Implement the Consequence Factors section with interactive scoring buttons
-2. Build the Optional Assessments section with toggles and selections
-3. Create the Results section with risk calculation and categorization
-4. Connect photo upload functionality with device camera integration
-5. Implement PDF export for assessment reports
-6. Complete the implementation of the Culvert Sizing Tool with calculation algorithms
-7. Add offline functionality for field use
+1. Implement the Optional Assessments section with toggles and selections
+2. Connect photo upload functionality with device camera integration
+3. Implement PDF export for assessment reports
+4. Add ability to save final report as PDF
+5. Complete the implementation of the Culvert Sizing Tool with calculation algorithms
+6. Add offline functionality for field use
+7. Implement user authentication for multi-user support
 
 ## Dependencies
 
