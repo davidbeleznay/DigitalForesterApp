@@ -22,6 +22,23 @@ function EditScreen() {
     assessmentDate: new Date().toISOString().split('T')[0],
     assessor: ''
   });
+  
+  // State for hazard factors
+  const [hazardFactors, setHazardFactors] = useState({
+    slopeStability: 0,
+    drainagePatterns: 0,
+    roadSurfaceCondition: 0,
+    trafficVolume: 0
+  });
+  
+  // State for hazard comments
+  const [hazardComments, setHazardComments] = useState({
+    slopeStability: '',
+    drainagePatterns: '',
+    roadSurfaceCondition: '',
+    trafficVolume: '',
+    general: ''
+  });
 
   // Handle input changes for basic info
   const handleBasicInfoChange = (e) => {
@@ -30,6 +47,28 @@ function EditScreen() {
       ...prevState,
       [name]: value
     }));
+  };
+  
+  // Handle hazard factor score selection
+  const handleHazardScoreSelect = (factor, score) => {
+    setHazardFactors(prevState => ({
+      ...prevState,
+      [factor]: score
+    }));
+  };
+  
+  // Handle hazard comment changes
+  const handleHazardCommentChange = (e) => {
+    const { name, value } = e.target;
+    setHazardComments(prevState => ({
+      ...prevState,
+      [name]: value
+    }));
+  };
+  
+  // Calculate total hazard score
+  const calculateHazardTotal = () => {
+    return Object.values(hazardFactors).reduce((sum, score) => sum + score, 0);
   };
 
   // Function to get current location
@@ -81,6 +120,9 @@ function EditScreen() {
       dateCreated: new Date().toISOString(),
       data: {
         basicInfo: { ...basicInfo },
+        hazardFactors: { ...hazardFactors },
+        hazardComments: { ...hazardComments },
+        hazardTotal: calculateHazardTotal(),
         // Include other data properties from other sections
       },
       status: 'completed'
@@ -116,7 +158,10 @@ function EditScreen() {
       type: 'roadRisk',
       dateCreated: new Date().toISOString(),
       data: {
-        basicInfo: { ...basicInfo }
+        basicInfo: { ...basicInfo },
+        hazardFactors: { ...hazardFactors },
+        hazardComments: { ...hazardComments },
+        hazardTotal: calculateHazardTotal(),
         // Include other data properties from other sections
       },
       status: 'draft'
@@ -152,6 +197,23 @@ function EditScreen() {
         endLong: '',
         assessmentDate: new Date().toISOString().split('T')[0],
         assessor: ''
+      });
+      
+      // Reset hazard factors
+      setHazardFactors({
+        slopeStability: 0,
+        drainagePatterns: 0,
+        roadSurfaceCondition: 0,
+        trafficVolume: 0
+      });
+      
+      // Reset hazard comments
+      setHazardComments({
+        slopeStability: '',
+        drainagePatterns: '',
+        roadSurfaceCondition: '',
+        trafficVolume: '',
+        general: ''
       });
       
       // Reset active section to 'basic'
@@ -399,18 +461,263 @@ function EditScreen() {
             
             <p className="section-description">
               Assess the hazard factors for this road segment. Each factor contributes to the overall risk assessment.
+              Select the score that best represents the hazard level for each factor.
             </p>
             
-            {/* Placeholder for hazard factors - will implement in next phase */}
-            <div className="form-placeholder">
-              <p>Hazard factors assessment will be implemented in the next phase.</p>
-              <p>This will include factors such as:</p>
-              <ul>
-                <li>Slope stability</li>
-                <li>Drainage patterns</li>
-                <li>Road surface condition</li>
-                <li>Traffic volume</li>
-              </ul>
+            {/* Slope Stability Factor */}
+            <div className="factor-group">
+              <h3 className="factor-header">1. Slope Stability</h3>
+              
+              <div className="score-buttons">
+                <div 
+                  className={`score-button green ${hazardFactors.slopeStability === 1 ? 'selected' : ''}`}
+                  onClick={() => handleHazardScoreSelect('slopeStability', 1)}
+                >
+                  <div className="score-value">1</div>
+                  <div className="score-label">
+                    Low risk: Gentle slopes, no visible erosion, stable terrain
+                  </div>
+                </div>
+                
+                <div 
+                  className={`score-button yellow ${hazardFactors.slopeStability === 2 ? 'selected' : ''}`}
+                  onClick={() => handleHazardScoreSelect('slopeStability', 2)}
+                >
+                  <div className="score-value">2</div>
+                  <div className="score-label">
+                    Moderate risk: Some steeper sections, minor erosion present
+                  </div>
+                </div>
+                
+                <div 
+                  className={`score-button orange ${hazardFactors.slopeStability === 3 ? 'selected' : ''}`}
+                  onClick={() => handleHazardScoreSelect('slopeStability', 3)}
+                >
+                  <div className="score-value">3</div>
+                  <div className="score-label">
+                    High risk: Steep slopes, visible erosion, potentially unstable areas
+                  </div>
+                </div>
+                
+                <div 
+                  className={`score-button red ${hazardFactors.slopeStability === 4 ? 'selected' : ''}`}
+                  onClick={() => handleHazardScoreSelect('slopeStability', 4)}
+                >
+                  <div className="score-value">4</div>
+                  <div className="score-label">
+                    Very high risk: Very steep terrain, active erosion, known instability
+                  </div>
+                </div>
+              </div>
+              
+              <div className="factor-comment">
+                <label htmlFor="slopeStability">Comments on slope stability:</label>
+                <textarea 
+                  id="slopeStability"
+                  name="slopeStability"
+                  value={hazardComments.slopeStability}
+                  onChange={handleHazardCommentChange}
+                  placeholder="Enter observations about slope stability..."
+                  rows="3"
+                ></textarea>
+              </div>
+            </div>
+            
+            {/* Drainage Patterns Factor */}
+            <div className="factor-group">
+              <h3 className="factor-header">2. Drainage Patterns</h3>
+              
+              <div className="score-buttons">
+                <div 
+                  className={`score-button green ${hazardFactors.drainagePatterns === 1 ? 'selected' : ''}`}
+                  onClick={() => handleHazardScoreSelect('drainagePatterns', 1)}
+                >
+                  <div className="score-value">1</div>
+                  <div className="score-label">
+                    Low risk: Well-maintained ditches, functioning culverts, no water issues
+                  </div>
+                </div>
+                
+                <div 
+                  className={`score-button yellow ${hazardFactors.drainagePatterns === 2 ? 'selected' : ''}`}
+                  onClick={() => handleHazardScoreSelect('drainagePatterns', 2)}
+                >
+                  <div className="score-value">2</div>
+                  <div className="score-label">
+                    Moderate risk: Some ditch maintenance needed, minor water pooling
+                  </div>
+                </div>
+                
+                <div 
+                  className={`score-button orange ${hazardFactors.drainagePatterns === 3 ? 'selected' : ''}`}
+                  onClick={() => handleHazardScoreSelect('drainagePatterns', 3)}
+                >
+                  <div className="score-value">3</div>
+                  <div className="score-label">
+                    High risk: Poor drainage, clogged culverts, evident water damage
+                  </div>
+                </div>
+                
+                <div 
+                  className={`score-button red ${hazardFactors.drainagePatterns === 4 ? 'selected' : ''}`}
+                  onClick={() => handleHazardScoreSelect('drainagePatterns', 4)}
+                >
+                  <div className="score-value">4</div>
+                  <div className="score-label">
+                    Very high risk: Severe drainage issues, failed culverts, active erosion
+                  </div>
+                </div>
+              </div>
+              
+              <div className="factor-comment">
+                <label htmlFor="drainagePatterns">Comments on drainage patterns:</label>
+                <textarea 
+                  id="drainagePatterns"
+                  name="drainagePatterns"
+                  value={hazardComments.drainagePatterns}
+                  onChange={handleHazardCommentChange}
+                  placeholder="Enter observations about drainage patterns..."
+                  rows="3"
+                ></textarea>
+              </div>
+            </div>
+            
+            {/* Road Surface Condition Factor */}
+            <div className="factor-group">
+              <h3 className="factor-header">3. Road Surface Condition</h3>
+              
+              <div className="score-buttons">
+                <div 
+                  className={`score-button green ${hazardFactors.roadSurfaceCondition === 1 ? 'selected' : ''}`}
+                  onClick={() => handleHazardScoreSelect('roadSurfaceCondition', 1)}
+                >
+                  <div className="score-value">1</div>
+                  <div className="score-label">
+                    Low risk: Well-maintained, consistent surface, no significant issues
+                  </div>
+                </div>
+                
+                <div 
+                  className={`score-button yellow ${hazardFactors.roadSurfaceCondition === 2 ? 'selected' : ''}`}
+                  onClick={() => handleHazardScoreSelect('roadSurfaceCondition', 2)}
+                >
+                  <div className="score-value">2</div>
+                  <div className="score-label">
+                    Moderate risk: Some surface irregularities, minor maintenance needed
+                  </div>
+                </div>
+                
+                <div 
+                  className={`score-button orange ${hazardFactors.roadSurfaceCondition === 3 ? 'selected' : ''}`}
+                  onClick={() => handleHazardScoreSelect('roadSurfaceCondition', 3)}
+                >
+                  <div className="score-value">3</div>
+                  <div className="score-label">
+                    High risk: Poor surface condition, significant maintenance required
+                  </div>
+                </div>
+                
+                <div 
+                  className={`score-button red ${hazardFactors.roadSurfaceCondition === 4 ? 'selected' : ''}`}
+                  onClick={() => handleHazardScoreSelect('roadSurfaceCondition', 4)}
+                >
+                  <div className="score-value">4</div>
+                  <div className="score-label">
+                    Very high risk: Severely degraded surface, unsafe driving conditions
+                  </div>
+                </div>
+              </div>
+              
+              <div className="factor-comment">
+                <label htmlFor="roadSurfaceCondition">Comments on road surface condition:</label>
+                <textarea 
+                  id="roadSurfaceCondition"
+                  name="roadSurfaceCondition"
+                  value={hazardComments.roadSurfaceCondition}
+                  onChange={handleHazardCommentChange}
+                  placeholder="Enter observations about road surface condition..."
+                  rows="3"
+                ></textarea>
+              </div>
+            </div>
+            
+            {/* Traffic Volume Factor */}
+            <div className="factor-group">
+              <h3 className="factor-header">4. Traffic Volume</h3>
+              
+              <div className="score-buttons">
+                <div 
+                  className={`score-button green ${hazardFactors.trafficVolume === 1 ? 'selected' : ''}`}
+                  onClick={() => handleHazardScoreSelect('trafficVolume', 1)}
+                >
+                  <div className="score-value">1</div>
+                  <div className="score-label">
+                    Low risk: Minimal traffic, infrequent use
+                  </div>
+                </div>
+                
+                <div 
+                  className={`score-button yellow ${hazardFactors.trafficVolume === 2 ? 'selected' : ''}`}
+                  onClick={() => handleHazardScoreSelect('trafficVolume', 2)}
+                >
+                  <div className="score-value">2</div>
+                  <div className="score-label">
+                    Moderate risk: Regular traffic, moderate use
+                  </div>
+                </div>
+                
+                <div 
+                  className={`score-button orange ${hazardFactors.trafficVolume === 3 ? 'selected' : ''}`}
+                  onClick={() => handleHazardScoreSelect('trafficVolume', 3)}
+                >
+                  <div className="score-value">3</div>
+                  <div className="score-label">
+                    High risk: Heavy traffic, frequent use by various vehicles
+                  </div>
+                </div>
+                
+                <div 
+                  className={`score-button red ${hazardFactors.trafficVolume === 4 ? 'selected' : ''}`}
+                  onClick={() => handleHazardScoreSelect('trafficVolume', 4)}
+                >
+                  <div className="score-value">4</div>
+                  <div className="score-label">
+                    Very high risk: Very heavy traffic, constant use by heavy vehicles
+                  </div>
+                </div>
+              </div>
+              
+              <div className="factor-comment">
+                <label htmlFor="trafficVolume">Comments on traffic volume:</label>
+                <textarea 
+                  id="trafficVolume"
+                  name="trafficVolume"
+                  value={hazardComments.trafficVolume}
+                  onChange={handleHazardCommentChange}
+                  placeholder="Enter observations about traffic volume..."
+                  rows="3"
+                ></textarea>
+              </div>
+            </div>
+            
+            {/* Hazard Factors Total */}
+            <div className="factor-total">
+              <div className="factor-total-label">Total Hazard Score:</div>
+              <div className="factor-total-value">{calculateHazardTotal()}</div>
+            </div>
+            
+            {/* General Comments */}
+            <div className="form-group">
+              <label htmlFor="general" className="form-label">General Hazard Comments:</label>
+              <textarea 
+                id="general"
+                name="general"
+                className="comments-area"
+                value={hazardComments.general}
+                onChange={handleHazardCommentChange}
+                placeholder="Add any additional comments or observations about hazards on this road segment..."
+                rows="4"
+              ></textarea>
             </div>
             
             <div className="navigation-hint">
