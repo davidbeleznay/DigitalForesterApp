@@ -23,6 +23,15 @@ The application has been rebuilt from scratch to resolve persistent issues with 
 
 ## Changelog
 
+### 2025-05-22
+- Implemented OptionalAssessments component with toggle controls
+- Added data tables for culvert and water crossing information
+- Implemented form validation and data persistence using localStorage
+- Added autosave functionality for form drafts
+- Fixed Road Risk routing in AppRouter.js
+- Created reusable toggle switches for optional assessments
+- Added storageUtils for consistent data management
+
 ### 2025-05-21
 - Implemented Consequence Factors section with four key assessment criteria
 - Added risk score calculation (Hazard × Consequence) with color-coded risk categorization
@@ -119,26 +128,40 @@ The application has been rebuilt from scratch to resolve persistent issues with 
 AI-Forester-App/
 ├── src/
 │   ├── components/       # Reusable UI components
+│   │   └── OptionalAssessments.js # Component for toggle-based assessments
 │   ├── navigation/       # Router configuration
 │   │   ├── AppRouter.js  # Main router using React Router
 │   │   └── CulvertToolNavigator.js # Culvert-specific routes
 │   ├── pages/            # Main form pages
-│   │   ├── RoadRiskForm.js  # Legacy Road Risk form
+│   │   ├── RoadRiskForm.js  # Road Risk assessment form
 │   │   └── HistoryPage.js   # History viewing page
 │   ├── screens/          # Screen components
 │   │   ├── HomeScreen.js    # Landing page with tool selection
 │   │   ├── culvert/         # Culvert tool screens
 │   │   └── roadRisk/        # Road Risk Assessment screens
-│   │       └── EditScreen.js # Road Risk assessment form
-│   └── styles/           # CSS files for styling
-│       ├── index.css
-│       ├── RoadRiskForm.css # Styles for Road Risk form
-│       ├── form-elements.css # Styles for generic form elements
-│       ├── form-sections.css # Styles for form sections and layout
-│       └── culvert-form.css # Styles for Culvert Tool
+│   ├── styles/           # CSS files for styling
+│   │   ├── index.css
+│   │   ├── RoadRiskForm.css # Styles for Road Risk form
+│   │   └── OptionalAssessments.css # Styles for optional assessments
+│   └── utils/            # Utility functions
+│       └── storageUtils.js # Local storage functions
 ```
 
 ## Technical Implementation Notes
+
+### Optional Assessments Implementation
+- Created reusable OptionalAssessments component with toggle controls
+- Implemented data tables for culvert and water crossing information
+- Added dynamic form fields that appear/disappear based on toggle state
+- Implemented data persistence for all optional assessment data
+- Added validation for optional assessment fields
+- Created responsive tables for data collection
+
+### Storage Implementation
+- Created storageUtils.js for consistent data persistence
+- Implemented autosave functionality for form drafts
+- Added functions for saving to history
+- Created proper data structure for saved assessments
 
 ### Results Section Implementation
 - Added risk calculation display (Hazard Score × Consequence Score = Risk Score)
@@ -148,64 +171,18 @@ AI-Forester-App/
 - Implemented recommended actions list that changes based on risk level
 - Created conditional display of results for incomplete assessments
 
-### Consequence Factors Implementation
-- Added four consequence factors: Downstream Resources, Public Safety, Environmental Impact, and Economic Consequences
-- Implemented interactive score buttons (1-4) with color coding (green, yellow, orange, red)
-- Added detailed descriptions for each score level to guide assessors
-- Created general comment field for consequence observations
-- Implemented automatic calculation of consequence total score
-- Added proper state management for consequence factors and comments
-
-### Hazard Factors Implementation
-- Added four hazard factors: Slope Stability, Drainage Patterns, Road Surface Condition, and Traffic Volume
-- Implemented interactive score buttons (1-4) with color coding (green, yellow, orange, red)
-- Added detailed descriptions for each score level to guide assessors
-- Created general comment field for hazard observations
-- Implemented automatic calculation of hazard total score
-- Added proper state management for hazard factors and comments
-
-### Form Implementation Progress
-- Completed Basic Information section with all necessary input fields
-- Added GPS location capture with browser geolocation API
-- Implemented Hazard Factors section with interactive scoring
-- Implemented Consequence Factors section with interactive scoring
-- Implemented Results section with risk calculation and recommendations
-- Created placeholder section for Optional Assessments
-- Implemented section navigation with "Continue to..." buttons
-- Added validation for required fields (Road Name, Assessor)
-- Created responsive layout for all screen sizes
-- Implemented navigation hints to guide users through the form
-
-### Data Storage Implementation
-- Added SaveAssessment functionality in EditScreen.js with localStorage persistence
-- Implemented draft saving capability with separate storage structure
-- Added form reset functionality with confirmation dialog
-- Created unique ID generation for new assessments and drafts
-- Ensured proper data structure for compatibility with HistoryPage view
-- Updated save functions to include hazard and consequence data in saved assessments
-
-### UI/UX Styling Improvements
-- Fixed formatting issues with comprehensive CSS enhancements
-- Added fixed action bar with consistent button placement
-- Improved form navigation with better visual indicators
-- Enhanced input fields with proper styling and focus states
-- Added responsive designs for different screen sizes
-- Implemented better spacing and visual hierarchy throughout the form
-- Created consistent styling for all form elements and sections
-
 ### Navigation Structure
-- AppRouter: Top-level router that sets up the main routes (/, /road-risk, /road-risk/edit/:id, /culvert/*, /history)
+- AppRouter: Top-level router that sets up the main routes (/, /road-risk, /culvert/*, /history)
 - CulvertToolNavigator: Specialized router for the Culvert Tool's multi-screen workflow
 
 ## Next Steps
 
-1. Implement the Optional Assessments section with toggles and selections
-2. Connect photo upload functionality with device camera integration
-3. Implement PDF export for assessment reports
-4. Add ability to save final report as PDF
-5. Complete the implementation of the Culvert Sizing Tool with calculation algorithms
-6. Add offline functionality for field use
-7. Implement user authentication for multi-user support
+1. Connect photo upload functionality with device camera integration
+2. Implement PDF export for assessment reports
+3. Add ability to save final report as PDF
+4. Complete the implementation of the Culvert Sizing Tool with calculation algorithms
+5. Add offline functionality for field use
+6. Implement user authentication for multi-user support
 
 ## Dependencies
 
