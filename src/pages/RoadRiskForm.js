@@ -32,7 +32,8 @@ function RoadRiskForm() {
       slopeGrade: null,
       geologySoil: null,
       drainageConditions: null,
-      roadFailureHistory: null
+      roadFailureHistory: null,
+      comments: ''
     };
   });
 
@@ -44,7 +45,8 @@ function RoadRiskForm() {
       proximityToWater: null,
       drainageStructure: null,
       publicIndustrialUse: null,
-      environmentalValue: null
+      environmentalValue: null,
+      comments: ''
     };
   });
 
@@ -185,9 +187,19 @@ function RoadRiskForm() {
     setHazardFactors(prev => ({ ...prev, [factor]: value }));
   };
 
+  // Handle hazard comments change
+  const handleHazardCommentsChange = (e) => {
+    setHazardFactors(prev => ({ ...prev, comments: e.target.value }));
+  };
+
   // Handle consequence factor selection
   const handleConsequenceFactorChange = (factor, value) => {
     setConsequenceFactors(prev => ({ ...prev, [factor]: value }));
+  };
+
+  // Handle consequence comments change
+  const handleConsequenceCommentsChange = (e) => {
+    setConsequenceFactors(prev => ({ ...prev, comments: e.target.value }));
   };
 
   // Handle optional assessment toggle
@@ -227,9 +239,12 @@ function RoadRiskForm() {
     let total = 0;
     let factorCount = 0;
     
-    Object.values(hazardFactors).forEach(value => {
-      if (value !== null) {
-        total += value;
+    // Only count the scoring factors, not comments
+    const scoringFactors = ['terrainStability', 'slopeGrade', 'geologySoil', 'drainageConditions', 'roadFailureHistory'];
+    
+    scoringFactors.forEach(factor => {
+      if (hazardFactors[factor] !== null) {
+        total += hazardFactors[factor];
         factorCount++;
       }
     });
@@ -242,9 +257,12 @@ function RoadRiskForm() {
     let total = 0;
     let factorCount = 0;
     
-    Object.values(consequenceFactors).forEach(value => {
-      if (value !== null) {
-        total += value;
+    // Only count the scoring factors, not comments
+    const scoringFactors = ['proximityToWater', 'drainageStructure', 'publicIndustrialUse', 'environmentalValue'];
+    
+    scoringFactors.forEach(factor => {
+      if (consequenceFactors[factor] !== null) {
+        total += consequenceFactors[factor];
         factorCount++;
       }
     });
@@ -339,14 +357,16 @@ function RoadRiskForm() {
         slopeGrade: null,
         geologySoil: null,
         drainageConditions: null,
-        roadFailureHistory: null
+        roadFailureHistory: null,
+        comments: ''
       });
 
       setConsequenceFactors({
         proximityToWater: null,
         drainageStructure: null,
         publicIndustrialUse: null,
-        environmentalValue: null
+        environmentalValue: null,
+        comments: ''
       });
 
       setOptionalAssessments({
@@ -718,6 +738,18 @@ function RoadRiskForm() {
             <span className="factor-total-label">Hazard Total Score:</span>
             <span className="factor-total-value">{calculateHazardScore()}</span>
           </div>
+
+          {/* Hazard Comments Section */}
+          <div className="factor-group">
+            <h3 className="factor-header">Hazard Comments & Observations</h3>
+            <textarea 
+              className="comments-area" 
+              placeholder="Enter additional observations about hazard factors..."
+              rows={4}
+              value={hazardFactors.comments || ''}
+              onChange={handleHazardCommentsChange}
+            ></textarea>
+          </div>
           
           <div className="section-nav-buttons">
             <button 
@@ -827,6 +859,18 @@ function RoadRiskForm() {
           <div className="factor-total">
             <span className="factor-total-label">Consequence Total Score:</span>
             <span className="factor-total-value">{calculateConsequenceScore()}</span>
+          </div>
+
+          {/* Consequence Comments Section */}
+          <div className="factor-group">
+            <h3 className="factor-header">Consequence Comments & Observations</h3>
+            <textarea 
+              className="comments-area" 
+              placeholder="Enter additional observations about consequence factors..."
+              rows={4}
+              value={consequenceFactors.comments || ''}
+              onChange={handleConsequenceCommentsChange}
+            ></textarea>
           </div>
           
           <div className="section-nav-buttons">
