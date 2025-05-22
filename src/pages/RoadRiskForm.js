@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import MatrixRiskAssessment from '../utils/MatrixRiskAssessment';
 import '../styles/RoadRiskForm.css';
+import '../styles/MatrixRiskAssessment.css';
 
 function RoadRiskForm() {
   // State for active section
