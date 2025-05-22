@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import MatrixRiskAssessment from '../utils/MatrixRiskAssessment';
 import '../styles/RoadRiskForm.css';
 
 function RoadRiskForm() {
@@ -84,6 +85,14 @@ function RoadRiskForm() {
     };
   });
 
+  // Matrix Risk Assessment State
+  const [riskAssessment, setRiskAssessment] = useState(null);
+  const [showOverride, setShowOverride] = useState(false);
+  const [overrideHazard, setOverrideHazard] = useState(null);
+  const [overrideConsequence, setOverrideConsequence] = useState(null);
+  const [overrideJustification, setOverrideJustification] = useState('');
+  const [matrixCalculator] = useState(new MatrixRiskAssessment());
+
   // State for hazard scores explanation
   const hazardScoreExplanations = {
     terrainStability: {
@@ -146,32 +155,27 @@ function RoadRiskForm() {
     }
   };
   
-  // Save basic info to localStorage when it changes
+  // Save states to localStorage when they change
   useEffect(() => {
     localStorage.setItem('roadRiskBasicInfo', JSON.stringify(basicInfo));
   }, [basicInfo]);
   
-  // Save hazard factors to localStorage when they change
   useEffect(() => {
     localStorage.setItem('roadRiskHazardFactors', JSON.stringify(hazardFactors));
   }, [hazardFactors]);
 
-  // Save consequence factors to localStorage when they change
   useEffect(() => {
     localStorage.setItem('roadRiskConsequenceFactors', JSON.stringify(consequenceFactors));
   }, [consequenceFactors]);
 
-  // Save optional assessments to localStorage when they change
   useEffect(() => {
     localStorage.setItem('roadRiskOptionalAssessments', JSON.stringify(optionalAssessments));
   }, [optionalAssessments]);
 
-  // Save geotechnical factors to localStorage when they change
   useEffect(() => {
     localStorage.setItem('roadRiskGeotechnicalFactors', JSON.stringify(geotechnicalFactors));
   }, [geotechnicalFactors]);
 
-  // Save infrastructure factors to localStorage when they change
   useEffect(() => {
     localStorage.setItem('roadRiskInfrastructureFactors', JSON.stringify(infrastructureFactors));
   }, [infrastructureFactors]);
@@ -270,25 +274,60 @@ function RoadRiskForm() {
     return factorCount > 0 ? total : 0;
   };
 
-  // Calculate total risk score (hazard x consequence)
-  const calculateRiskScore = () => {
+  // Calculate matrix risk assessment
+  const calculateMatrixRisk = () => {
     const hazardScore = calculateHazardScore();
     const consequenceScore = calculateConsequenceScore();
     
-    return hazardScore * consequenceScore;
+    if (hazardScore > 0 && consequenceScore > 0) {
+      const assessment = matrixCalculator.calculateInitialRisk(hazardScore, consequenceScore);
+      setRiskAssessment(assessment);
+      return assessment;
+    }
+    return null;
   };
 
-  // Determine risk category
-  const getRiskCategory = () => {
-    const riskScore = calculateRiskScore();
+  // Apply professional override
+  const applyOverride = () => {
+    if (!riskAssessment || !overrideJustification.trim()) return;
     
-    if (riskScore >= 300) return { category: 'Very High', color: '#d32f2f' };
-    if (riskScore >= 200) return { category: 'High', color: '#f57c00' };
-    if (riskScore >= 100) return { category: 'Moderate', color: '#fbc02d' };
-    if (riskScore >= 50) return { category: 'Low', color: '#689f38' };
-    return { category: 'Very Low', color: '#388e3c' };
+    const overridden = matrixCalculator.applyOverride(
+      riskAssessment,
+      overrideHazard,
+      overrideConsequence,
+      overrideJustification
+    );
+    
+    setRiskAssessment(overridden);
+    setShowOverride(false);
+    
+    // Save override to localStorage
+    localStorage.setItem('roadRiskOverride', JSON.stringify({
+      overrideHazard,
+      overrideConsequence,
+      overrideJustification,
+      timestamp: new Date().toISOString()
+    }));
   };
-  
+
+  // Reset override
+  const resetOverride = () => {
+    setOverrideHazard(null);
+    setOverrideConsequence(null);
+    setOverrideJustification('');
+    
+    if (riskAssessment) {
+      const reset = matrixCalculator.calculateInitialRisk(
+        riskAssessment.hazard.score,
+        riskAssessment.consequence.score
+      );
+      setRiskAssessment(reset);
+    }
+    
+    // Remove override from localStorage
+    localStorage.removeItem('roadRiskOverride');
+  };
+
   // Use GPS location for start coordinates
   const handleUseStartGpsLocation = () => {
     if (navigator.geolocation) {
@@ -390,6 +429,16 @@ function RoadRiskForm() {
         culvertCondition: 'low',
         roadAge: 'low'
       });
+
+      // Reset risk assessment
+      setRiskAssessment(null);
+      setShowOverride(false);
+      setOverrideHazard(null);
+      setOverrideConsequence(null);
+      setOverrideJustification('');
+      
+      // Clear localStorage
+      localStorage.removeItem('roadRiskOverride');
       
       alert('Form has been reset.');
     }
@@ -405,6 +454,13 @@ function RoadRiskForm() {
       default: return '';
     }
   };
+
+  // Calculate risk when navigating to results
+  useEffect(() => {
+    if (activeSection === 'results') {
+      calculateMatrixRisk();
+    }
+  }, [activeSection, hazardFactors, consequenceFactors]);
 
   return (
     <div className="road-risk-form">
@@ -904,430 +960,6 @@ function RoadRiskForm() {
             Additional assessments for more detailed evaluation. Enable the assessments that apply to this road segment.
           </p>
           
-          {/* Geotechnical Considerations */}
-          <div className="factor-group">
-            <div className="toggle-header">
-              <h3 className="factor-header">Geotechnical Considerations</h3>
-              <label className="toggle-switch">
-                <input 
-                  type="checkbox" 
-                  checked={optionalAssessments.geotechnicalEnabled}
-                  onChange={() => handleOptionalAssessmentToggle('geotechnicalEnabled')}
-                />
-                <span className="toggle-slider"></span>
-              </label>
-            </div>
-            
-            {optionalAssessments.geotechnicalEnabled && (
-              <div className="assessment-table-container">
-                <table className="assessment-table">
-                  <thead>
-                    <tr>
-                      <th>Factor</th>
-                      <th>Low Risk</th>
-                      <th>Moderate Risk</th>
-                      <th>High Risk</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr>
-                      <td>Cut Slope Height</td>
-                      <td>
-                        <label className="radio-container">
-                          <input 
-                            type="radio" 
-                            name="cutSlopeHeight"
-                            checked={geotechnicalFactors.cutSlopeHeight === 'low'}
-                            onChange={() => handleGeotechnicalFactorChange('cutSlopeHeight', 'low')}
-                          />
-                          <span className="radio-label">&lt;3m</span>
-                        </label>
-                      </td>
-                      <td>
-                        <label className="radio-container">
-                          <input 
-                            type="radio" 
-                            name="cutSlopeHeight"
-                            checked={geotechnicalFactors.cutSlopeHeight === 'moderate'}
-                            onChange={() => handleGeotechnicalFactorChange('cutSlopeHeight', 'moderate')}
-                          />
-                          <span className="radio-label">3-6m</span>
-                        </label>
-                      </td>
-                      <td>
-                        <label className="radio-container">
-                          <input 
-                            type="radio" 
-                            name="cutSlopeHeight"
-                            checked={geotechnicalFactors.cutSlopeHeight === 'high'}
-                            onChange={() => handleGeotechnicalFactorChange('cutSlopeHeight', 'high')}
-                          />
-                          <span className="radio-label">&gt;6m</span>
-                        </label>
-                      </td>
-                    </tr>
-                    <tr>
-                      <td>Fill Slope Height</td>
-                      <td>
-                        <label className="radio-container">
-                          <input 
-                            type="radio" 
-                            name="fillSlopeHeight"
-                            checked={geotechnicalFactors.fillSlopeHeight === 'low'}
-                            onChange={() => handleGeotechnicalFactorChange('fillSlopeHeight', 'low')}
-                          />
-                          <span className="radio-label">&lt;3m</span>
-                        </label>
-                      </td>
-                      <td>
-                        <label className="radio-container">
-                          <input 
-                            type="radio" 
-                            name="fillSlopeHeight"
-                            checked={geotechnicalFactors.fillSlopeHeight === 'moderate'}
-                            onChange={() => handleGeotechnicalFactorChange('fillSlopeHeight', 'moderate')}
-                          />
-                          <span className="radio-label">3-6m</span>
-                        </label>
-                      </td>
-                      <td>
-                        <label className="radio-container">
-                          <input 
-                            type="radio" 
-                            name="fillSlopeHeight"
-                            checked={geotechnicalFactors.fillSlopeHeight === 'high'}
-                            onChange={() => handleGeotechnicalFactorChange('fillSlopeHeight', 'high')}
-                          />
-                          <span className="radio-label">&gt;6m</span>
-                        </label>
-                      </td>
-                    </tr>
-                    <tr>
-                      <td>Bedrock Condition</td>
-                      <td>
-                        <label className="radio-container">
-                          <input 
-                            type="radio" 
-                            name="bedrockCondition"
-                            checked={geotechnicalFactors.bedrockCondition === 'low'}
-                            onChange={() => handleGeotechnicalFactorChange('bedrockCondition', 'low')}
-                          />
-                          <span className="radio-label">Minimal jointing, favorable orientation</span>
-                        </label>
-                      </td>
-                      <td>
-                        <label className="radio-container">
-                          <input 
-                            type="radio" 
-                            name="bedrockCondition"
-                            checked={geotechnicalFactors.bedrockCondition === 'moderate'}
-                            onChange={() => handleGeotechnicalFactorChange('bedrockCondition', 'moderate')}
-                          />
-                          <span className="radio-label">Moderate jointing</span>
-                        </label>
-                      </td>
-                      <td>
-                        <label className="radio-container">
-                          <input 
-                            type="radio" 
-                            name="bedrockCondition"
-                            checked={geotechnicalFactors.bedrockCondition === 'high'}
-                            onChange={() => handleGeotechnicalFactorChange('bedrockCondition', 'high')}
-                          />
-                          <span className="radio-label">Highly fractured, adverse orientation</span>
-                        </label>
-                      </td>
-                    </tr>
-                    <tr>
-                      <td>Groundwater Conditions</td>
-                      <td>
-                        <label className="radio-container">
-                          <input 
-                            type="radio" 
-                            name="groundwaterConditions"
-                            checked={geotechnicalFactors.groundwaterConditions === 'low'}
-                            onChange={() => handleGeotechnicalFactorChange('groundwaterConditions', 'low')}
-                          />
-                          <span className="radio-label">Dry, no seepage</span>
-                        </label>
-                      </td>
-                      <td>
-                        <label className="radio-container">
-                          <input 
-                            type="radio" 
-                            name="groundwaterConditions"
-                            checked={geotechnicalFactors.groundwaterConditions === 'moderate'}
-                            onChange={() => handleGeotechnicalFactorChange('groundwaterConditions', 'moderate')}
-                          />
-                          <span className="radio-label">Seasonal seepage</span>
-                        </label>
-                      </td>
-                      <td>
-                        <label className="radio-container">
-                          <input 
-                            type="radio" 
-                            name="groundwaterConditions"
-                            checked={geotechnicalFactors.groundwaterConditions === 'high'}
-                            onChange={() => handleGeotechnicalFactorChange('groundwaterConditions', 'high')}
-                          />
-                          <span className="radio-label">Persistent seepage, springs</span>
-                        </label>
-                      </td>
-                    </tr>
-                    <tr>
-                      <td>Erosion Evidence</td>
-                      <td>
-                        <label className="radio-container">
-                          <input 
-                            type="radio" 
-                            name="erosionEvidence"
-                            checked={geotechnicalFactors.erosionEvidence === 'low'}
-                            onChange={() => handleGeotechnicalFactorChange('erosionEvidence', 'low')}
-                          />
-                          <span className="radio-label">None</span>
-                        </label>
-                      </td>
-                      <td>
-                        <label className="radio-container">
-                          <input 
-                            type="radio" 
-                            name="erosionEvidence"
-                            checked={geotechnicalFactors.erosionEvidence === 'moderate'}
-                            onChange={() => handleGeotechnicalFactorChange('erosionEvidence', 'moderate')}
-                          />
-                          <span className="radio-label">Minor rilling/gullying</span>
-                        </label>
-                      </td>
-                      <td>
-                        <label className="radio-container">
-                          <input 
-                            type="radio" 
-                            name="erosionEvidence"
-                            checked={geotechnicalFactors.erosionEvidence === 'high'}
-                            onChange={() => handleGeotechnicalFactorChange('erosionEvidence', 'high')}
-                          />
-                          <span className="radio-label">Active erosion, undercutting</span>
-                        </label>
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-            )}
-          </div>
-          
-          {/* Infrastructure Elements */}
-          <div className="factor-group">
-            <div className="toggle-header">
-              <h3 className="factor-header">Infrastructure Elements</h3>
-              <label className="toggle-switch">
-                <input 
-                  type="checkbox" 
-                  checked={optionalAssessments.infrastructureEnabled}
-                  onChange={() => handleOptionalAssessmentToggle('infrastructureEnabled')}
-                />
-                <span className="toggle-slider"></span>
-              </label>
-            </div>
-            
-            {optionalAssessments.infrastructureEnabled && (
-              <div className="assessment-table-container">
-                <table className="assessment-table">
-                  <thead>
-                    <tr>
-                      <th>Factor</th>
-                      <th>Low Risk</th>
-                      <th>Moderate Risk</th>
-                      <th>High Risk</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr>
-                      <td>Road Surface Type</td>
-                      <td>
-                        <label className="radio-container">
-                          <input 
-                            type="radio" 
-                            name="roadSurfaceType"
-                            checked={infrastructureFactors.roadSurfaceType === 'low'}
-                            onChange={() => handleInfrastructureFactorChange('roadSurfaceType', 'low')}
-                          />
-                          <span className="radio-label">Well-maintained gravel</span>
-                        </label>
-                      </td>
-                      <td>
-                        <label className="radio-container">
-                          <input 
-                            type="radio" 
-                            name="roadSurfaceType"
-                            checked={infrastructureFactors.roadSurfaceType === 'moderate'}
-                            onChange={() => handleInfrastructureFactorChange('roadSurfaceType', 'moderate')}
-                          />
-                          <span className="radio-label">Basic gravel, some rutting</span>
-                        </label>
-                      </td>
-                      <td>
-                        <label className="radio-container">
-                          <input 
-                            type="radio" 
-                            name="roadSurfaceType"
-                            checked={infrastructureFactors.roadSurfaceType === 'high'}
-                            onChange={() => handleInfrastructureFactorChange('roadSurfaceType', 'high')}
-                          />
-                          <span className="radio-label">Native material, significant rutting</span>
-                        </label>
-                      </td>
-                    </tr>
-                    <tr>
-                      <td>Ditch Condition</td>
-                      <td>
-                        <label className="radio-container">
-                          <input 
-                            type="radio" 
-                            name="ditchCondition"
-                            checked={infrastructureFactors.ditchCondition === 'low'}
-                            onChange={() => handleInfrastructureFactorChange('ditchCondition', 'low')}
-                          />
-                          <span className="radio-label">Clean, well-defined</span>
-                        </label>
-                      </td>
-                      <td>
-                        <label className="radio-container">
-                          <input 
-                            type="radio" 
-                            name="ditchCondition"
-                            checked={infrastructureFactors.ditchCondition === 'moderate'}
-                            onChange={() => handleInfrastructureFactorChange('ditchCondition', 'moderate')}
-                          />
-                          <span className="radio-label">Partially vegetated, minor deposits</span>
-                        </label>
-                      </td>
-                      <td>
-                        <label className="radio-container">
-                          <input 
-                            type="radio" 
-                            name="ditchCondition"
-                            checked={infrastructureFactors.ditchCondition === 'high'}
-                            onChange={() => handleInfrastructureFactorChange('ditchCondition', 'high')}
-                          />
-                          <span className="radio-label">Filled with sediment/debris</span>
-                        </label>
-                      </td>
-                    </tr>
-                    <tr>
-                      <td>Culvert Sizing</td>
-                      <td>
-                        <label className="radio-container">
-                          <input 
-                            type="radio" 
-                            name="culvertSizing"
-                            checked={infrastructureFactors.culvertSizing === 'low'}
-                            onChange={() => handleInfrastructureFactorChange('culvertSizing', 'low')}
-                          />
-                          <span className="radio-label">Adequately sized, aligned with natural drainage</span>
-                        </label>
-                      </td>
-                      <td>
-                        <label className="radio-container">
-                          <input 
-                            type="radio" 
-                            name="culvertSizing"
-                            checked={infrastructureFactors.culvertSizing === 'moderate'}
-                            onChange={() => handleInfrastructureFactorChange('culvertSizing', 'moderate')}
-                          />
-                          <span className="radio-label">Slightly undersized</span>
-                        </label>
-                      </td>
-                      <td>
-                        <label className="radio-container">
-                          <input 
-                            type="radio" 
-                            name="culvertSizing"
-                            checked={infrastructureFactors.culvertSizing === 'high'}
-                            onChange={() => handleInfrastructureFactorChange('culvertSizing', 'high')}
-                          />
-                          <span className="radio-label">Significantly undersized, misaligned</span>
-                        </label>
-                      </td>
-                    </tr>
-                    <tr>
-                      <td>Culvert Condition</td>
-                      <td>
-                        <label className="radio-container">
-                          <input 
-                            type="radio" 
-                            name="culvertCondition"
-                            checked={infrastructureFactors.culvertCondition === 'low'}
-                            onChange={() => handleInfrastructureFactorChange('culvertCondition', 'low')}
-                          />
-                          <span className="radio-label">Good condition, no deformation</span>
-                        </label>
-                      </td>
-                      <td>
-                        <label className="radio-container">
-                          <input 
-                            type="radio" 
-                            name="culvertCondition"
-                            checked={infrastructureFactors.culvertCondition === 'moderate'}
-                            onChange={() => handleInfrastructureFactorChange('culvertCondition', 'moderate')}
-                          />
-                          <span className="radio-label">Minor deformation/rusting</span>
-                        </label>
-                      </td>
-                      <td>
-                        <label className="radio-container">
-                          <input 
-                            type="radio" 
-                            name="culvertCondition"
-                            checked={infrastructureFactors.culvertCondition === 'high'}
-                            onChange={() => handleInfrastructureFactorChange('culvertCondition', 'high')}
-                          />
-                          <span className="radio-label">Significant deformation, crushed ends</span>
-                        </label>
-                      </td>
-                    </tr>
-                    <tr>
-                      <td>Road Age</td>
-                      <td>
-                        <label className="radio-container">
-                          <input 
-                            type="radio" 
-                            name="roadAge"
-                            checked={infrastructureFactors.roadAge === 'low'}
-                            onChange={() => handleInfrastructureFactorChange('roadAge', 'low')}
-                          />
-                          <span className="radio-label">&lt;5 years</span>
-                        </label>
-                      </td>
-                      <td>
-                        <label className="radio-container">
-                          <input 
-                            type="radio" 
-                            name="roadAge"
-                            checked={infrastructureFactors.roadAge === 'moderate'}
-                            onChange={() => handleInfrastructureFactorChange('roadAge', 'moderate')}
-                          />
-                          <span className="radio-label">5-15 years</span>
-                        </label>
-                      </td>
-                      <td>
-                        <label className="radio-container">
-                          <input 
-                            type="radio" 
-                            name="roadAge"
-                            checked={infrastructureFactors.roadAge === 'high'}
-                            onChange={() => handleInfrastructureFactorChange('roadAge', 'high')}
-                          />
-                          <span className="radio-label">&gt;15 years without major maintenance</span>
-                        </label>
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-            )}
-          </div>
-          
           {/* Photo Documentation */}
           <div className="factor-group">
             <h3 className="factor-header">Photo Documentation</h3>
@@ -1383,131 +1015,270 @@ function RoadRiskForm() {
         </div>
       )}
       
-      {/* Results Section */}
+      {/* Results Section - NEW MATRIX RISK ASSESSMENT WITH OVERRIDE */}
       {activeSection === 'results' && (
         <div className="form-section" style={{ borderTop: '4px solid #4caf50' }}>
           <h2 className="section-header" style={{ color: '#4caf50' }}>
             <span className="section-accent" style={{ background: 'linear-gradient(to bottom, #4caf50, #81c784)' }}></span>
-            Assessment Results
+            Professional Risk Assessment Results
           </h2>
           
           <p className="section-description">
-            View the risk assessment results and recommendations.
+            Matrix-based professional risk assessment with optional override capability.
           </p>
           
-          <div className="results-summary">
-            <div className="results-card">
-              <h3 className="results-subtitle">Risk Calculation</h3>
-              <div className="results-calculation">
-                <div className="calc-group">
-                  <span className="calc-label">Hazard Score:</span>
-                  <span className="calc-value">{calculateHazardScore()}</span>
-                </div>
-                <div className="calc-operator">×</div>
-                <div className="calc-group">
-                  <span className="calc-label">Consequence Score:</span>
-                  <span className="calc-value">{calculateConsequenceScore()}</span>
-                </div>
-                <div className="calc-operator">=</div>
-                <div className="calc-group">
-                  <span className="calc-label">Risk Score:</span>
-                  <span className="calc-value risk-total">{calculateRiskScore()}</span>
+          {riskAssessment ? (
+            <>
+              {/* Calculated Risk Display */}
+              <div className="matrix-risk-section">
+                <h3 className="matrix-risk-subtitle">Matrix Risk Assessment</h3>
+                <div className="risk-calculation-flow">
+                  <div className="risk-component">
+                    <div className="component-header">
+                      <span className="component-label">Hazard Score: {riskAssessment.hazard.score}</span>
+                      <span className="component-arrow">→</span>
+                      <span className="component-level">{riskAssessment.hazard.level}</span>
+                    </div>
+                    <div className="component-reasoning">{riskAssessment.hazard.reasoning}</div>
+                  </div>
+                  
+                  <div className="matrix-operator">×</div>
+                  
+                  <div className="risk-component">
+                    <div className="component-header">
+                      <span className="component-label">Consequence Score: {riskAssessment.consequence.score}</span>
+                      <span className="component-arrow">→</span>
+                      <span className="component-level">{riskAssessment.consequence.level}</span>
+                    </div>
+                    <div className="component-reasoning">{riskAssessment.consequence.reasoning}</div>
+                  </div>
+                  
+                  <div className="matrix-operator">=</div>
+                  
+                  <div className="matrix-result" style={{ backgroundColor: riskAssessment.color }}>
+                    <span className="result-label">Matrix Result:</span>
+                    <span className="result-value">{riskAssessment.matrixRisk}</span>
+                  </div>
                 </div>
               </div>
-              
-              <div className="risk-category" style={{ backgroundColor: getRiskCategory().color }}>
-                <h3 className="risk-category-label">Risk Category</h3>
-                <div className="risk-category-value">{getRiskCategory().category}</div>
+
+              {/* Professional Override Section */}
+              <div className="professional-override-section">
+                <div className="override-header">
+                  <h3>Professional Override</h3>
+                  <p>Adjust risk levels based on additional professional considerations not captured in the standard assessment.</p>
+                </div>
+
+                {!showOverride && !riskAssessment.isOverridden && (
+                  <div className="override-controls">
+                    <button 
+                      className="override-button primary"
+                      onClick={() => setShowOverride(true)}
+                    >
+                      Apply Professional Override
+                    </button>
+                    <p className="override-description">
+                      Use this if site-specific conditions, local knowledge, or professional judgment 
+                      suggests different risk levels than calculated.
+                    </p>
+                  </div>
+                )}
+
+                {showOverride && (
+                  <div className="override-form">
+                    <div className="override-inputs">
+                      <div className="override-field">
+                        <label>Override Hazard Level:</label>
+                        <select 
+                          value={overrideHazard || riskAssessment.hazard.level} 
+                          onChange={(e) => setOverrideHazard(e.target.value)}
+                        >
+                          {matrixCalculator.getRiskLevels().map(level => (
+                            <option key={level} value={level}>{level}</option>
+                          ))}
+                        </select>
+                        <span className="current-value">
+                          (Calculated: {riskAssessment.hazard.level})
+                        </span>
+                      </div>
+
+                      <div className="override-field">
+                        <label>Override Consequence Level:</label>
+                        <select 
+                          value={overrideConsequence || riskAssessment.consequence.level} 
+                          onChange={(e) => setOverrideConsequence(e.target.value)}
+                        >
+                          {matrixCalculator.getRiskLevels().map(level => (
+                            <option key={level} value={level}>{level}</option>
+                          ))}
+                        </select>
+                        <span className="current-value">
+                          (Calculated: {riskAssessment.consequence.level})
+                        </span>
+                      </div>
+
+                      <div className="override-field">
+                        <label>Justification for Override (Required):</label>
+                        <textarea
+                          value={overrideJustification}
+                          onChange={(e) => setOverrideJustification(e.target.value)}
+                          placeholder="Explain the professional reasoning for overriding the calculated risk levels. Include specific site conditions, local knowledge, or other factors not captured in the standard assessment..."
+                          rows={4}
+                          required
+                        />
+                      </div>
+                    </div>
+
+                    <div className="override-actions">
+                      <button 
+                        className="override-button primary"
+                        onClick={applyOverride}
+                        disabled={!overrideJustification.trim()}
+                      >
+                        Apply Override
+                      </button>
+                      <button 
+                        className="override-button secondary"
+                        onClick={() => {
+                          setShowOverride(false);
+                          setOverrideHazard(null);
+                          setOverrideConsequence(null);
+                          setOverrideJustification('');
+                        }}
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {riskAssessment.isOverridden && (
+                  <div className="override-summary">
+                    <h4>Override Applied</h4>
+                    <div className="override-details">
+                      {riskAssessment.overrideDetails.hazardChanged && (
+                        <p><strong>Hazard Level:</strong> {riskAssessment.overrideDetails.originalHazard} → {riskAssessment.overrideDetails.newHazard}</p>
+                      )}
+                      {riskAssessment.overrideDetails.consequenceChanged && (
+                        <p><strong>Consequence Level:</strong> {riskAssessment.overrideDetails.originalConsequence} → {riskAssessment.overrideDetails.newConsequence}</p>
+                      )}
+                      <div className="override-justification">
+                        <strong>Professional Justification:</strong>
+                        <p>{riskAssessment.overrideJustification}</p>
+                      </div>
+                    </div>
+                    <button 
+                      className="reset-override-button"
+                      onClick={resetOverride}
+                    >
+                      Reset to Calculated Risk
+                    </button>
+                  </div>
+                )}
               </div>
-              
-              <div className="category-requirements">
-                <h3 className="requirements-header">Professional Requirements</h3>
-                {getRiskCategory().category === 'Very High' && (
-                  <div className="requirements-content">
-                    <p><strong>Professional Team:</strong> Full professional team with CRP and specialist PORs. Geometric design required. Multiple field reviews.</p>
-                    <p><strong>Inspection Frequency:</strong> Frequent during wet season, annual otherwise.</p>
-                    <p><strong>Documentation:</strong> Formal assurance statements, detailed documentation package, LRM database entry, inspections and risk mitigation.</p>
-                  </div>
-                )}
-                {getRiskCategory().category === 'High' && (
-                  <div className="requirements-content">
-                    <p><strong>Professional Team:</strong> CRP and road activity POR (may be same person for simple roads). Specialist consultation. Field reviews at critical stages.</p>
-                    <p><strong>Inspection Frequency:</strong> Annual.</p>
-                    <p><strong>Documentation:</strong> Assurance statements, documentation of field reviews, maintenance/inspection or deactivation plans.</p>
-                  </div>
-                )}
-                {getRiskCategory().category === 'Moderate' && (
-                  <div className="requirements-content">
-                    <p><strong>Professional Team:</strong> CRP and road activity POR oversight. Standard designs with field verification.</p>
-                    <p><strong>Inspection Frequency:</strong> Bi-annual.</p>
-                    <p><strong>Documentation:</strong> Basic assurance documentation, regular monitoring schedule.</p>
-                  </div>
-                )}
-                {getRiskCategory().category === 'Low' && (
-                  <div className="requirements-content">
-                    <p><strong>Professional Team:</strong> Standard oversight by qualified professionals. Routine field reviews.</p>
-                    <p><strong>Inspection Frequency:</strong> Not official.</p>
-                    <p><strong>Documentation:</strong> Standard recordkeeping for events.</p>
-                  </div>
-                )}
-                {getRiskCategory().category === 'Very Low' && (
-                  <div className="requirements-content">
-                    <p><strong>Professional Team:</strong> Routine professional oversight.</p>
-                    <p><strong>Inspection Frequency:</strong> During routine maintenance.</p>
-                    <p><strong>Documentation:</strong> Basic documentation in Quick Capture app.</p>
-                  </div>
-                )}
+
+              {/* Final Risk Display */}
+              <div className="final-risk-section">
+                <div className="risk-category" style={{ backgroundColor: riskAssessment.finalColor }}>
+                  <h3 className="risk-category-label">
+                    {riskAssessment.isOverridden ? 'Final Risk Level (Professional Override Applied)' : 'Final Risk Level'}
+                  </h3>
+                  <div className="risk-category-value">{riskAssessment.finalRisk}</div>
+                </div>
+
+                <div className="category-requirements">
+                  <h3 className="requirements-header">Professional Requirements</h3>
+                  {riskAssessment.finalRisk === 'Very High' && (
+                    <div className="requirements-content">
+                      <p><strong>Professional Team:</strong> Full professional team with CRP and specialist PORs. Geometric design required. Multiple field reviews.</p>
+                      <p><strong>Inspection Frequency:</strong> Frequent during wet season, annual otherwise.</p>
+                      <p><strong>Documentation:</strong> Formal assurance statements, detailed documentation package, LRM database entry, inspections and risk mitigation.</p>
+                    </div>
+                  )}
+                  {riskAssessment.finalRisk === 'High' && (
+                    <div className="requirements-content">
+                      <p><strong>Professional Team:</strong> CRP and road activity POR (may be same person for simple roads). Specialist consultation. Field reviews at critical stages.</p>
+                      <p><strong>Inspection Frequency:</strong> Annual.</p>
+                      <p><strong>Documentation:</strong> Assurance statements, documentation of field reviews, maintenance/inspection or deactivation plans.</p>
+                    </div>
+                  )}
+                  {riskAssessment.finalRisk === 'Moderate' && (
+                    <div className="requirements-content">
+                      <p><strong>Professional Team:</strong> CRP and road activity POR oversight. Standard designs with field verification.</p>
+                      <p><strong>Inspection Frequency:</strong> Bi-annual.</p>
+                      <p><strong>Documentation:</strong> Basic assurance documentation, regular monitoring schedule.</p>
+                    </div>
+                  )}
+                  {riskAssessment.finalRisk === 'Low' && (
+                    <div className="requirements-content">
+                      <p><strong>Professional Team:</strong> Standard oversight by qualified professionals. Routine field reviews.</p>
+                      <p><strong>Inspection Frequency:</strong> As needed.</p>
+                      <p><strong>Documentation:</strong> Standard recordkeeping for events.</p>
+                    </div>
+                  )}
+                  {riskAssessment.finalRisk === 'Very Low' && (
+                    <div className="requirements-content">
+                      <p><strong>Professional Team:</strong> Routine professional oversight.</p>
+                      <p><strong>Inspection Frequency:</strong> During routine maintenance.</p>
+                      <p><strong>Documentation:</strong> Basic documentation in Quick Capture app.</p>
+                    </div>
+                  )}
+                </div>
               </div>
+
+              <div className="action-recommendations">
+                <h3 className="recommendations-header">Recommended Actions</h3>
+                <ul className="recommendations-list">
+                  {riskAssessment.finalRisk === 'Very High' && (
+                    <>
+                      <li>Immediate professional assessment required</li>
+                      <li>Implement access controls until remediation complete</li>
+                      <li>Develop comprehensive risk mitigation plan</li>
+                      <li>Schedule frequent monitoring during wet season</li>
+                      <li>Allocate budget for major engineering works</li>
+                    </>
+                  )}
+                  {riskAssessment.finalRisk === 'High' && (
+                    <>
+                      <li>Professional assessment required within 30 days</li>
+                      <li>Develop maintenance/inspection plan</li>
+                      <li>Consider temporary drainage improvements</li>
+                      <li>Schedule annual professional inspection</li>
+                      <li>Plan for potential major repairs in next budget cycle</li>
+                    </>
+                  )}
+                  {riskAssessment.finalRisk === 'Moderate' && (
+                    <>
+                      <li>Schedule professional field verification</li>
+                      <li>Implement standard monitoring protocol</li>
+                      <li>Conduct routine maintenance of drainage structures</li>
+                      <li>Document changes in conditions</li>
+                      <li>Review during bi-annual inspection cycle</li>
+                    </>
+                  )}
+                  {riskAssessment.finalRisk === 'Low' && (
+                    <>
+                      <li>Maintain standard documentation</li>
+                      <li>Include in routine maintenance schedule</li>
+                      <li>No immediate action required</li>
+                      <li>Monitor during normal operations</li>
+                    </>
+                  )}
+                  {riskAssessment.finalRisk === 'Very Low' && (
+                    <>
+                      <li>No specific action required</li>
+                      <li>Document in Quick Capture app during routine visits</li>
+                      <li>Follow standard maintenance procedures</li>
+                    </>
+                  )}
+                </ul>
+              </div>
+            </>
+          ) : (
+            <div className="no-assessment">
+              <p>Complete the Hazard and Consequence factor assessments to view risk results.</p>
             </div>
-          </div>
-          
-          <div className="action-recommendations">
-            <h3 className="recommendations-header">Recommended Actions</h3>
-            <ul className="recommendations-list">
-              {getRiskCategory().category === 'Very High' && (
-                <>
-                  <li>Immediate professional assessment required</li>
-                  <li>Implement access controls until remediation complete</li>
-                  <li>Develop comprehensive risk mitigation plan</li>
-                  <li>Schedule frequent monitoring during wet season</li>
-                  <li>Allocate budget for major engineering works</li>
-                </>
-              )}
-              {getRiskCategory().category === 'High' && (
-                <>
-                  <li>Professional assessment required within 30 days</li>
-                  <li>Develop maintenance/inspection plan</li>
-                  <li>Consider temporary drainage improvements</li>
-                  <li>Schedule annual professional inspection</li>
-                  <li>Plan for potential major repairs in next budget cycle</li>
-                </>
-              )}
-              {getRiskCategory().category === 'Moderate' && (
-                <>
-                  <li>Schedule professional field verification</li>
-                  <li>Implement standard monitoring protocol</li>
-                  <li>Conduct routine maintenance of drainage structures</li>
-                  <li>Document changes in conditions</li>
-                  <li>Review during bi-annual inspection cycle</li>
-                </>
-              )}
-              {getRiskCategory().category === 'Low' && (
-                <>
-                  <li>Maintain standard documentation</li>
-                  <li>Include in routine maintenance schedule</li>
-                  <li>No immediate action required</li>
-                  <li>Monitor during normal operations</li>
-                </>
-              )}
-              {getRiskCategory().category === 'Very Low' && (
-                <>
-                  <li>No specific action required</li>
-                  <li>Document in Quick Capture app during routine visits</li>
-                  <li>Follow standard maintenance procedures</li>
-                </>
-              )}
-            </ul>
-          </div>
+          )}
           
           <div className="section-nav-buttons">
             <button 
