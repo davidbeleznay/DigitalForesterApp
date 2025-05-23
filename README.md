@@ -16,7 +16,9 @@ The application features a comprehensive Road Risk Assessment tool with professi
 
 ### Road Risk Assessment Tool
 - **Professional Matrix Risk Assessment**: Industry-standard risk matrix methodology following ISO 31000
+- **Visual Risk Matrix Diagram**: Interactive 5×5 risk matrix showing the intersection of hazard and consequence levels
 - **Professional Override Capability**: Allows experts to override calculated risk levels with documented justification
+- **Enhanced Optional Assessments**: Toggle-enabled geotechnical and infrastructure evaluation tables
 - **Comprehensive Risk Factors**: Hazard factors (terrain stability, slope grade, geology/soil, drainage, failure history) and consequence factors (water proximity, drainage structures, land use, environmental values)  
 - **Dynamic Risk Calculation**: Converts raw scores to risk levels, applies professional risk matrix
 - **Detailed Results**: Professional requirements, recommended actions, and audit trail
@@ -34,6 +36,18 @@ The application features a comprehensive Road Risk Assessment tool with professi
 - **Responsive Design**: Works on desktop and mobile devices
 
 ## Changelog
+
+### 2025-05-23 - Enhanced Risk Assessment Features
+- **NEW**: Added visual risk matrix diagram with 5×5 professional risk matrix display
+- **NEW**: Restored missing optional assessments with geotechnical and infrastructure toggle sections
+- **FIXED**: Professional override re-application bug - can now modify existing overrides
+- **ENHANCED**: Optional assessments now include toggle switches for geotechnical considerations and infrastructure elements
+- **ENHANCED**: Added comprehensive assessment tables with radio button selections for detailed evaluation
+- **ENHANCED**: Improved override functionality with "Modify Override" capability
+- **ENHANCED**: Risk matrix visualization shows color-coded risk intersections
+- **TECHNICAL**: Added MatrixRiskAssessment.css styles for risk matrix table and toggle switches
+- **TECHNICAL**: Enhanced state management for optional assessment toggles
+- **TECHNICAL**: Fixed override state management to allow re-editing of applied overrides
 
 ### 2025-05-22 - Matrix Risk Assessment Implementation
 - **NEW**: Implemented professional matrix risk assessment methodology
@@ -123,12 +137,20 @@ The application implements a professional-grade matrix risk assessment system:
 - Converts raw factor scores to risk levels (Very Low, Low, Moderate, High, Very High)
 - Uses standard 5×5 risk matrix following ISO 31000 guidelines
 - Applies systematic scoring thresholds based on professional practice
+- Visual matrix diagram shows intersection of hazard and consequence levels
 
 **Professional Override System:**
 - Allows qualified professionals to override calculated risk levels
 - Requires detailed justification for any overrides
 - Maintains audit trail of all risk assessment decisions
 - Supports dropdown selection of alternative hazard/consequence levels
+- Enhanced with "Modify Override" capability for editing existing overrides
+
+**Optional Assessment Framework:**
+- Toggle-enabled geotechnical considerations assessment
+- Toggle-enabled infrastructure elements assessment
+- Detailed evaluation tables with radio button selections
+- Persistent state management for all optional assessment selections
 
 **Risk Level Conversion:**
 ```javascript
