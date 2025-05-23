@@ -1,10 +1,3 @@
-                  <div className="matrix-result" style={{ backgroundColor: riskAssessment.color }}>
-                    <span className="result-label">Matrix Result:</span>
-                    <span className="result-value">{riskAssessment.matrixRisk}</span>
-                  </div>
-                </div>
-              </div>
-
               {/* Professional Override Section */}
               <div className="professional-override-section">
                 <div className="override-header">
