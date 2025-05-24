@@ -18,7 +18,7 @@ The application features a comprehensive Road Risk Assessment tool with professi
 - **Professional Matrix Risk Assessment**: Industry-standard risk matrix methodology following ISO 31000
 - **Visual Risk Matrix Diagram**: Interactive 5×5 risk matrix showing the intersection of hazard and consequence levels
 - **Professional Override Capability**: Allows experts to override calculated risk levels with documented justification
-- **Enhanced Optional Assessments**: Interactive sliders and table views for geotechnical and infrastructure evaluation
+- **Enhanced Optional Assessments**: Table-based assessments for geotechnical and infrastructure evaluation with radio button selections
 - **Comprehensive Risk Factors**: Hazard factors (terrain stability, slope grade, geology/soil, drainage, failure history) and consequence factors (water proximity, drainage structures, land use, environmental values)  
 - **Dynamic Risk Calculation**: Converts raw scores to risk levels, applies professional risk matrix
 - **Detailed Results**: Professional requirements, recommended actions, and audit trail
@@ -37,16 +37,11 @@ The application features a comprehensive Road Risk Assessment tool with professi
 
 ## Changelog
 
-### 2025-05-23 - Interactive Risk Assessment Sliders
-- **NEW**: Added RiskAssessmentSlider component for intuitive risk level adjustment
-- **NEW**: Implemented dual display modes - interactive sliders and table view for optional assessments
-- **ENHANCED**: Geotechnical and infrastructure assessments now use color-coded sliders with visual feedback
-- **ENHANCED**: Added real-time risk descriptions that update as sliders are adjusted
-- **ENHANCED**: Display mode toggle allows users to switch between slider and table views
-- **IMPROVED**: Better visual representation of risk levels with gradient backgrounds on sliders
-- **TECHNICAL**: Created RiskAssessmentSlider.js component with configurable risk levels
-- **TECHNICAL**: Added RiskAssessmentSlider.css with responsive slider styles
-- **TECHNICAL**: Updated RoadRiskForm to include all sections and integrate new slider functionality
+### 2025-05-23 - Reverted to Original Color Bar Implementation
+- **REVERTED**: Removed RiskAssessmentSlider components 
+- **MAINTAINED**: Original color-coded score buttons (green, yellow, orange, red) for risk factors
+- **PRESERVED**: Table-based optional assessments with radio button selections
+- **CLEANED**: Removed slider-related files and references
 
 ### 2025-05-23 - Enhanced Risk Assessment Features
 - **NEW**: Added visual risk matrix diagram with 5×5 professional risk matrix display
@@ -158,11 +153,10 @@ The application implements a professional-grade matrix risk assessment system:
 - Enhanced with "Modify Override" capability for editing existing overrides
 
 **Optional Assessment Framework:**
-- Interactive slider controls for intuitive risk level adjustment
-- Toggle between slider and table display modes
+- Table-based assessments with radio button selections
 - Geotechnical considerations: cut/fill slope height, bedrock condition, groundwater, erosion
 - Infrastructure elements: road surface, ditch condition, culvert sizing/condition, road age
-- Visual feedback with color-coded risk levels and real-time descriptions
+- Toggle switches to enable/disable optional assessment sections
 
 **Risk Level Conversion:**
 ```javascript
@@ -190,7 +184,7 @@ The final risk is determined by looking up the combination of Hazard Level × Co
 AI-Forester-App/
 ├── src/
 │   ├── components/       # Reusable UI components
-│   │   └── RiskAssessmentSlider.js  # Interactive risk level slider
+│   │   └── OptionalAssessments.js  # Optional assessment tables component
 │   ├── navigation/       # Router configuration
 │   │   └── AppRouter.js  # Main router using React Router
 │   ├── pages/            # Main form pages
@@ -202,7 +196,7 @@ AI-Forester-App/
 │   ├── styles/           # CSS files for styling
 │   │   ├── RoadRiskForm.css          # Road Risk form styles
 │   │   ├── MatrixRiskAssessment.css  # Matrix assessment UI styles
-│   │   └── RiskAssessmentSlider.css  # Slider component styles
+│   │   └── OptionalAssessments.css   # Optional assessment table styles
 │   └── utils/            # Utility functions
 │       ├── MatrixRiskAssessment.js   # Professional risk matrix calculator
 │       ├── CulvertCalculator.js      # Culvert sizing algorithms  
