@@ -1329,7 +1329,7 @@ function RoadRiskForm() {
                           checked={infrastructureFactors.culvertSizing === 'low'}
                           onChange={(e) => handleInfrastructureFactorChange('culvertSizing', e.target.value)}
                         />
-                        <span>Adequate (>100yr)</span>
+                        <span>Adequate (&gt;100yr)</span>
                       </label>
                     </td>
                     <td>
@@ -1353,7 +1353,7 @@ function RoadRiskForm() {
                           checked={infrastructureFactors.culvertSizing === 'high'}
                           onChange={(e) => handleInfrastructureFactorChange('culvertSizing', e.target.value)}
                         />
-                        <span>Undersized (<50yr)</span>
+                        <span>Undersized (&lt;50yr)</span>
                       </label>
                     </td>
                   </tr>
