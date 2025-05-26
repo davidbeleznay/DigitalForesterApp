@@ -10,18 +10,17 @@ A web application for forestry professionals to perform field calculations and c
 
 ## Current Status
 
-The application features a comprehensive Road Risk Assessment tool with professional-grade matrix risk assessment methodology and a Culvert Sizing Tool. Both tools provide structured data collection with local storage persistence.
+The application features a comprehensive Road Risk Assessment tool with simplified professional-grade risk assessment methodology and a Culvert Sizing Tool. Both tools provide structured data collection with local storage persistence.
 
 ## Key Features
 
 ### Road Risk Assessment Tool
-- **Professional Matrix Risk Assessment**: Industry-standard risk matrix methodology following ISO 31000
-- **Visual Risk Matrix Diagram**: Interactive 5×5 risk matrix showing the intersection of hazard and consequence levels
-- **Professional Override Capability**: Allows experts to override calculated risk levels with documented justification
-- **Enhanced Optional Assessments**: Table-based assessments for geotechnical and infrastructure evaluation with radio button selections
+- **Simplified Risk Assessment**: Hazard × Consequence multiplication methodology with conservative professional ranges
+- **Professional Override Capability**: Direct override of overall risk level with documented justification
+- **Conservative Risk Ranges**: Low (64-250), Moderate (251-750), High (751-1400), Very High (1401-2000)
 - **Comprehensive Risk Factors**: Hazard factors (terrain stability, slope grade, geology/soil, drainage, failure history) and consequence factors (water proximity, drainage structures, land use, environmental values)  
-- **Dynamic Risk Calculation**: Converts raw scores to risk levels, applies professional risk matrix
-- **Detailed Results**: Professional requirements, recommended actions, and audit trail
+- **Dynamic Risk Calculation**: Real-time calculation showing Hazard Score × Consequence Score = Risk Score
+- **Detailed Results**: Professional requirements, recommended actions, and clear risk level display
 - **Local Storage**: Automatic saving of assessment progress and override justifications
 
 ### Culvert Sizing Tool
@@ -36,6 +35,18 @@ The application features a comprehensive Road Risk Assessment tool with professi
 - **Responsive Design**: Works on desktop and mobile devices
 
 ## Changelog
+
+### 2025-05-26 - Simplified Risk Assessment System
+- **MAJOR UPDATE**: Replaced complex matrix lookup with simplified Hazard × Consequence multiplication
+- **NEW**: Conservative risk ranges implemented (Low: 64-250, Moderate: 251-750, High: 751-1400, Very High: 1401-2000)
+- **SIMPLIFIED**: Professional override now directly overrides overall risk level instead of separate hazard/consequence levels
+- **ENHANCED**: Clear display of Risk Score = Hazard × Consequence calculation in results
+- **ENHANCED**: Risk ranges display shows where current score falls within conservative thresholds
+- **TECHNICAL**: Updated MatrixRiskAssessment utility to use multiplication methodology
+- **TECHNICAL**: Added applyDirectOverride method for simplified override workflow
+- **TECHNICAL**: Maintained backwards compatibility with legacy override system
+- **UI**: Streamlined override interface to show Current Risk → Override to selection
+- **UI**: Removed complex optional assessment tables to focus on core functionality
 
 ### 2025-05-23 - Reverted to Original Color Bar Implementation
 - **REVERTED**: Removed RiskAssessmentSlider components 
@@ -89,94 +100,36 @@ The application features a comprehensive Road Risk Assessment tool with professi
 - Added better styling for input fields, buttons, and form elements
 - Implemented responsive design for mobile devices
 
-### 2025-05-19
-- Improved Road Risk Assessment flow to open new form directly when clicking from home screen
-- Added comment fields for hazard and consequence factors
-- Implemented risk category override functionality with reason documentation
-- Fixed navigation flow for Road Risk Assessment tool
-- Updated home screen to display 2 most recent Road Risk assessments
-
-### 2025-05-17
-- Added GPS location capture for both start and end coordinates
-- Implemented interactive optional assessments with toggle switches
-- Created selectable geotechnical considerations with radio buttons
-- Added selectable infrastructure elements with radio buttons
-- Enhanced form state management to persist optional assessment selections
-
-### 2025-05-16
-- Implemented Consequence Factors section with four key factors from BC forestry guidelines
-- Added risk calculation logic (Hazard × Consequence) following BC forestry standards
-- Created visual risk results section with color-coded risk categorization
-- Implemented professional requirements display based on risk level
-- Added Optional Assessments with geotechnical and infrastructure tables
-
-### 2025-05-15
-- Implemented Hazard Factors section in the Road Risk Assessment form
-- Added visual score selection buttons with color-coding (green, yellow, orange, red)
-- Implemented state management for hazard factors with localStorage persistence
-- Added automatic hazard score calculation based on selected factors
-
-### 2025-05-14
-- Removed React Navigation dependencies and switched to React Router for all navigation
-- Fixed RoadRiskForm component to resolve syntax errors
-- Simplified navigation structure with direct routing
-- Created minimal placeholder for RoadRiskForm to be built incrementally
-
-### 2025-05-08
-- Completed RoadRiskForm implementation with PDF preview and export functionality
-- Fixed code formatting issues in form button section
-- Ensured proper saving and restoration of form state
-
-### 2025-05-04
-- Created fresh project with Expo
-- Set up basic navigation structure
-- Implemented HomeScreen with navigation to Culvert Tool
-- Established color palette and basic styling
-
 ## Technical Architecture
 
-### Matrix Risk Assessment System
+### Simplified Risk Assessment System
 
-The application implements a professional-grade matrix risk assessment system:
+The application implements a streamlined professional risk assessment system:
 
-**Risk Matrix Methodology:**
-- Converts raw factor scores to risk levels (Very Low, Low, Moderate, High, Very High)
-- Uses standard 5×5 risk matrix following ISO 31000 guidelines
-- Applies systematic scoring thresholds based on professional practice
-- Visual matrix diagram shows intersection of hazard and consequence levels
+**Risk Calculation Methodology:**
+- Simple multiplication: Risk Score = Hazard Score × Consequence Score
+- Conservative ranges for professional risk categorization
+- Clear visualization of calculation steps in results section
 
-**Professional Override System:**
-- Allows qualified professionals to override calculated risk levels
-- Requires detailed justification for any overrides
-- Maintains audit trail of all risk assessment decisions
-- Supports dropdown selection of alternative hazard/consequence levels
-- Enhanced with "Modify Override" capability for editing existing overrides
-
-**Optional Assessment Framework:**
-- Table-based assessments with radio button selections
-- Geotechnical considerations: cut/fill slope height, bedrock condition, groundwater, erosion
-- Infrastructure elements: road surface, ditch condition, culvert sizing/condition, road age
-- Toggle switches to enable/disable optional assessment sections
-
-**Risk Level Conversion:**
+**Conservative Risk Ranges:**
 ```javascript
-// Hazard Score → Hazard Level
-10-14 points: Very Low
-15-19 points: Low  
-20-29 points: Moderate
-30-39 points: High
-40-50 points: Very High
-
-// Consequence Score → Consequence Level  
-8-11 points: Very Low
-12-15 points: Low
-16-23 points: Moderate
-24-31 points: High
-32-40 points: Very High
+Low Risk:        64-250
+Moderate Risk:   251-750  
+High Risk:       751-1400
+Very High Risk:  1401-2000
 ```
 
-**Matrix Risk Calculation:**
-The final risk is determined by looking up the combination of Hazard Level × Consequence Level in the professional risk matrix, not by simple multiplication of scores.
+**Professional Override System:**
+- Direct override of overall risk level (not separate hazard/consequence)
+- Requires detailed justification for any overrides
+- Maintains audit trail of all risk assessment decisions
+- Simple dropdown selection for override risk level
+- Enhanced with "Modify Override" capability for editing existing overrides
+
+**Score Validation:**
+- Hazard scores: 8-50 (4 factors × 2-10 each, 5 factors maximum)
+- Consequence scores: 8-40 (4 factors × 2-10 each)
+- Automatic validation and warning for out-of-range scores
 
 ## Project Structure
 
@@ -184,60 +137,64 @@ The final risk is determined by looking up the combination of Hazard Level × Co
 AI-Forester-App/
 ├── src/
 │   ├── components/       # Reusable UI components
-│   │   └── OptionalAssessments.js  # Optional assessment tables component
 │   ├── navigation/       # Router configuration
 │   │   └── AppRouter.js  # Main router using React Router
 │   ├── pages/            # Main form pages
-│   │   ├── RoadRiskForm.js      # Road Risk assessment form with matrix methodology
+│   │   ├── RoadRiskForm.js      # Road Risk assessment form with simplified methodology
 │   │   ├── CulvertSizingForm.js # Culvert sizing calculations
 │   │   └── HistoryPage.js       # Assessment history
 │   ├── screens/          # Screen components
 │   │   └── HomeScreen.js        # Landing page with tool selection
 │   ├── styles/           # CSS files for styling
 │   │   ├── RoadRiskForm.css          # Road Risk form styles
-│   │   ├── MatrixRiskAssessment.css  # Matrix assessment UI styles
-│   │   └── OptionalAssessments.css   # Optional assessment table styles
+│   │   └── MatrixRiskAssessment.css  # Risk assessment UI styles
 │   └── utils/            # Utility functions
-│       ├── MatrixRiskAssessment.js   # Professional risk matrix calculator
+│       ├── MatrixRiskAssessment.js   # Simplified risk calculator with conservative ranges
 │       ├── CulvertCalculator.js      # Culvert sizing algorithms  
 │       └── storageUtils.js           # Local storage functions
 ```
 
 ## Professional Standards Compliance
 
-The Road Risk Assessment tool follows established professional standards:
+The Road Risk Assessment tool follows established professional standards with simplified implementation:
 
-- **ISO 31000**: Risk management principles and guidelines
-- **Engineering Risk Assessment**: Standard matrix methodology used in infrastructure assessment  
+- **Conservative Approach**: Uses conservative risk ranges for safety-first assessment
 - **Professional Override**: Allows for expert judgment while maintaining documentation requirements
 - **Audit Trail**: Complete record of risk assessment decisions and justifications
+- **Simplified Methodology**: Easy-to-understand multiplication approach while maintaining professional rigor
 
 ## Risk Categories and Requirements
 
-**Very High Risk (Professional Override Applied):**
-- Full professional team with CRP and specialist PORs
-- Geometric design required, multiple field reviews
-- Frequent inspection during wet season, annual otherwise
-- Formal assurance statements and detailed documentation
+**Very High Risk (1401-2000):**
+- Critical risk requiring immediate professional attention and comprehensive mitigation
+- Immediate professional assessment required
+- Implement access controls until remediation complete
+- Develop comprehensive risk mitigation plan
+- Schedule frequent monitoring during wet season
+- Allocate budget for major engineering works
 
-**High Risk:**
-- CRP and road activity POR with specialist consultation
-- Field reviews at critical stages, annual inspections
-- Assurance statements and maintenance/inspection plans
+**High Risk (751-1400):**
+- Significant risk requiring prompt professional assessment and active management
+- Professional assessment required within 30 days
+- Develop maintenance/inspection plan
+- Consider temporary drainage improvements
+- Schedule annual professional inspection
+- Plan for potential major repairs in next budget cycle
 
-**Moderate Risk:**
-- CRP and road activity POR oversight
-- Standard designs with field verification, bi-annual inspections
-- Basic assurance documentation and monitoring schedule
+**Moderate Risk (251-750):**
+- Moderate risk requiring professional monitoring and planned maintenance
+- Schedule professional field verification
+- Implement standard monitoring protocol
+- Conduct routine maintenance of drainage structures
+- Document changes in conditions
+- Review during bi-annual inspection cycle
 
-**Low Risk:**
-- Standard professional oversight, routine field reviews
-- As-needed inspections, standard recordkeeping
-
-**Very Low Risk:**
-- Routine professional oversight
-- Inspections during routine maintenance
-- Basic documentation in Quick Capture app
+**Low Risk (64-250):**
+- Low risk suitable for routine monitoring and standard maintenance
+- Maintain standard documentation
+- Include in routine maintenance schedule
+- No immediate action required
+- Monitor during normal operations
 
 ## Next Steps
 
@@ -258,7 +215,7 @@ The Road Risk Assessment tool follows established professional standards:
 
 ## Professional Use Notes
 
-This application is designed for use by qualified forestry professionals, engineers, and technicians. The risk assessment methodology follows established professional standards but should be used in conjunction with appropriate field expertise and local regulatory requirements.
+This application is designed for use by qualified forestry professionals, engineers, and technicians. The risk assessment methodology uses conservative ranges and simplified calculations while maintaining professional standards.
 
 The professional override feature is intended for use by qualified professionals who can provide technical justification for deviating from calculated risk levels based on site-specific conditions, local knowledge, or factors not captured in the standard assessment framework.
 
