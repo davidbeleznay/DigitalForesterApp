@@ -83,7 +83,7 @@ function RoadRiskForm() {
     };
   });
 
-  // Matrix Risk Assessment State - Updated for new system
+  // Matrix Risk Assessment State
   const [riskAssessment, setRiskAssessment] = useState(null);
   const [showOverride, setShowOverride] = useState(false);
   const [overrideRiskLevel, setOverrideRiskLevel] = useState('');
@@ -282,7 +282,7 @@ function RoadRiskForm() {
     return null;
   };
 
-  // Apply professional override - Fixed function name
+  // Apply professional override
   const applyOverride = () => {
     if (!riskAssessment || !overrideJustification.trim() || !overrideRiskLevel) return;
     
@@ -667,281 +667,417 @@ function RoadRiskForm() {
         </div>
       )}
       
-      {/* Hazard, Consequence, Optional sections would go here - truncated for length */}
-      
-      {/* Results Section - Simplified display */}
-      {activeSection === 'results' && (
-        <div className="form-section" style={{ borderTop: '4px solid #4caf50' }}>
-          <h2 className="section-header" style={{ color: '#4caf50' }}>
-            <span className="section-accent" style={{ background: 'linear-gradient(to bottom, #4caf50, #81c784)' }}></span>
-            Risk Assessment Results
+      {/* Hazard Factors Section */}
+      {activeSection === 'hazard' && (
+        <div className="form-section" style={{ borderTop: '4px solid #ff9800' }}>
+          <h2 className="section-header" style={{ color: '#ff9800' }}>
+            <span className="section-accent" style={{ background: 'linear-gradient(to bottom, #ff9800, #ffc947)' }}></span>
+            Hazard Factors Assessment
           </h2>
           
           <p className="section-description">
-            Risk calculation using Hazard × Consequence methodology.
+            Evaluate each hazard factor and select the appropriate score. Higher scores indicate greater hazard potential.
           </p>
           
-          {riskAssessment ? (
-            <>
-              {/* Final Risk Assessment Display */}
-              <div className="final-risk-display">
-                <div className="final-risk-header">
-                  <h3>Final Risk Assessment</h3>
-                </div>
-                <div 
-                  className="final-risk-result"
-                  style={{ 
-                    backgroundColor: riskAssessment.isOverridden 
-                      ? riskAssessment.finalColor
-                      : riskAssessment.color 
-                  }}
+          <div className="hazard-total-display">
+            <span className="total-label">Total Hazard Score:</span>
+            <span className="total-value">{calculateHazardScore()}</span>
+          </div>
+          
+          {/* Terrain Stability */}
+          <div className="risk-factor-item">
+            <h3 className="factor-title">Terrain Stability</h3>
+            <p className="factor-description">
+              Assess the overall stability of the terrain based on slope conditions and terrain classification.
+            </p>
+            <div className="score-buttons">
+              {[2, 4, 6, 10].map(score => (
+                <button
+                  key={score}
+                  type="button"
+                  className={`score-button ${getScoreButtonColorClass(score)} ${
+                    hazardFactors.terrainStability === score ? 'selected' : ''
+                  }`}
+                  onClick={() => handleHazardFactorChange('terrainStability', score)}
                 >
-                  <span className="final-risk-label">Overall Risk Level:</span>
-                  <span className="final-risk-value">
-                    {riskAssessment.isOverridden ? riskAssessment.finalRisk : riskAssessment.riskLevel}
-                  </span>
-                  <span className="final-risk-score">
-                    (Score: {riskAssessment.riskScore})
-                  </span>
-                </div>
-                <div className="final-risk-reasoning">
-                  {riskAssessment.isOverridden 
-                    ? `Professional override applied: ${riskAssessment.overrideJustification}`
-                    : riskAssessment.reasoning
-                  }
-                </div>
-              </div>
-
-              {/* Risk Ranges Display */}
-              <div className="risk-ranges-display">
-                <h3>Risk Ranges</h3>
-                <div className="ranges-grid">
-                  <div className="range-item low">
-                    <span className="range-label">Low Risk:</span>
-                    <span className="range-values">64-250</span>
-                  </div>
-                  <div className="range-item moderate">
-                    <span className="range-label">Moderate Risk:</span>
-                    <span className="range-values">251-750</span>
-                  </div>
-                  <div className="range-item high">
-                    <span className="range-label">High Risk:</span>
-                    <span className="range-values">751-1400</span>
-                  </div>
-                  <div className="range-item very-high">
-                    <span className="range-label">Very High Risk:</span>
-                    <span className="range-values">1401-2000</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Professional Override Section */}
-              <div className="professional-override-section">
-                <div className="override-header">
-                  <h3>Professional Override</h3>
-                  <p>Override the calculated risk level based on additional professional considerations.</p>
-                </div>
-
-                {!showOverride && !riskAssessment.isOverridden && (
-                  <div className="override-controls">
-                    <div className="current-risk-display">
-                      <span className="current-risk-label">Current Risk:</span>
-                      <span className="current-risk-value" style={{ backgroundColor: riskAssessment.color }}>
-                        {riskAssessment.riskLevel}
-                      </span>
-                      <span className="current-risk-score">(Score: {riskAssessment.riskScore})</span>
-                    </div>
-                    <button 
-                      className="override-button primary"
-                      onClick={() => setShowOverride(true)}
-                    >
-                      Apply Professional Override
-                    </button>
-                    <p className="override-description">
-                      Use this if site-specific conditions, local knowledge, or professional judgment 
-                      suggests a different risk level than calculated.
-                    </p>
-                  </div>
-                )}
-
-                {showOverride && (
-                  <div className="override-form">
-                    <div className="override-inputs">
-                      <div className="current-vs-override">
-                        <div className="current-assessment">
-                          <span className="assessment-label">Current Risk:</span>
-                          <span className="assessment-value" style={{ backgroundColor: riskAssessment.color }}>
-                            {riskAssessment.riskLevel}
-                          </span>
-                          <span className="assessment-score">(Score: {riskAssessment.riskScore})</span>
-                        </div>
-                        <div className="override-arrow">↓</div>
-                        <div className="override-selection">
-                          <label>Override to:</label>
-                          <select 
-                            value={overrideRiskLevel} 
-                            onChange={(e) => setOverrideRiskLevel(e.target.value)}
-                          >
-                            <option value="">Select Risk Level</option>
-                            {matrixCalculator.getRiskLevels().map(level => (
-                              <option key={level} value={level}>{level}</option>
-                            ))}
-                          </select>
-                        </div>
-                      </div>
-
-                      <div className="override-field">
-                        <label>Justification for Override (Required):</label>
-                        <textarea
-                          value={overrideJustification}
-                          onChange={(e) => setOverrideJustification(e.target.value)}
-                          placeholder="Explain the professional reasoning for overriding the calculated risk level..."
-                          rows={4}
-                          required
-                        />
-                      </div>
-                    </div>
-
-                    <div className="override-actions">
-                      <button 
-                        className="override-button primary"
-                        onClick={applyOverride}
-                        disabled={!overrideJustification.trim() || !overrideRiskLevel}
-                      >
-                        Apply Override
-                      </button>
-                      <button 
-                        className="override-button secondary"
-                        onClick={() => setShowOverride(false)}
-                      >
-                        Cancel
-                      </button>
-                    </div>
-                  </div>
-                )}
-
-                {riskAssessment.isOverridden && (
-                  <div className="override-applied">
-                    <div className="override-summary">
-                      <h4>Professional Override Applied</h4>
-                      <div className="override-change-display">
-                        <div className="original-risk">
-                          <span className="change-label">Original:</span>
-                          <span className="change-value" style={{ backgroundColor: riskAssessment.color }}>
-                            {riskAssessment.riskLevel}
-                          </span>
-                          <span className="change-score">(Score: {riskAssessment.riskScore})</span>
-                        </div>
-                        <div className="change-arrow">→</div>
-                        <div className="final-risk">
-                          <span className="change-label">Final:</span>
-                          <span className="change-value" style={{ backgroundColor: riskAssessment.finalColor }}>
-                            {riskAssessment.finalRisk}
-                          </span>
-                          <span className="change-label">(Professional Override)</span>
-                        </div>
-                      </div>
-                      <div className="override-justification">
-                        <strong>Justification:</strong> {riskAssessment.overrideJustification}
-                      </div>
-                    </div>
-                    <div className="override-actions">
-                      <button 
-                        className="override-button secondary"
-                        onClick={modifyOverride}
-                      >
-                        Modify Override
-                      </button>
-                      <button 
-                        className="override-button tertiary"
-                        onClick={resetOverride}
-                      >
-                        Remove Override
-                      </button>
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              {/* Risk Management Recommendations */}
-              <div className="risk-recommendations">
-                <h3>Recommended Actions</h3>
-                <ul className="recommendations-list">
-                  {(riskAssessment.isOverridden ? riskAssessment.finalRisk : riskAssessment.riskLevel) === 'Very High' && (
-                    <>
-                      <li>Immediate professional assessment required</li>
-                      <li>Implement access controls until remediation complete</li>
-                      <li>Develop comprehensive risk mitigation plan</li>
-                      <li>Schedule frequent monitoring during wet season</li>
-                      <li>Allocate budget for major engineering works</li>
-                    </>
-                  )}
-                  {(riskAssessment.isOverridden ? riskAssessment.finalRisk : riskAssessment.riskLevel) === 'High' && (
-                    <>
-                      <li>Professional assessment required within 30 days</li>
-                      <li>Develop maintenance/inspection plan</li>
-                      <li>Consider temporary drainage improvements</li>
-                      <li>Schedule annual professional inspection</li>
-                      <li>Plan for potential major repairs in next budget cycle</li>
-                    </>
-                  )}
-                  {(riskAssessment.isOverridden ? riskAssessment.finalRisk : riskAssessment.riskLevel) === 'Moderate' && (
-                    <>
-                      <li>Schedule professional field verification</li>
-                      <li>Implement standard monitoring protocol</li>
-                      <li>Conduct routine maintenance of drainage structures</li>
-                      <li>Document changes in conditions</li>
-                      <li>Review during bi-annual inspection cycle</li>
-                    </>
-                  )}
-                  {(riskAssessment.isOverridden ? riskAssessment.finalRisk : riskAssessment.riskLevel) === 'Low' && (
-                    <>
-                      <li>Maintain standard documentation</li>
-                      <li>Include in routine maintenance schedule</li>
-                      <li>No immediate action required</li>
-                      <li>Monitor during normal operations</li>
-                    </>
-                  )}
-                </ul>
-              </div>
-            </>
-          ) : (
-            <div className="no-assessment">
-              <p>Complete the Hazard and Consequence factor assessments to view risk results.</p>
+                  <span className="score-value">{score}</span>
+                  <span className="score-label">{hazardScoreExplanations.terrainStability[score]}</span>
+                </button>
+              ))}
             </div>
-          )}
+          </div>
+          
+          {/* Slope Grade */}
+          <div className="risk-factor-item">
+            <h3 className="factor-title">Slope Grade</h3>
+            <p className="factor-description">
+              Evaluate the steepness of the road grade.
+            </p>
+            <div className="score-buttons">
+              {[2, 4, 6, 10].map(score => (
+                <button
+                  key={score}
+                  type="button"
+                  className={`score-button ${getScoreButtonColorClass(score)} ${
+                    hazardFactors.slopeGrade === score ? 'selected' : ''
+                  }`}
+                  onClick={() => handleHazardFactorChange('slopeGrade', score)}
+                >
+                  <span className="score-value">{score}</span>
+                  <span className="score-label">{hazardScoreExplanations.slopeGrade[score]}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+          
+          {/* Geology/Soil Type */}
+          <div className="risk-factor-item">
+            <h3 className="factor-title">Geology/Soil Type</h3>
+            <p className="factor-description">
+              Assess the soil and geological conditions.
+            </p>
+            <div className="score-buttons">
+              {[2, 4, 6, 10].map(score => (
+                <button
+                  key={score}
+                  type="button"
+                  className={`score-button ${getScoreButtonColorClass(score)} ${
+                    hazardFactors.geologySoil === score ? 'selected' : ''
+                  }`}
+                  onClick={() => handleHazardFactorChange('geologySoil', score)}
+                >
+                  <span className="score-value">{score}</span>
+                  <span className="score-label">{hazardScoreExplanations.geologySoil[score]}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+          
+          {/* Drainage Conditions */}
+          <div className="risk-factor-item">
+            <h3 className="factor-title">Drainage Conditions</h3>
+            <p className="factor-description">
+              Evaluate the current drainage patterns and water management.
+            </p>
+            <div className="score-buttons">
+              {[2, 4, 6, 10].map(score => (
+                <button
+                  key={score}
+                  type="button"
+                  className={`score-button ${getScoreButtonColorClass(score)} ${
+                    hazardFactors.drainageConditions === score ? 'selected' : ''
+                  }`}
+                  onClick={() => handleHazardFactorChange('drainageConditions', score)}
+                >
+                  <span className="score-value">{score}</span>
+                  <span className="score-label">{hazardScoreExplanations.drainageConditions[score]}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+          
+          {/* Road/Slope Failure History */}
+          <div className="risk-factor-item">
+            <h3 className="factor-title">Road/Slope Failure History</h3>
+            <p className="factor-description">
+              Consider the historical record of failures or maintenance issues.
+            </p>
+            <div className="score-buttons">
+              {[2, 4, 6, 10].map(score => (
+                <button
+                  key={score}
+                  type="button"
+                  className={`score-button ${getScoreButtonColorClass(score)} ${
+                    hazardFactors.roadFailureHistory === score ? 'selected' : ''
+                  }`}
+                  onClick={() => handleHazardFactorChange('roadFailureHistory', score)}
+                >
+                  <span className="score-value">{score}</span>
+                  <span className="score-label">{hazardScoreExplanations.roadFailureHistory[score]}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+          
+          {/* Comments Section */}
+          <div className="comments-section">
+            <label htmlFor="hazard-comments">Additional Comments or Observations</label>
+            <textarea
+              id="hazard-comments"
+              value={hazardFactors.comments}
+              onChange={handleHazardCommentsChange}
+              placeholder="Note any specific hazard concerns, field observations, or factors not captured above..."
+              rows={4}
+            />
+          </div>
           
           <div className="section-nav-buttons">
             <button 
               type="button" 
               className="section-nav-button prev"
-              onClick={() => setActiveSection('optional')}
+              onClick={() => setActiveSection('basic')}
             >
-              Previous: Optional Assessments
+              Previous: Basic Information
             </button>
-            <div></div>
+            <button 
+              type="button" 
+              className="section-nav-button next"
+              onClick={() => setActiveSection('consequence')}
+            >
+              Next: Consequence Factors
+            </button>
           </div>
         </div>
       )}
       
-      {/* Action Buttons */}
-      <div className="form-actions">
-        <button 
-          className="action-button primary"
-          onClick={handleSaveProgress}
-        >
-          Save Progress
-        </button>
-        <button 
-          className="action-button secondary"
-          onClick={handleResetForm}
-        >
-          Reset Form
-        </button>
-        <Link to="/" className="action-button tertiary">Return to Home</Link>
-      </div>
-    </div>
-  );
-}
-
-export default RoadRiskForm;
+      {/* Consequence Factors Section */}
+      {activeSection === 'consequence' && (
+        <div className="form-section" style={{ borderTop: '4px solid #2196f3' }}>
+          <h2 className="section-header" style={{ color: '#2196f3' }}>
+            <span className="section-accent" style={{ background: 'linear-gradient(to bottom, #2196f3, #64b5f6)' }}></span>
+            Consequence Factors Assessment
+          </h2>
+          
+          <p className="section-description">
+            Evaluate the potential consequences of road failure. Higher scores indicate more severe potential impacts.
+          </p>
+          
+          <div className="consequence-total-display">
+            <span className="total-label">Total Consequence Score:</span>
+            <span className="total-value">{calculateConsequenceScore()}</span>
+          </div>
+          
+          {/* Proximity to Water Resources */}
+          <div className="risk-factor-item">
+            <h3 className="factor-title">Proximity to Water Resources</h3>
+            <p className="factor-description">
+              Assess the distance and sensitivity of nearby water resources.
+            </p>
+            <div className="score-buttons">
+              {[2, 4, 6, 10].map(score => (
+                <button
+                  key={score}
+                  type="button"
+                  className={`score-button ${getScoreButtonColorClass(score)} ${
+                    consequenceFactors.proximityToWater === score ? 'selected' : ''
+                  }`}
+                  onClick={() => handleConsequenceFactorChange('proximityToWater', score)}
+                >
+                  <span className="score-value">{score}</span>
+                  <span className="score-label">{consequenceScoreExplanations.proximityToWater[score]}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+          
+          {/* Drainage Structure Capacity */}
+          <div className="risk-factor-item">
+            <h3 className="factor-title">Drainage Structure Capacity</h3>
+            <p className="factor-description">
+              Evaluate the adequacy of culverts, bridges, and other drainage structures.
+            </p>
+            <div className="score-buttons">
+              {[2, 4, 6, 10].map(score => (
+                <button
+                  key={score}
+                  type="button"
+                  className={`score-button ${getScoreButtonColorClass(score)} ${
+                    consequenceFactors.drainageStructure === score ? 'selected' : ''
+                  }`}
+                  onClick={() => handleConsequenceFactorChange('drainageStructure', score)}
+                >
+                  <span className="score-value">{score}</span>
+                  <span className="score-label">{consequenceScoreExplanations.drainageStructure[score]}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+          
+          {/* Public/Industrial Use Level */}
+          <div className="risk-factor-item">
+            <h3 className="factor-title">Public/Industrial Use Level</h3>
+            <p className="factor-description">
+              Consider the volume and importance of road use.
+            </p>
+            <div className="score-buttons">
+              {[2, 4, 6, 10].map(score => (
+                <button
+                  key={score}
+                  type="button"
+                  className={`score-button ${getScoreButtonColorClass(score)} ${
+                    consequenceFactors.publicIndustrialUse === score ? 'selected' : ''
+                  }`}
+                  onClick={() => handleConsequenceFactorChange('publicIndustrialUse', score)}
+                >
+                  <span className="score-value">{score}</span>
+                  <span className="score-label">{consequenceScoreExplanations.publicIndustrialUse[score]}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+          
+          {/* Environmental/Cultural Values */}
+          <div className="risk-factor-item">
+            <h3 className="factor-title">Environmental/Cultural Values</h3>
+            <p className="factor-description">
+              Assess the presence of sensitive environmental or cultural resources.
+            </p>
+            <div className="score-buttons">
+              {[2, 4, 6, 10].map(score => (
+                <button
+                  key={score}
+                  type="button"
+                  className={`score-button ${getScoreButtonColorClass(score)} ${
+                    consequenceFactors.environmentalValue === score ? 'selected' : ''
+                  }`}
+                  onClick={() => handleConsequenceFactorChange('environmentalValue', score)}
+                >
+                  <span className="score-value">{score}</span>
+                  <span className="score-label">{consequenceScoreExplanations.environmentalValue[score]}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+          
+          {/* Comments Section */}
+          <div className="comments-section">
+            <label htmlFor="consequence-comments">Additional Comments or Observations</label>
+            <textarea
+              id="consequence-comments"
+              value={consequenceFactors.comments}
+              onChange={handleConsequenceCommentsChange}
+              placeholder="Note any specific consequence concerns, downstream values, or special considerations..."
+              rows={4}
+            />
+          </div>
+          
+          <div className="section-nav-buttons">
+            <button 
+              type="button" 
+              className="section-nav-button prev"
+              onClick={() => setActiveSection('hazard')}
+            >
+              Previous: Hazard Factors
+            </button>
+            <button 
+              type="button" 
+              className="section-nav-button next"
+              onClick={() => setActiveSection('optional')}
+            >
+              Next: Optional Assessments
+            </button>
+          </div>
+        </div>
+      )}
+      
+      {/* Optional Assessments Section */}
+      {activeSection === 'optional' && (
+        <div className="form-section" style={{ borderTop: '4px solid #9c27b0' }}>
+          <h2 className="section-header" style={{ color: '#9c27b0' }}>
+            <span className="section-accent" style={{ background: 'linear-gradient(to bottom, #9c27b0, #ba68c8)' }}></span>
+            Optional Assessments
+          </h2>
+          
+          <p className="section-description">
+            Enable additional assessments as needed for comprehensive risk evaluation.
+          </p>
+          
+          {/* Geotechnical Assessment */}
+          <div className="optional-assessment-toggle">
+            <label className="toggle-switch">
+              <input
+                type="checkbox"
+                checked={optionalAssessments.geotechnicalEnabled}
+                onChange={() => handleOptionalAssessmentToggle('geotechnicalEnabled')}
+              />
+              <span className="toggle-slider"></span>
+            </label>
+            <span className="toggle-label">Enable Geotechnical Assessment</span>
+          </div>
+          
+          {optionalAssessments.geotechnicalEnabled && (
+            <div className="assessment-table">
+              <h3>Geotechnical Considerations</h3>
+              <table>
+                <thead>
+                  <tr>
+                    <th>Factor</th>
+                    <th>Low Risk</th>
+                    <th>Moderate Risk</th>
+                    <th>High Risk</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>Cut Slope Height</td>
+                    <td>
+                      <label>
+                        <input
+                          type="radio"
+                          name="cutSlopeHeight"
+                          value="low"
+                          checked={geotechnicalFactors.cutSlopeHeight === 'low'}
+                          onChange={(e) => handleGeotechnicalFactorChange('cutSlopeHeight', e.target.value)}
+                        />
+                        <span>&lt;3m</span>
+                      </label>
+                    </td>
+                    <td>
+                      <label>
+                        <input
+                          type="radio"
+                          name="cutSlopeHeight"
+                          value="moderate"
+                          checked={geotechnicalFactors.cutSlopeHeight === 'moderate'}
+                          onChange={(e) => handleGeotechnicalFactorChange('cutSlopeHeight', e.target.value)}
+                        />
+                        <span>3-10m</span>
+                      </label>
+                    </td>
+                    <td>
+                      <label>
+                        <input
+                          type="radio"
+                          name="cutSlopeHeight"
+                          value="high"
+                          checked={geotechnicalFactors.cutSlopeHeight === 'high'}
+                          onChange={(e) => handleGeotechnicalFactorChange('cutSlopeHeight', e.target.value)}
+                        />
+                        <span>&gt;10m</span>
+                      </label>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>Fill Slope Height</td>
+                    <td>
+                      <label>
+                        <input
+                          type="radio"
+                          name="fillSlopeHeight"
+                          value="low"
+                          checked={geotechnicalFactors.fillSlopeHeight === 'low'}
+                          onChange={(e) => handleGeotechnicalFactorChange('fillSlopeHeight', e.target.value)}
+                        />
+                        <span>&lt;2m</span>
+                      </label>
+                    </td>
+                    <td>
+                      <label>
+                        <input
+                          type="radio"
+                          name="fillSlopeHeight"
+                          value="moderate"
+                          checked={geotechnicalFactors.fillSlopeHeight === 'moderate'}
+                          onChange={(e) => handleGeotechnicalFactorChange('fillSlopeHeight', e.target.value)}
+                        />
+                        <span>2-5m</span>
+                      </label>
+                    </td>
+                    <td>
+                      <label>
+                        <input
+                          type="radio"
+                          name="fillSlopeHeight"
+                          value="high"
+                          checked={geotechnicalFactors.fillSlopeHeight === 'high'}
+                          onChange={(e) => handleGeotechnical
