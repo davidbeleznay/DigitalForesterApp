@@ -1,150 +1,137 @@
 // Matrix Risk Assessment with Professional Override Capability
-// Professional risk assessment following industry standards with override capability
+// Updated to use Hazard × Consequence calculation with conservative ranges
 
 class MatrixRiskAssessment {
   constructor() {
-    // Standard professional risk matrix (ISO 31000 compliant)
-    this.riskMatrix = {
-      'Very Low': {
-        'Very Low': 'Very Low',
-        'Low': 'Very Low', 
-        'Moderate': 'Low',
-        'High': 'Low',
-        'Very High': 'Moderate'
-      },
-      'Low': {
-        'Very Low': 'Very Low',
-        'Low': 'Low',
-        'Moderate': 'Low', 
-        'High': 'Moderate',
-        'Very High': 'Moderate'
-      },
-      'Moderate': {
-        'Very Low': 'Low',
-        'Low': 'Low',
-        'Moderate': 'Moderate',
-        'High': 'Moderate', 
-        'Very High': 'High'
-      },
-      'High': {
-        'Very Low': 'Low',
-        'Low': 'Moderate',
-        'Moderate': 'Moderate',
-        'High': 'High',
-        'Very High': 'High'
-      },
-      'Very High': {
-        'Very Low': 'Moderate',
-        'Low': 'Moderate', 
-        'Moderate': 'High',
-        'High': 'High',
-        'Very High': 'Very High'
-      }
+    // Conservative risk level ranges based on Hazard × Consequence scores
+    this.riskRanges = {
+      'Low': { min: 64, max: 250 },
+      'Moderate': { min: 251, max: 750 },
+      'High': { min: 751, max: 1400 },
+      'Very High': { min: 1401, max: 2000 }
     };
 
     this.riskColors = {
-      'Very Low': '#388e3c',
-      'Low': '#689f38', 
-      'Moderate': '#fbc02d',
-      'High': '#f57c00',
-      'Very High': '#d32f2f'
+      'Low': '#4CAF50',           // Green
+      'Moderate': '#FF9800',      // Orange
+      'High': '#FF5722',          // Red-Orange  
+      'Very High': '#D32F2F'      // Dark Red
     };
 
-    this.riskLevels = ['Very Low', 'Low', 'Moderate', 'High', 'Very High'];
+    this.riskLevels = ['Low', 'Moderate', 'High', 'Very High'];
   }
 
-  // Convert raw hazard score to risk level with detailed reasoning
-  getHazardLevel(hazardScore) {
+  // Calculate risk level from multiplied score with detailed reasoning
+  getRiskLevelFromScore(riskScore) {
     let level, reasoning;
     
+    if (riskScore >= 1401) {
+      level = 'Very High';
+      reasoning = 'Critical risk requiring immediate professional attention and comprehensive mitigation';
+    } else if (riskScore >= 751) {
+      level = 'High';
+      reasoning = 'Significant risk requiring prompt professional assessment and active management';
+    } else if (riskScore >= 251) {
+      level = 'Moderate';
+      reasoning = 'Moderate risk requiring professional monitoring and planned maintenance';
+    } else if (riskScore >= 64) {
+      level = 'Low';
+      reasoning = 'Low risk suitable for routine monitoring and standard maintenance';
+    } else {
+      level = 'Low';
+      reasoning = 'Very low risk with minimal management requirements';
+    }
+
+    return { level, reasoning, score: riskScore };
+  }
+
+  // Get hazard level description for display
+  getHazardLevelDescription(hazardScore) {
     if (hazardScore >= 40) {
-      level = 'Very High';
-      reasoning = 'Multiple high-risk factors present (average 8+ per factor)';
+      return 'Very High hazard potential (multiple critical factors)';
     } else if (hazardScore >= 30) {
-      level = 'High';
-      reasoning = 'Several significant risk factors (average 6-7.5 per factor)';
+      return 'High hazard potential (several significant factors)';
     } else if (hazardScore >= 20) {
-      level = 'Moderate';
-      reasoning = 'Some concerning factors present (average 4-6 per factor)';
+      return 'Moderate hazard potential (some concerning factors)';
     } else if (hazardScore >= 15) {
-      level = 'Low';
-      reasoning = 'Minimal risk factors (average 3-4 per factor)';
+      return 'Low hazard potential (minimal risk factors)';
     } else {
-      level = 'Very Low';
-      reasoning = 'Stable conditions, few concerns (average 2-3 per factor)';
+      return 'Very low hazard potential (stable conditions)';
     }
-
-    return { level, reasoning, score: hazardScore };
   }
 
-  // Convert raw consequence score to risk level with detailed reasoning
-  getConsequenceLevel(consequenceScore) {
-    let level, reasoning;
-    
+  // Get consequence level description for display
+  getConsequenceLevelDescription(consequenceScore) {
     if (consequenceScore >= 32) {
-      level = 'Very High';
-      reasoning = 'Severe/irreversible impacts expected (average 8+ per factor)';
+      return 'Very High consequence potential (severe impacts expected)';
     } else if (consequenceScore >= 24) {
-      level = 'High';
-      reasoning = 'Major regional impacts likely (average 6-8 per factor)';
+      return 'High consequence potential (major impacts likely)';
     } else if (consequenceScore >= 16) {
-      level = 'Moderate';
-      reasoning = 'Significant local impacts expected (average 4-6 per factor)';
+      return 'Moderate consequence potential (significant local impacts)';
     } else if (consequenceScore >= 12) {
-      level = 'Low';
-      reasoning = 'Limited local impact (average 3-4 per factor)';
+      return 'Low consequence potential (limited impacts)';
     } else {
-      level = 'Very Low';
-      reasoning = 'Minimal impact if failure occurs (average 2-3 per factor)';
+      return 'Very low consequence potential (minimal impacts)';
     }
-
-    return { level, reasoning, score: consequenceScore };
   }
 
-  // Calculate initial risk assessment from scores
+  // Calculate initial risk assessment from hazard and consequence scores
   calculateInitialRisk(hazardScore, consequenceScore) {
-    const hazardAssessment = this.getHazardLevel(hazardScore);
-    const consequenceAssessment = this.getConsequenceLevel(consequenceScore);
-    
-    const matrixRisk = this.riskMatrix[hazardAssessment.level][consequenceAssessment.level];
+    // Calculate risk using multiplication
+    const riskScore = hazardScore * consequenceScore;
+    const riskAssessment = this.getRiskLevelFromScore(riskScore);
     
     return {
-      hazard: hazardAssessment,
-      consequence: consequenceAssessment,
-      matrixRisk: matrixRisk,
-      color: this.riskColors[matrixRisk],
-      rationale: `${hazardAssessment.level} hazard potential combined with ${consequenceAssessment.level} consequence severity`,
+      hazard: {
+        score: hazardScore,
+        description: this.getHazardLevelDescription(hazardScore)
+      },
+      consequence: {
+        score: consequenceScore,
+        description: this.getConsequenceLevelDescription(consequenceScore)
+      },
+      riskScore: riskScore,
+      riskLevel: riskAssessment.level,
+      reasoning: riskAssessment.reasoning,
+      color: this.riskColors[riskAssessment.level],
       isCalculated: true,
       isOverridden: false,
-      finalRisk: matrixRisk,
-      finalColor: this.riskColors[matrixRisk]
+      finalRisk: riskAssessment.level,
+      finalColor: this.riskColors[riskAssessment.level]
     };
   }
 
-  // Apply professional override with justification
-  applyOverride(initialAssessment, overrideHazard = null, overrideConsequence = null, justification = '') {
-    const hazardLevel = overrideHazard || initialAssessment.hazard.level;
-    const consequenceLevel = overrideConsequence || initialAssessment.consequence.level;
-    
-    const finalRisk = this.riskMatrix[hazardLevel][consequenceLevel];
-    
+  // Apply direct professional override of overall risk level
+  applyDirectOverride(initialAssessment, overrideRiskLevel, justification = '') {
+    if (!this.riskLevels.includes(overrideRiskLevel)) {
+      throw new Error(`Invalid risk level: ${overrideRiskLevel}`);
+    }
+
     return {
       ...initialAssessment,
-      finalHazardLevel: hazardLevel,
-      finalConsequenceLevel: consequenceLevel,
-      finalRisk: finalRisk,
-      finalColor: this.riskColors[finalRisk],
-      isOverridden: overrideHazard !== null || overrideConsequence !== null,
+      finalRisk: overrideRiskLevel,
+      finalColor: this.riskColors[overrideRiskLevel],
+      isOverridden: true,
       overrideJustification: justification,
       overrideDetails: {
-        hazardChanged: overrideHazard !== null && overrideHazard !== initialAssessment.hazard.level,
-        consequenceChanged: overrideConsequence !== null && overrideConsequence !== initialAssessment.consequence.level,
-        originalHazard: initialAssessment.hazard.level,
-        originalConsequence: initialAssessment.consequence.level,
-        newHazard: hazardLevel,
-        newConsequence: consequenceLevel
+        originalRisk: initialAssessment.riskLevel,
+        overrideRisk: overrideRiskLevel,
+        changed: overrideRiskLevel !== initialAssessment.riskLevel,
+        timestamp: new Date().toISOString()
       }
     };
+  }
+
+  // Legacy method for backwards compatibility with existing override system
+  applyOverride(initialAssessment, overrideHazard = null, overrideConsequence = null, justification = '') {
+    // If this is actually a direct override (overrideHazard is a risk level)
+    if (overrideHazard && this.riskLevels.includes(overrideHazard)) {
+      return this.applyDirectOverride(initialAssessment, overrideHazard, justification);
+    }
+    
+    // Otherwise, treat as legacy matrix override (deprecated but supported)
+    console.warn('Legacy matrix override used - consider using applyDirectOverride instead');
+    return initialAssessment;
   }
 
   // Get all possible risk levels for dropdowns
@@ -155,6 +142,44 @@ class MatrixRiskAssessment {
   // Get risk colors for UI
   getRiskColors() {
     return this.riskColors;
+  }
+
+  // Get color for specific risk level
+  getRiskColor(riskLevel) {
+    return this.riskColors[riskLevel] || '#666';
+  }
+
+  // Get risk range information for debugging/display
+  getRiskRanges() {
+    return this.riskRanges;
+  }
+
+  // Calculate what risk level a given hazard/consequence combination would produce
+  calculateRiskScore(hazardScore, consequenceScore) {
+    return hazardScore * consequenceScore;
+  }
+
+  // Validate if scores are within expected ranges
+  validateScores(hazardScore, consequenceScore) {
+    const minHazard = 8;  // 4 factors × 2 minimum
+    const maxHazard = 50; // 5 factors × 10 maximum
+    const minConsequence = 8;  // 4 factors × 2 minimum  
+    const maxConsequence = 40; // 4 factors × 10 maximum
+
+    const issues = [];
+    
+    if (hazardScore < minHazard || hazardScore > maxHazard) {
+      issues.push(`Hazard score ${hazardScore} outside expected range ${minHazard}-${maxHazard}`);
+    }
+    
+    if (consequenceScore < minConsequence || consequenceScore > maxConsequence) {
+      issues.push(`Consequence score ${consequenceScore} outside expected range ${minConsequence}-${maxConsequence}`);
+    }
+    
+    return {
+      valid: issues.length === 0,
+      issues: issues
+    };
   }
 }
 
