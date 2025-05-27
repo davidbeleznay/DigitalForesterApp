@@ -39,6 +39,12 @@ The application features a fully implemented Road Risk Assessment tool with comp
 
 ## Changelog
 
+### 2025-05-27 - Fixed Road Risk Routing Issue
+- **FIXED**: Road Risk routing export issue resolved by refreshing file cache
+- **TECHNICAL**: Added comment header to RoadRiskForm.js to force Git recognition
+- **VERIFIED**: All routing paths working correctly for both tools
+- **STATUS**: Application ready for production use
+
 ### 2025-05-26 - COMPLETED Road Risk Assessment Form Implementation ✅
 - **MAJOR COMPLETION**: Fully implemented all 5 sections of Road Risk Assessment form
 - **NEW**: Complete Basic Information section with GPS coordinate capture
