@@ -667,6 +667,170 @@ function RoadRiskForm() {
           </div>
         </div>
       )}
+
+      {/* Hazard Factors Section */}
+      {activeSection === 'hazard' && (
+        <div className="form-section" style={{ borderTop: '4px solid #ff9800' }}>
+          <h2 className="section-header" style={{ color: '#ff9800' }}>
+            <span className="section-accent" style={{ background: 'linear-gradient(to bottom, #ff9800, #ffb74d)' }}></span>
+            Hazard Factors
+          </h2>
+          
+          <p className="section-description">
+            Assess the physical conditions that contribute to the likelihood of road failure. 
+            Each factor is rated on a scale where higher scores indicate greater risk.
+          </p>
+
+          {/* Terrain Stability */}
+          <div className="hazard-factor">
+            <h3 className="factor-title">Terrain Stability</h3>
+            <p className="factor-description">
+              Assess the overall stability of terrain surrounding the road segment, considering slope steepness, geological conditions, and historical stability.
+            </p>
+            <div className="score-buttons">
+              {[2, 4, 6, 10].map(score => (
+                <button
+                  key={score}
+                  type="button"
+                  className={`score-button ${getScoreButtonColorClass(score)} ${hazardFactors.terrainStability === score ? 'selected' : ''}`}
+                  onClick={() => handleHazardFactorChange('terrainStability', score)}
+                >
+                  <div className="score-number">{score}</div>
+                  <div className="score-description">{hazardScoreExplanations.terrainStability[score]}</div>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Slope Grade */}
+          <div className="hazard-factor">
+            <h3 className="factor-title">Slope Grade</h3>
+            <p className="factor-description">
+              Evaluate the average gradient of the road segment, as steeper grades increase erosion potential and runoff velocity.
+            </p>
+            <div className="score-buttons">
+              {[2, 4, 6, 10].map(score => (
+                <button
+                  key={score}
+                  type="button"
+                  className={`score-button ${getScoreButtonColorClass(score)} ${hazardFactors.slopeGrade === score ? 'selected' : ''}`}
+                  onClick={() => handleHazardFactorChange('slopeGrade', score)}
+                >
+                  <div className="score-number">{score}</div>
+                  <div className="score-description">{hazardScoreExplanations.slopeGrade[score]}</div>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Geology and Soil Conditions */}
+          <div className="hazard-factor">
+            <h3 className="factor-title">Geology and Soil Conditions</h3>
+            <p className="factor-description">
+              Consider the type of soils and bedrock present, focusing on their susceptibility to erosion, weathering, and mass movement.
+            </p>
+            <div className="score-buttons">
+              {[2, 4, 6, 10].map(score => (
+                <button
+                  key={score}
+                  type="button"
+                  className={`score-button ${getScoreButtonColorClass(score)} ${hazardFactors.geologySoil === score ? 'selected' : ''}`}
+                  onClick={() => handleHazardFactorChange('geologySoil', score)}
+                >
+                  <div className="score-number">{score}</div>
+                  <div className="score-description">{hazardScoreExplanations.geologySoil[score]}</div>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Drainage Conditions */}
+          <div className="hazard-factor">
+            <h3 className="factor-title">Drainage Conditions</h3>
+            <p className="factor-description">
+              Assess the effectiveness of surface and subsurface drainage, including ditches, culverts, and natural drainage patterns.
+            </p>
+            <div className="score-buttons">
+              {[2, 4, 6, 10].map(score => (
+                <button
+                  key={score}
+                  type="button"
+                  className={`score-button ${getScoreButtonColorClass(score)} ${hazardFactors.drainageConditions === score ? 'selected' : ''}`}
+                  onClick={() => handleHazardFactorChange('drainageConditions', score)}
+                >
+                  <div className="score-number">{score}</div>
+                  <div className="score-description">{hazardScoreExplanations.drainageConditions[score]}</div>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Road Failure History */}
+          <div className="hazard-factor">
+            <h3 className="factor-title">Road Failure History</h3>
+            <p className="factor-description">
+              Review any documented history of road failures, washouts, or maintenance issues in this segment or similar nearby areas.
+            </p>
+            <div className="score-buttons">
+              {[2, 4, 6, 10].map(score => (
+                <button
+                  key={score}
+                  type="button"
+                  className={`score-button ${getScoreButtonColorClass(score)} ${hazardFactors.roadFailureHistory === score ? 'selected' : ''}`}
+                  onClick={() => handleHazardFactorChange('roadFailureHistory', score)}
+                >
+                  <div className="score-number">{score}</div>
+                  <div className="score-description">{hazardScoreExplanations.roadFailureHistory[score]}</div>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Hazard Comments */}
+          <div className="form-group">
+            <label htmlFor="hazard-comments">Additional Observations</label>
+            <textarea
+              id="hazard-comments"
+              value={hazardFactors.comments}
+              onChange={handleHazardCommentsChange}
+              placeholder="Document any additional hazard observations, specific site conditions, or factors not captured above..."
+              rows={4}
+            />
+          </div>
+
+          {/* Current Hazard Score Display */}
+          <div className="hazard-score-summary">
+            <h4>Current Hazard Assessment</h4>
+            <div className="score-summary">
+              <div className="score-item">
+                <span className="score-label">Total Hazard Score:</span>
+                <span className="score-value">{calculateHazardScore()}</span>
+              </div>
+              <div className="factors-completed">
+                {Object.entries(hazardFactors).filter(([key, value]) => key !== 'comments' && value !== null).length} / 5 factors assessed
+              </div>
+            </div>
+          </div>
+
+          {/* Section Navigation */}
+          <div className="section-nav-buttons">
+            <button 
+              type="button" 
+              className="section-nav-button prev"
+              onClick={() => setActiveSection('basic')}
+            >
+              Previous: Basic Information
+            </button>
+            <button 
+              type="button" 
+              className="section-nav-button next"
+              onClick={() => setActiveSection('consequence')}
+            >
+              Next: Consequence Factors
+            </button>
+          </div>
+        </div>
+      )}
       
       {/* Results Section */}
       {activeSection === 'results' && (
