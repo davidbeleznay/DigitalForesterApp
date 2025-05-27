@@ -476,29 +476,54 @@
 }
 
 /* Optional Assessment Toggles */
+.optional-toggles {
+  margin-bottom: 32px;
+}
+
 .optional-assessment-toggle {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   margin-bottom: 24px;
-  padding: 20px;
+  padding: 24px;
   background: #f8f9fa;
-  border-radius: 10px;
+  border-radius: 12px;
   border: 1px solid #e9ecef;
+  transition: all 0.2s ease;
+}
+
+.optional-assessment-toggle:hover {
+  background: #f0f2f5;
+  border-color: #dee2e6;
+}
+
+.toggle-content {
+  margin-left: 20px;
+  flex: 1;
 }
 
 .toggle-label {
-  margin-left: 16px;
-  font-size: 16px;
+  font-size: 18px;
   font-weight: 600;
   color: #333;
+  margin-bottom: 8px;
+  cursor: pointer;
+  display: block;
+}
+
+.toggle-description {
+  font-size: 14px;
+  color: #666;
+  line-height: 1.5;
+  margin: 0;
 }
 
 /* Toggle Switch - Enhanced */
 .toggle-switch {
   position: relative;
   display: inline-block;
-  width: 54px;
-  height: 28px;
+  width: 60px;
+  height: 34px;
+  flex-shrink: 0;
 }
 
 .toggle-switch input {
@@ -516,24 +541,25 @@
   bottom: 0;
   background-color: #ccc;
   transition: 0.3s;
-  border-radius: 28px;
+  border-radius: 34px;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .toggle-slider:before {
   position: absolute;
   content: "";
-  height: 22px;
-  width: 22px;
-  left: 3px;
-  bottom: 3px;
+  height: 26px;
+  width: 26px;
+  left: 4px;
+  bottom: 4px;
   background-color: white;
   transition: 0.3s;
   border-radius: 50%;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
 
 input:checked + .toggle-slider {
-  background-color: #4CAF50;
+  background-color: #9c27b0;
 }
 
 input:checked + .toggle-slider:before {
@@ -546,16 +572,27 @@ input:checked + .toggle-slider:before {
   border-radius: 12px;
   overflow: hidden;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
-  margin-top: 24px;
+  margin: 32px 0;
   border: 1px solid rgba(0, 0, 0, 0.04);
 }
 
 .assessment-table h3 {
-  font-size: 18px;
+  font-size: 20px;
   font-weight: 600;
   color: #333;
-  margin: 0 0 20px 0;
-  padding: 20px 20px 0 20px;
+  margin: 0 0 12px 0;
+  padding: 24px 24px 0 24px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.table-description {
+  color: #666;
+  font-size: 14px;
+  line-height: 1.5;
+  margin: 0 0 24px 0;
+  padding: 0 24px;
 }
 
 .assessment-table table {
@@ -574,9 +611,9 @@ input:checked + .toggle-slider:before {
 }
 
 .assessment-table td {
-  padding: 16px 20px;
+  padding: 20px;
   border-bottom: 1px solid #f0f0f0;
-  vertical-align: middle;
+  vertical-align: top;
 }
 
 .assessment-table tbody tr:hover {
@@ -589,22 +626,46 @@ input:checked + .toggle-slider:before {
 
 .assessment-table label {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   cursor: pointer;
-  padding: 8px;
-  border-radius: 6px;
-  transition: background-color 0.2s ease;
+  padding: 12px;
+  border-radius: 8px;
+  transition: all 0.2s ease;
   margin: 0;
-  font-weight: 500;
+  font-weight: 400;
+  line-height: 1.4;
+  background: white;
+  border: 1px solid #e9ecef;
 }
 
 .assessment-table label:hover {
-  background: rgba(33, 150, 243, 0.05);
+  background: rgba(156, 39, 176, 0.05);
+  border-color: #9c27b0;
 }
 
 .assessment-table input[type="radio"] {
-  margin-right: 10px;
-  transform: scale(1.1);
+  margin: 4px 12px 0 0;
+  transform: scale(1.2);
+  accent-color: #9c27b0;
+  flex-shrink: 0;
+}
+
+.assessment-table td:first-child {
+  background: #f8f9fa;
+  font-weight: 500;
+  width: 200px;
+}
+
+.assessment-table td:first-child strong {
+  color: #333;
+  font-size: 15px;
+}
+
+.assessment-table td:first-child small {
+  color: #666;
+  font-size: 13px;
+  display: block;
+  margin-top: 4px;
 }
 
 /* Section Navigation */
@@ -830,15 +891,6 @@ input:checked + .toggle-slider:before {
     gap: 12px;
   }
   
-  .assessment-table {
-    font-size: 14px;
-  }
-  
-  .assessment-table th,
-  .assessment-table td {
-    padding: 12px 16px;
-  }
-
   .full-width-comments {
     padding: 24px 20px;
     margin: 32px 0;
@@ -858,5 +910,30 @@ input:checked + .toggle-slider:before {
     flex-direction: column;
     align-items: flex-start;
     gap: 12px;
+  }
+
+  .optional-assessment-toggle {
+    flex-direction: column;
+    gap: 16px;
+    align-items: flex-start;
+  }
+
+  .toggle-content {
+    margin-left: 0;
+  }
+
+  .assessment-table {
+    font-size: 14px;
+    overflow-x: auto;
+  }
+  
+  .assessment-table th,
+  .assessment-table td {
+    padding: 12px 16px;
+  }
+
+  .assessment-table td:first-child {
+    width: auto;
+    min-width: 150px;
   }
 }
