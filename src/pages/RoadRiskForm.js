@@ -323,8 +323,7 @@ const RoadRiskForm = () => {
                     { value: 1, label: 'Gentle (0-5%)', description: 'Very stable, minimal erosion risk' },
                     { value: 2, label: 'Moderate (5-15%)', description: 'Generally stable with proper drainage' },
                     { value: 3, label: 'Steep (15-25%)', description: 'Increased erosion and stability concerns' },
-                    { value: 4, label: 'Very Steep (25-35%)', description: 'High risk of erosion and failure' },
-                    { value: 5, label: 'Extreme (>35%)', description: 'Critical stability and safety concerns' }
+                    { value: 4, label: 'Very Steep (25-35%)', description: 'High risk of erosion and failure' }
                   ].map((option) => (
                     <label key={option.value} className="rating-option">
                       <input
@@ -334,7 +333,7 @@ const RoadRiskForm = () => {
                         checked={hazardFactors.slope === option.value}
                         onChange={(e) => handleHazardFactorChange('slope', e.target.value)}
                       />
-                      <div className="option-content">
+                      <div className="option-content" data-score={option.value}>
                         <span className="option-label">{option.label}</span>
                         <span className="option-description">{option.description}</span>
                       </div>
@@ -352,8 +351,7 @@ const RoadRiskForm = () => {
                     { value: 1, label: 'Very Stable', description: 'Rocky, well-consolidated soils' },
                     { value: 2, label: 'Stable', description: 'Firm soils with good structure' },
                     { value: 3, label: 'Moderately Stable', description: 'Some erosion potential, manageable' },
-                    { value: 4, label: 'Unstable', description: 'High erosion potential, loose soils' },
-                    { value: 5, label: 'Very Unstable', description: 'Critical erosion risk, landslide potential' }
+                    { value: 4, label: 'Unstable', description: 'High erosion potential, loose soils' }
                   ].map((option) => (
                     <label key={option.value} className="rating-option">
                       <input
@@ -363,7 +361,7 @@ const RoadRiskForm = () => {
                         checked={hazardFactors.soilStability === option.value}
                         onChange={(e) => handleHazardFactorChange('soilStability', e.target.value)}
                       />
-                      <div className="option-content">
+                      <div className="option-content" data-score={option.value}>
                         <span className="option-label">{option.label}</span>
                         <span className="option-description">{option.description}</span>
                       </div>
@@ -381,8 +379,7 @@ const RoadRiskForm = () => {
                     { value: 1, label: 'Excellent', description: 'Well-designed, functioning drainage' },
                     { value: 2, label: 'Good', description: 'Adequate drainage with minor issues' },
                     { value: 3, label: 'Fair', description: 'Some drainage problems, needs attention' },
-                    { value: 4, label: 'Poor', description: 'Inadequate drainage, frequent problems' },
-                    { value: 5, label: 'Failed', description: 'No effective drainage, major issues' }
+                    { value: 4, label: 'Poor', description: 'Inadequate drainage, frequent problems' }
                   ].map((option) => (
                     <label key={option.value} className="rating-option">
                       <input
@@ -392,7 +389,7 @@ const RoadRiskForm = () => {
                         checked={hazardFactors.drainageAdequacy === option.value}
                         onChange={(e) => handleHazardFactorChange('drainageAdequacy', e.target.value)}
                       />
-                      <div className="option-content">
+                      <div className="option-content" data-score={option.value}>
                         <span className="option-label">{option.label}</span>
                         <span className="option-description">{option.description}</span>
                       </div>
@@ -410,8 +407,7 @@ const RoadRiskForm = () => {
                     { value: 1, label: 'Excellent', description: 'Well-maintained, stable surface' },
                     { value: 2, label: 'Good', description: 'Minor wear, generally stable' },
                     { value: 3, label: 'Fair', description: 'Moderate wear, some maintenance needed' },
-                    { value: 4, label: 'Poor', description: 'Significant deterioration, safety concerns' },
-                    { value: 5, label: 'Failed', description: 'Severe damage, impassable conditions' }
+                    { value: 4, label: 'Poor', description: 'Significant deterioration, safety concerns' }
                   ].map((option) => (
                     <label key={option.value} className="rating-option">
                       <input
@@ -421,7 +417,7 @@ const RoadRiskForm = () => {
                         checked={hazardFactors.roadSurfaceCondition === option.value}
                         onChange={(e) => handleHazardFactorChange('roadSurfaceCondition', e.target.value)}
                       />
-                      <div className="option-content">
+                      <div className="option-content" data-score={option.value}>
                         <span className="option-label">{option.label}</span>
                         <span className="option-description">{option.description}</span>
                       </div>
@@ -439,8 +435,7 @@ const RoadRiskForm = () => {
                     { value: 1, label: 'Dense/Stable', description: 'Excellent erosion protection' },
                     { value: 2, label: 'Good Coverage', description: 'Good erosion protection' },
                     { value: 3, label: 'Moderate Coverage', description: 'Some erosion protection' },
-                    { value: 4, label: 'Sparse Coverage', description: 'Limited erosion protection' },
-                    { value: 5, label: 'Bare/Disturbed', description: 'No erosion protection' }
+                    { value: 4, label: 'Sparse Coverage', description: 'Limited erosion protection' }
                   ].map((option) => (
                     <label key={option.value} className="rating-option">
                       <input
@@ -450,12 +445,20 @@ const RoadRiskForm = () => {
                         checked={hazardFactors.vegetationCover === option.value}
                         onChange={(e) => handleHazardFactorChange('vegetationCover', e.target.value)}
                       />
-                      <div className="option-content">
+                      <div className="option-content" data-score={option.value}>
                         <span className="option-label">{option.label}</span>
                         <span className="option-description">{option.description}</span>
                       </div>
                     </label>
                   ))}
+                </div>
+              </div>
+
+              {/* Total Score Display */}
+              <div className="total-score-display">
+                <div className="total-score-label">Total Hazard Score:</div>
+                <div className="total-score-value">
+                  {Object.values(hazardFactors).reduce((sum, val) => sum + (val || 0), 0)}
                 </div>
               </div>
             </div>
@@ -490,7 +493,7 @@ const RoadRiskForm = () => {
                         checked={consequenceFactors.environmentalSensitivity === option.value}
                         onChange={(e) => handleConsequenceFactorChange('environmentalSensitivity', e.target.value)}
                       />
-                      <div className="option-content">
+                      <div className="option-content" data-score={option.value}>
                         <span className="option-label">{option.label}</span>
                         <span className="option-description">{option.description}</span>
                       </div>
@@ -518,7 +521,7 @@ const RoadRiskForm = () => {
                         checked={consequenceFactors.downstreamInfrastructure === option.value}
                         onChange={(e) => handleConsequenceFactorChange('downstreamInfrastructure', e.target.value)}
                       />
-                      <div className="option-content">
+                      <div className="option-content" data-score={option.value}>
                         <span className="option-label">{option.label}</span>
                         <span className="option-description">{option.description}</span>
                       </div>
@@ -546,7 +549,7 @@ const RoadRiskForm = () => {
                         checked={consequenceFactors.accessImportance === option.value}
                         onChange={(e) => handleConsequenceFactorChange('accessImportance', e.target.value)}
                       />
-                      <div className="option-content">
+                      <div className="option-content" data-score={option.value}>
                         <span className="option-label">{option.label}</span>
                         <span className="option-description">{option.description}</span>
                       </div>
@@ -574,12 +577,20 @@ const RoadRiskForm = () => {
                         checked={consequenceFactors.economicImpact === option.value}
                         onChange={(e) => handleConsequenceFactorChange('economicImpact', e.target.value)}
                       />
-                      <div className="option-content">
+                      <div className="option-content" data-score={option.value}>
                         <span className="option-label">{option.label}</span>
                         <span className="option-description">{option.description}</span>
                       </div>
                     </label>
                   ))}
+                </div>
+              </div>
+
+              {/* Total Score Display */}
+              <div className="total-score-display">
+                <div className="total-score-label">Total Consequence Score:</div>
+                <div className="total-score-value">
+                  {Object.values(consequenceFactors).reduce((sum, val) => sum + (val || 0), 0)}
                 </div>
               </div>
             </div>
