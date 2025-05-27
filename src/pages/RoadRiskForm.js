@@ -831,6 +831,153 @@ function RoadRiskForm() {
           </div>
         </div>
       )}
+
+      {/* Consequence Factors Section */}
+      {activeSection === 'consequence' && (
+        <div className="form-section" style={{ borderTop: '4px solid #f44336' }}>
+          <h2 className="section-header" style={{ color: '#f44336' }}>
+            <span className="section-accent" style={{ background: 'linear-gradient(to bottom, #f44336, #ef5350)' }}></span>
+            Consequence Factors
+          </h2>
+          
+          <p className="section-description">
+            Evaluate the potential impacts if road failure occurs. These factors assess the severity of environmental, 
+            economic, and social consequences rather than the likelihood of failure.
+          </p>
+
+          {/* Proximity to Water Resources */}
+          <div className="consequence-factor">
+            <h3 className="factor-title">Proximity to Water Resources</h3>
+            <p className="factor-description">
+              Consider the distance to streams, lakes, wetlands, and drinking water sources. Closer proximity increases 
+              potential for sediment delivery and water quality impacts.
+            </p>
+            <div className="score-buttons">
+              {[2, 4, 6, 10].map(score => (
+                <button
+                  key={score}
+                  type="button"
+                  className={`score-button ${getScoreButtonColorClass(score)} ${consequenceFactors.proximityToWater === score ? 'selected' : ''}`}
+                  onClick={() => handleConsequenceFactorChange('proximityToWater', score)}
+                >
+                  <div className="score-number">{score}</div>
+                  <div className="score-description">{consequenceScoreExplanations.proximityToWater[score]}</div>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Drainage Structure Adequacy */}
+          <div className="consequence-factor">
+            <h3 className="factor-title">Drainage Structure Adequacy</h3>
+            <p className="factor-description">
+              Assess whether existing culverts, bridges, and drainage systems can handle expected peak flows, 
+              including consideration of climate change projections.
+            </p>
+            <div className="score-buttons">
+              {[2, 4, 6, 10].map(score => (
+                <button
+                  key={score}
+                  type="button"
+                  className={`score-button ${getScoreButtonColorClass(score)} ${consequenceFactors.drainageStructure === score ? 'selected' : ''}`}
+                  onClick={() => handleConsequenceFactorChange('drainageStructure', score)}
+                >
+                  <div className="score-number">{score}</div>
+                  <div className="score-description">{consequenceScoreExplanations.drainageStructure[score]}</div>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Public and Industrial Use */}
+          <div className="consequence-factor">
+            <h3 className="factor-title">Public and Industrial Use</h3>
+            <p className="factor-description">
+              Evaluate the importance of the road for public access, emergency services, and industrial operations. 
+              Higher use levels increase consequences of road closure or failure.
+            </p>
+            <div className="score-buttons">
+              {[2, 4, 6, 10].map(score => (
+                <button
+                  key={score}
+                  type="button"
+                  className={`score-button ${getScoreButtonColorClass(score)} ${consequenceFactors.publicIndustrialUse === score ? 'selected' : ''}`}
+                  onClick={() => handleConsequenceFactorChange('publicIndustrialUse', score)}
+                >
+                  <div className="score-number">{score}</div>
+                  <div className="score-description">{consequenceScoreExplanations.publicIndustrialUse[score]}</div>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Environmental and Cultural Values */}
+          <div className="consequence-factor">
+            <h3 className="factor-title">Environmental and Cultural Values</h3>
+            <p className="factor-description">
+              Consider the presence of sensitive ecosystems, wildlife habitat, archaeological sites, or areas of 
+              cultural significance that could be impacted by road failure or sediment delivery.
+            </p>
+            <div className="score-buttons">
+              {[2, 4, 6, 10].map(score => (
+                <button
+                  key={score}
+                  type="button"
+                  className={`score-button ${getScoreButtonColorClass(score)} ${consequenceFactors.environmentalValue === score ? 'selected' : ''}`}
+                  onClick={() => handleConsequenceFactorChange('environmentalValue', score)}
+                >
+                  <div className="score-number">{score}</div>
+                  <div className="score-description">{consequenceScoreExplanations.environmentalValue[score]}</div>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Consequence Comments */}
+          <div className="form-group">
+            <label htmlFor="consequence-comments">Additional Impact Considerations</label>
+            <textarea
+              id="consequence-comments"
+              value={consequenceFactors.comments}
+              onChange={handleConsequenceCommentsChange}
+              placeholder="Document any additional consequence considerations, specific values at risk, or impact factors not captured above..."
+              rows={4}
+            />
+          </div>
+
+          {/* Current Consequence Score Display */}
+          <div className="consequence-score-summary">
+            <h4>Current Consequence Assessment</h4>
+            <div className="score-summary">
+              <div className="score-item">
+                <span className="score-label">Total Consequence Score:</span>
+                <span className="score-value">{calculateConsequenceScore()}</span>
+              </div>
+              <div className="factors-completed">
+                {Object.entries(consequenceFactors).filter(([key, value]) => key !== 'comments' && value !== null).length} / 4 factors assessed
+              </div>
+            </div>
+          </div>
+
+          {/* Section Navigation */}
+          <div className="section-nav-buttons">
+            <button 
+              type="button" 
+              className="section-nav-button prev"
+              onClick={() => setActiveSection('hazard')}
+            >
+              Previous: Hazard Factors
+            </button>
+            <button 
+              type="button" 
+              className="section-nav-button next"
+              onClick={() => setActiveSection('optional')}
+            >
+              Next: Optional Assessments
+            </button>
+          </div>
+        </div>
+      )}
       
       {/* Results Section */}
       {activeSection === 'results' && (
