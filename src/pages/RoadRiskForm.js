@@ -786,16 +786,23 @@ function RoadRiskForm() {
             </div>
           </div>
 
-          {/* Hazard Comments */}
-          <div className="form-group">
-            <label htmlFor="hazard-comments">Additional Observations</label>
+          {/* Enhanced Hazard Comments Section */}
+          <div className="full-width-comments">
+            <h4>
+              <span className="comments-icon">📝</span>
+              Additional Hazard Observations
+            </h4>
             <textarea
               id="hazard-comments"
               value={hazardFactors.comments}
               onChange={handleHazardCommentsChange}
-              placeholder="Document any additional hazard observations, specific site conditions, or factors not captured above..."
-              rows={4}
+              placeholder="Document any additional hazard observations, specific site conditions, or factors not captured above... Include details about weather conditions, seasonal variations, unusual geological features, or any other relevant hazard factors that may influence road stability."
+              rows={5}
             />
+            <div className="comments-helper-text">
+              Use this space to provide detailed context about hazard conditions, including seasonal variations, 
+              specific measurements, or observations that may not be fully captured in the scoring system above.
+            </div>
           </div>
 
           {/* Current Hazard Score Display */}
@@ -933,16 +940,23 @@ function RoadRiskForm() {
             </div>
           </div>
 
-          {/* Consequence Comments */}
-          <div className="form-group">
-            <label htmlFor="consequence-comments">Additional Impact Considerations</label>
+          {/* Enhanced Consequence Comments Section */}
+          <div className="full-width-comments">
+            <h4>
+              <span className="comments-icon">🎯</span>
+              Additional Impact Considerations
+            </h4>
             <textarea
               id="consequence-comments"
               value={consequenceFactors.comments}
               onChange={handleConsequenceCommentsChange}
-              placeholder="Document any additional consequence considerations, specific values at risk, or impact factors not captured above..."
-              rows={4}
+              placeholder="Document any additional consequence considerations, specific values at risk, or impact factors not captured above... Include details about downstream infrastructure, sensitive areas, economic impacts, emergency access requirements, or other consequences of potential road failure."
+              rows={5}
             />
+            <div className="comments-helper-text">
+              Consider documenting specific downstream infrastructure, economic impacts, emergency access considerations, 
+              or unique environmental/cultural values that could be affected by road failure.
+            </div>
           </div>
 
           {/* Current Consequence Score Display */}
