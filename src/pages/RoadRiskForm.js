@@ -1,9 +1,11 @@
-// Road Risk Assessment Form - Complete Implementation
+// Road Risk Assessment Form - Updated to Official Scoring System
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import MatrixRiskAssessment from '../utils/MatrixRiskAssessment';
 
 const RoadRiskForm = () => {
   const navigate = useNavigate();
+  const riskCalculator = new MatrixRiskAssessment();
 
   // Form sections
   const [activeSection, setActiveSection] = useState('basic');
@@ -18,21 +20,21 @@ const RoadRiskForm = () => {
     notes: ''
   });
 
-  // Hazard Factors State
+  // Hazard Factors State - Updated to match official methodology
   const [hazardFactors, setHazardFactors] = useState({
-    slope: null,
-    soilStability: null,
-    drainageAdequacy: null,
-    roadSurfaceCondition: null,
-    vegetationCover: null
+    terrainStability: null,
+    slopeGrade: null,
+    geologySoil: null,
+    drainageConditions: null,
+    failureHistory: null
   });
 
-  // Consequence Factors State
+  // Consequence Factors State - Updated to match official methodology
   const [consequenceFactors, setConsequenceFactors] = useState({
-    environmentalSensitivity: null,
-    downstreamInfrastructure: null,
-    accessImportance: null,
-    economicImpact: null
+    proximityToWater: null,
+    drainageStructureCapacity: null,
+    publicIndustrialUse: null,
+    environmentalCulturalValues: null
   });
 
   // Optional Assessments State
@@ -49,84 +51,46 @@ const RoadRiskForm = () => {
   const [overrideRiskLevel, setOverrideRiskLevel] = useState('');
   const [overrideJustification, setOverrideJustification] = useState('');
 
-  // Calculate Risk Assessment
+  // Calculate Risk Assessment using updated methodology
   const calculateRiskAssessment = () => {
     // Check if required assessments are complete
-    const hazardComplete = Object.values(hazardFactors).filter((val, idx) => idx < 5 && val !== null).length === 5;
-    const consequenceComplete = Object.values(consequenceFactors).filter((val, idx) => idx < 4 && val !== null).length === 4;
+    const hazardComplete = Object.values(hazardFactors).filter(val => val !== null).length === 5;
+    const consequenceComplete = Object.values(consequenceFactors).filter(val => val !== null).length === 4;
 
     if (!hazardComplete || !consequenceComplete) {
       setRiskAssessment(null);
       return;
     }
 
-    // Calculate hazard score
+    // Calculate hazard score (sum of 5 factors, each rated 2, 4, 6, or 10)
     const hazardScore = Object.values(hazardFactors).reduce((sum, val) => sum + (val || 0), 0);
-    const hazardLevel = hazardScore <= 10 ? 'Low' : hazardScore <= 15 ? 'Moderate' : hazardScore <= 20 ? 'High' : 'Very High';
-
-    // Calculate consequence score
+    
+    // Calculate consequence score (sum of 4 factors, each rated 2, 4, 6, or 10)
     const consequenceScore = Object.values(consequenceFactors).reduce((sum, val) => sum + (val || 0), 0);
-    const consequenceLevel = consequenceScore <= 8 ? 'Low' : consequenceScore <= 12 ? 'Moderate' : consequenceScore <= 16 ? 'High' : 'Very High';
 
-    // Risk Matrix Calculation
-    const riskMatrix = {
-      'Low-Low': 'Low',
-      'Low-Moderate': 'Low',
-      'Low-High': 'Moderate',
-      'Low-Very High': 'Moderate',
-      'Moderate-Low': 'Low',
-      'Moderate-Moderate': 'Moderate',
-      'Moderate-High': 'High',
-      'Moderate-Very High': 'High',
-      'High-Low': 'Moderate',
-      'High-Moderate': 'High',
-      'High-High': 'High',
-      'High-Very High': 'Very High',
-      'Very High-Low': 'Moderate',
-      'Very High-Moderate': 'High',
-      'Very High-High': 'Very High',
-      'Very High-Very High': 'Very High'
-    };
-
-    const riskKey = `${hazardLevel}-${consequenceLevel}`;
-    const calculatedRisk = riskMatrix[riskKey];
-    const riskScore = hazardScore * consequenceScore;
-
-    // Risk reasoning
-    const reasoning = `Based on ${hazardLevel.toLowerCase()} hazard conditions (score: ${hazardScore}) and ${consequenceLevel.toLowerCase()} potential consequences (score: ${consequenceScore}), the calculated risk level is ${calculatedRisk.toLowerCase()}.`;
-
-    const assessment = {
-      hazard: {
-        score: hazardScore,
-        level: hazardLevel,
-        description: `${hazardLevel} hazard conditions based on slope, soil stability, drainage, road surface, and vegetation factors.`
-      },
-      consequence: {
-        score: consequenceScore,
-        level: consequenceLevel,
-        description: `${consequenceLevel} potential consequences considering environmental sensitivity, infrastructure, access importance, and economic impact.`
-      },
-      riskLevel: calculatedRisk,
-      finalRisk: calculatedRisk,
-      riskScore: riskScore,
-      reasoning: reasoning,
-      isOverridden: false
-    };
-
-    setRiskAssessment(assessment);
+    // Use MatrixRiskAssessment utility for calculation
+    const assessment = riskCalculator.calculateInitialRisk(hazardScore, consequenceScore);
+    
+    // Add detailed reasoning
+    const detailedReasoning = `Based on hazard assessment (${hazardScore}/50 points) and consequence assessment (${consequenceScore}/40 points), the calculated risk score is ${assessment.riskScore} points, resulting in ${assessment.riskLevel} risk classification.`;
+    
+    setRiskAssessment({
+      ...assessment,
+      detailedReasoning: detailedReasoning
+    });
   };
 
   // Apply Professional Override
   const applyOverride = () => {
     if (!overrideRiskLevel || !overrideJustification.trim()) return;
 
-    setRiskAssessment(prev => ({
-      ...prev,
-      finalRisk: overrideRiskLevel,
-      isOverridden: true,
-      overrideJustification: overrideJustification
-    }));
+    const overriddenAssessment = riskCalculator.applyDirectOverride(
+      riskAssessment, 
+      overrideRiskLevel, 
+      overrideJustification
+    );
 
+    setRiskAssessment(overriddenAssessment);
     setShowOverride(false);
     setOverrideRiskLevel('');
     setOverrideJustification('');
@@ -137,8 +101,10 @@ const RoadRiskForm = () => {
     setRiskAssessment(prev => ({
       ...prev,
       finalRisk: prev.riskLevel,
+      finalColor: prev.color,
       isOverridden: false,
-      overrideJustification: ''
+      overrideJustification: '',
+      overrideDetails: null
     }));
   };
 
@@ -157,26 +123,17 @@ const RoadRiskForm = () => {
   // Handle basic info changes
   const handleBasicInfoChange = (e) => {
     const { name, value } = e.target;
-    setBasicInfo(prev => ({
-      ...prev,
-      [name]: value
-    }));
+    setBasicInfo(prev => ({ ...prev, [name]: value }));
   };
 
   // Handle hazard factor changes
   const handleHazardFactorChange = (factor, value) => {
-    setHazardFactors(prev => ({
-      ...prev,
-      [factor]: parseInt(value)
-    }));
+    setHazardFactors(prev => ({ ...prev, [factor]: parseInt(value) }));
   };
 
   // Handle consequence factor changes
   const handleConsequenceFactorChange = (factor, value) => {
-    setConsequenceFactors(prev => ({
-      ...prev,
-      [factor]: parseInt(value)
-    }));
+    setConsequenceFactors(prev => ({ ...prev, [factor]: parseInt(value) }));
   };
 
   // Section navigation
@@ -192,11 +149,8 @@ const RoadRiskForm = () => {
     <div className="road-risk-form">
       <div className="form-header">
         <h1>🛣️ Road Risk Assessment</h1>
-        <p>Comprehensive risk evaluation for forest road segments</p>
-        <button 
-          onClick={() => navigate('/')} 
-          className="back-button"
-        >
+        <p>Professional risk evaluation using official forest road risk methodology</p>
+        <button onClick={() => navigate('/')} className="back-button">
           ← Back to Home
         </button>
       </div>
@@ -305,33 +259,36 @@ const RoadRiskForm = () => {
           </div>
         )}
 
-        {/* Hazard Factors Section */}
+        {/* Hazard Factors Section - Updated to Official Methodology */}
         {activeSection === 'hazard' && (
           <div className="form-section" style={{ borderTop: '4px solid #ff9800' }}>
             <h2 className="section-header" style={{ color: '#ff9800' }}>
               <span className="section-accent" style={{ background: 'linear-gradient(to bottom, #ff9800, #ffb74d)' }}></span>
               Hazard Factors Assessment
             </h2>
+            <p className="scoring-explanation">
+              Each factor is rated on a 4-point scale: <strong>2 (Low)</strong>, <strong>4 (Moderate)</strong>, <strong>6 (High)</strong>, <strong>10 (Very High)</strong>
+            </p>
 
             <div className="hazard-factors">
-              {/* Slope */}
+              {/* Terrain Stability */}
               <div className="factor-group">
-                <h3>Road Slope</h3>
-                <p>Evaluate the steepness of the road segment</p>
+                <h3>1. Terrain Stability</h3>
+                <p>Evaluate overall terrain stability and slope conditions</p>
                 <div className="rating-options">
                   {[
-                    { value: 1, label: 'Gentle (0-5%)', description: 'Very stable, minimal erosion risk' },
-                    { value: 2, label: 'Moderate (5-15%)', description: 'Generally stable with proper drainage' },
-                    { value: 3, label: 'Steep (15-25%)', description: 'Increased erosion and stability concerns' },
-                    { value: 4, label: 'Very Steep (25-35%)', description: 'High risk of erosion and failure' }
+                    { value: 2, label: 'Stable terrain (slopes <40%)', description: 'Generally stable conditions with minimal risk' },
+                    { value: 4, label: 'Moderately stable (slopes 40-60%)', description: 'Some stability concerns but manageable' },
+                    { value: 6, label: 'Potentially unstable (slopes >60%)', description: 'Significant stability concerns present' },
+                    { value: 10, label: 'Unstable terrain (Class IV/V)', description: 'High frequency/vulnerability to failure' }
                   ].map((option) => (
                     <label key={option.value} className="rating-option">
                       <input
                         type="radio"
-                        name="slope"
+                        name="terrainStability"
                         value={option.value}
-                        checked={hazardFactors.slope === option.value}
-                        onChange={(e) => handleHazardFactorChange('slope', e.target.value)}
+                        checked={hazardFactors.terrainStability === option.value}
+                        onChange={(e) => handleHazardFactorChange('terrainStability', e.target.value)}
                       />
                       <div className="option-content" data-score={option.value}>
                         <span className="option-label">{option.label}</span>
@@ -342,24 +299,24 @@ const RoadRiskForm = () => {
                 </div>
               </div>
 
-              {/* Soil Stability */}
+              {/* Slope Grade */}
               <div className="factor-group">
-                <h3>Soil Stability</h3>
-                <p>Assess the stability and erosion potential of roadway soils</p>
+                <h3>2. Slope Grade</h3>
+                <p>Assess the steepness of the road gradient</p>
                 <div className="rating-options">
                   {[
-                    { value: 1, label: 'Very Stable', description: 'Rocky, well-consolidated soils' },
-                    { value: 2, label: 'Stable', description: 'Firm soils with good structure' },
-                    { value: 3, label: 'Moderately Stable', description: 'Some erosion potential, manageable' },
-                    { value: 4, label: 'Unstable', description: 'High erosion potential, loose soils' }
+                    { value: 2, label: 'Low grade (<8%)', description: 'Minimal erosion and stability risks' },
+                    { value: 4, label: 'Moderate grade (8-12%)', description: 'Some erosion potential with proper management' },
+                    { value: 6, label: 'Steep grade (12-18%)', description: 'Increased erosion and runoff concerns' },
+                    { value: 10, label: 'Very steep grade (>18%)', description: 'High erosion potential and stability risks' }
                   ].map((option) => (
                     <label key={option.value} className="rating-option">
                       <input
                         type="radio"
-                        name="soilStability"
+                        name="slopeGrade"
                         value={option.value}
-                        checked={hazardFactors.soilStability === option.value}
-                        onChange={(e) => handleHazardFactorChange('soilStability', e.target.value)}
+                        checked={hazardFactors.slopeGrade === option.value}
+                        onChange={(e) => handleHazardFactorChange('slopeGrade', e.target.value)}
                       />
                       <div className="option-content" data-score={option.value}>
                         <span className="option-label">{option.label}</span>
@@ -370,24 +327,24 @@ const RoadRiskForm = () => {
                 </div>
               </div>
 
-              {/* Drainage Adequacy */}
+              {/* Geology/Soil Type */}
               <div className="factor-group">
-                <h3>Drainage Adequacy</h3>
-                <p>Evaluate the effectiveness of current drainage systems</p>
+                <h3>3. Geology/Soil Type</h3>
+                <p>Evaluate soil stability and erosion characteristics</p>
                 <div className="rating-options">
                   {[
-                    { value: 1, label: 'Excellent', description: 'Well-designed, functioning drainage' },
-                    { value: 2, label: 'Good', description: 'Adequate drainage with minor issues' },
-                    { value: 3, label: 'Fair', description: 'Some drainage problems, needs attention' },
-                    { value: 4, label: 'Poor', description: 'Inadequate drainage, frequent problems' }
+                    { value: 2, label: 'Cohesive, stable soils/bedrock', description: 'Well-consolidated, erosion-resistant materials' },
+                    { value: 4, label: 'Moderately stable soils', description: 'Generally stable with some erosion potential' },
+                    { value: 6, label: 'Loose, erodible soils', description: 'Moderate to high erosion susceptibility' },
+                    { value: 10, label: 'Highly erodible soils/talus', description: 'Very high erosion risk, unstable materials' }
                   ].map((option) => (
                     <label key={option.value} className="rating-option">
                       <input
                         type="radio"
-                        name="drainageAdequacy"
+                        name="geologySoil"
                         value={option.value}
-                        checked={hazardFactors.drainageAdequacy === option.value}
-                        onChange={(e) => handleHazardFactorChange('drainageAdequacy', e.target.value)}
+                        checked={hazardFactors.geologySoil === option.value}
+                        onChange={(e) => handleHazardFactorChange('geologySoil', e.target.value)}
                       />
                       <div className="option-content" data-score={option.value}>
                         <span className="option-label">{option.label}</span>
@@ -398,24 +355,24 @@ const RoadRiskForm = () => {
                 </div>
               </div>
 
-              {/* Road Surface Condition */}
+              {/* Drainage Conditions */}
               <div className="factor-group">
-                <h3>Road Surface Condition</h3>
-                <p>Assess the current condition of the road surface</p>
+                <h3>4. Drainage Conditions</h3>
+                <p>Assess effectiveness of water management and drainage</p>
                 <div className="rating-options">
                   {[
-                    { value: 1, label: 'Excellent', description: 'Well-maintained, stable surface' },
-                    { value: 2, label: 'Good', description: 'Minor wear, generally stable' },
-                    { value: 3, label: 'Fair', description: 'Moderate wear, some maintenance needed' },
-                    { value: 4, label: 'Poor', description: 'Significant deterioration, safety concerns' }
+                    { value: 2, label: 'Well-drained, minimal surface water', description: 'Excellent drainage with no water issues' },
+                    { value: 4, label: 'Moderate drainage issues', description: 'Some water management concerns' },
+                    { value: 6, label: 'Poor drainage, standing water', description: 'Significant drainage problems present' },
+                    { value: 10, label: 'Severe drainage, seepage/springs', description: 'Critical water management issues' }
                   ].map((option) => (
                     <label key={option.value} className="rating-option">
                       <input
                         type="radio"
-                        name="roadSurfaceCondition"
+                        name="drainageConditions"
                         value={option.value}
-                        checked={hazardFactors.roadSurfaceCondition === option.value}
-                        onChange={(e) => handleHazardFactorChange('roadSurfaceCondition', e.target.value)}
+                        checked={hazardFactors.drainageConditions === option.value}
+                        onChange={(e) => handleHazardFactorChange('drainageConditions', e.target.value)}
                       />
                       <div className="option-content" data-score={option.value}>
                         <span className="option-label">{option.label}</span>
@@ -426,24 +383,24 @@ const RoadRiskForm = () => {
                 </div>
               </div>
 
-              {/* Vegetation Cover */}
+              {/* Road/Slope Failure History */}
               <div className="factor-group">
-                <h3>Vegetation Cover</h3>
-                <p>Evaluate vegetation stability and erosion protection</p>
+                <h3>5. Road/Slope Failure History</h3>
+                <p>Consider historical performance and failure record</p>
                 <div className="rating-options">
                   {[
-                    { value: 1, label: 'Dense/Stable', description: 'Excellent erosion protection' },
-                    { value: 2, label: 'Good Coverage', description: 'Good erosion protection' },
-                    { value: 3, label: 'Moderate Coverage', description: 'Some erosion protection' },
-                    { value: 4, label: 'Sparse Coverage', description: 'Limited erosion protection' }
+                    { value: 2, label: 'No previous failures', description: 'Excellent historical performance record' },
+                    { value: 4, label: 'Minor historical issues', description: 'Some minor problems, mostly resolved' },
+                    { value: 6, label: 'Moderate historical failures', description: 'Several notable failures or ongoing issues' },
+                    { value: 10, label: 'Frequent/significant failures', description: 'History of major failures or chronic problems' }
                   ].map((option) => (
                     <label key={option.value} className="rating-option">
                       <input
                         type="radio"
-                        name="vegetationCover"
+                        name="failureHistory"
                         value={option.value}
-                        checked={hazardFactors.vegetationCover === option.value}
-                        onChange={(e) => handleHazardFactorChange('vegetationCover', e.target.value)}
+                        checked={hazardFactors.failureHistory === option.value}
+                        onChange={(e) => handleHazardFactorChange('failureHistory', e.target.value)}
                       />
                       <div className="option-content" data-score={option.value}>
                         <span className="option-label">{option.label}</span>
@@ -458,40 +415,43 @@ const RoadRiskForm = () => {
               <div className="total-score-display">
                 <div className="total-score-label">Total Hazard Score:</div>
                 <div className="total-score-value">
-                  {Object.values(hazardFactors).reduce((sum, val) => sum + (val || 0), 0)}
+                  {Object.values(hazardFactors).reduce((sum, val) => sum + (val || 0), 0)} / 50
                 </div>
               </div>
             </div>
           </div>
         )}
 
-        {/* Consequence Factors Section */}
+        {/* Consequence Factors Section - Updated to Official Methodology */}
         {activeSection === 'consequence' && (
           <div className="form-section" style={{ borderTop: '4px solid #f44336' }}>
             <h2 className="section-header" style={{ color: '#f44336' }}>
               <span className="section-accent" style={{ background: 'linear-gradient(to bottom, #f44336, #ef5350)' }}></span>
               Consequence Factors Assessment
             </h2>
+            <p className="scoring-explanation">
+              Each factor is rated on a 4-point scale: <strong>2 (Low)</strong>, <strong>4 (Moderate)</strong>, <strong>6 (High)</strong>, <strong>10 (Very High)</strong>
+            </p>
 
             <div className="consequence-factors">
-              {/* Environmental Sensitivity */}
+              {/* Proximity to Water Resources */}
               <div className="factor-group">
-                <h3>Environmental Sensitivity</h3>
-                <p>Assess potential environmental impacts of road failure</p>
+                <h3>1. Proximity to Water Resources</h3>
+                <p>Assess potential impacts to water bodies and aquatic resources</p>
                 <div className="rating-options">
                   {[
-                    { value: 1, label: 'Low Sensitivity', description: 'Minimal environmental concerns' },
-                    { value: 2, label: 'Moderate Sensitivity', description: 'Some environmental considerations' },
-                    { value: 3, label: 'High Sensitivity', description: 'Important environmental values' },
-                    { value: 4, label: 'Critical Sensitivity', description: 'Protected or critical habitats' }
+                    { value: 2, label: 'No water resources nearby (>100m)', description: 'Minimal risk to aquatic resources' },
+                    { value: 4, label: 'Non-fish bearing stream (30-100m)', description: 'Limited aquatic resource impacts' },
+                    { value: 6, label: 'Fish bearing stream (10-30m)', description: 'Significant potential for aquatic impacts' },
+                    { value: 10, label: 'Adjacent to fish stream (<10m) or drinking water', description: 'Critical aquatic resource proximity' }
                   ].map((option) => (
                     <label key={option.value} className="rating-option">
                       <input
                         type="radio"
-                        name="environmentalSensitivity"
+                        name="proximityToWater"
                         value={option.value}
-                        checked={consequenceFactors.environmentalSensitivity === option.value}
-                        onChange={(e) => handleConsequenceFactorChange('environmentalSensitivity', e.target.value)}
+                        checked={consequenceFactors.proximityToWater === option.value}
+                        onChange={(e) => handleConsequenceFactorChange('proximityToWater', e.target.value)}
                       />
                       <div className="option-content" data-score={option.value}>
                         <span className="option-label">{option.label}</span>
@@ -502,24 +462,24 @@ const RoadRiskForm = () => {
                 </div>
               </div>
 
-              {/* Downstream Infrastructure */}
+              {/* Drainage Structure Capacity */}
               <div className="factor-group">
-                <h3>Downstream Infrastructure</h3>
-                <p>Evaluate potential impacts to downstream facilities</p>
+                <h3>2. Drainage Structure Capacity</h3>
+                <p>Evaluate adequacy of culverts and drainage infrastructure</p>
                 <div className="rating-options">
                   {[
-                    { value: 1, label: 'No Infrastructure', description: 'No downstream facilities at risk' },
-                    { value: 2, label: 'Minor Infrastructure', description: 'Low-value facilities or remote areas' },
-                    { value: 3, label: 'Moderate Infrastructure', description: 'Important facilities or access routes' },
-                    { value: 4, label: 'Critical Infrastructure', description: 'Essential facilities or major routes' }
+                    { value: 2, label: 'Adequate for 100+ year events', description: 'Excellent capacity for extreme events' },
+                    { value: 4, label: 'Adequate for 50-year events', description: 'Good capacity for major storms' },
+                    { value: 6, label: 'Adequate for 25-year events', description: 'Limited capacity, some risk in large storms' },
+                    { value: 10, label: 'Undersized or deteriorating', description: 'Inadequate capacity, high failure risk' }
                   ].map((option) => (
                     <label key={option.value} className="rating-option">
                       <input
                         type="radio"
-                        name="downstreamInfrastructure"
+                        name="drainageStructureCapacity"
                         value={option.value}
-                        checked={consequenceFactors.downstreamInfrastructure === option.value}
-                        onChange={(e) => handleConsequenceFactorChange('downstreamInfrastructure', e.target.value)}
+                        checked={consequenceFactors.drainageStructureCapacity === option.value}
+                        onChange={(e) => handleConsequenceFactorChange('drainageStructureCapacity', e.target.value)}
                       />
                       <div className="option-content" data-score={option.value}>
                         <span className="option-label">{option.label}</span>
@@ -530,24 +490,24 @@ const RoadRiskForm = () => {
                 </div>
               </div>
 
-              {/* Access Importance */}
+              {/* Public/Industrial Use Level */}
               <div className="factor-group">
-                <h3>Access Importance</h3>
-                <p>Evaluate the importance of maintaining road access</p>
+                <h3>3. Public/Industrial Use Level</h3>
+                <p>Consider traffic volume and importance of road access</p>
                 <div className="rating-options">
                   {[
-                    { value: 1, label: 'Low Importance', description: 'Minimal impact if access lost' },
-                    { value: 2, label: 'Moderate Importance', description: 'Some impact, alternatives available' },
-                    { value: 3, label: 'High Importance', description: 'Significant impact, limited alternatives' },
-                    { value: 4, label: 'Critical Importance', description: 'Essential access, no alternatives' }
+                    { value: 2, label: 'Minimal use (wilderness road)', description: 'Very low traffic, limited access needs' },
+                    { value: 4, label: 'Low volume industrial use', description: 'Occasional industrial traffic only' },
+                    { value: 6, label: 'Moderate public/industrial use', description: 'Regular public and industrial access' },
+                    { value: 10, label: 'High volume/mainline road', description: 'Critical access route with heavy use' }
                   ].map((option) => (
                     <label key={option.value} className="rating-option">
                       <input
                         type="radio"
-                        name="accessImportance"
+                        name="publicIndustrialUse"
                         value={option.value}
-                        checked={consequenceFactors.accessImportance === option.value}
-                        onChange={(e) => handleConsequenceFactorChange('accessImportance', e.target.value)}
+                        checked={consequenceFactors.publicIndustrialUse === option.value}
+                        onChange={(e) => handleConsequenceFactorChange('publicIndustrialUse', e.target.value)}
                       />
                       <div className="option-content" data-score={option.value}>
                         <span className="option-label">{option.label}</span>
@@ -558,24 +518,24 @@ const RoadRiskForm = () => {
                 </div>
               </div>
 
-              {/* Economic Impact */}
+              {/* Environmental/Cultural Values */}
               <div className="factor-group">
-                <h3>Economic Impact</h3>
-                <p>Assess potential economic consequences of road failure</p>
+                <h3>4. Environmental/Cultural Values</h3>
+                <p>Assess significance of environmental and cultural resources</p>
                 <div className="rating-options">
                   {[
-                    { value: 1, label: 'Minimal Impact', description: 'Low economic consequences' },
-                    { value: 2, label: 'Low Impact', description: 'Some economic impact, manageable' },
-                    { value: 3, label: 'Moderate Impact', description: 'Significant economic consequences' },
-                    { value: 4, label: 'High Impact', description: 'Major economic losses, regional impact' }
+                    { value: 2, label: 'No significant values', description: 'Standard forest conditions, no special values' },
+                    { value: 4, label: 'Standard riparian/wildlife values', description: 'Typical environmental considerations' },
+                    { value: 6, label: 'Important habitat or cultural areas', description: 'Notable environmental or cultural significance' },
+                    { value: 10, label: 'Critical habitat or culturally significant', description: 'Highly sensitive or protected areas' }
                   ].map((option) => (
                     <label key={option.value} className="rating-option">
                       <input
                         type="radio"
-                        name="economicImpact"
+                        name="environmentalCulturalValues"
                         value={option.value}
-                        checked={consequenceFactors.economicImpact === option.value}
-                        onChange={(e) => handleConsequenceFactorChange('economicImpact', e.target.value)}
+                        checked={consequenceFactors.environmentalCulturalValues === option.value}
+                        onChange={(e) => handleConsequenceFactorChange('environmentalCulturalValues', e.target.value)}
                       />
                       <div className="option-content" data-score={option.value}>
                         <span className="option-label">{option.label}</span>
@@ -590,7 +550,7 @@ const RoadRiskForm = () => {
               <div className="total-score-display">
                 <div className="total-score-label">Total Consequence Score:</div>
                 <div className="total-score-value">
-                  {Object.values(consequenceFactors).reduce((sum, val) => sum + (val || 0), 0)}
+                  {Object.values(consequenceFactors).reduce((sum, val) => sum + (val || 0), 0)} / 40
                 </div>
               </div>
             </div>
@@ -624,7 +584,7 @@ const RoadRiskForm = () => {
                     />
                     <span className="toggle-content">
                       <strong>🏔️ Geotechnical Assessment</strong>
-                      <p>Detailed soil and slope stability analysis</p>
+                      <p>Detailed soil and slope stability analysis including cut/fill slopes, bedrock conditions, and groundwater</p>
                     </span>
                   </label>
                 </div>
@@ -641,7 +601,7 @@ const RoadRiskForm = () => {
                     />
                     <span className="toggle-content">
                       <strong>🏗️ Infrastructure Assessment</strong>
-                      <p>Detailed analysis of culverts, bridges, and structures</p>
+                      <p>Detailed analysis of road surface, ditches, culverts, and overall infrastructure condition</p>
                     </span>
                   </label>
                 </div>
@@ -650,9 +610,9 @@ const RoadRiskForm = () => {
               {optionalAssessments.geotechnicalEnabled && (
                 <div className="detailed-assessment">
                   <h3>🏔️ Geotechnical Assessment</h3>
-                  <p>This section would contain detailed geotechnical evaluation fields.</p>
+                  <p>Factors include cut slope height, fill slope height, bedrock condition, groundwater conditions, and erosion evidence.</p>
                   <div className="placeholder-notice">
-                    <p>📝 Detailed geotechnical assessment form would be implemented here.</p>
+                    <p>📝 Detailed geotechnical assessment form would be implemented here with Low/Moderate/High ratings for each factor.</p>
                   </div>
                 </div>
               )}
@@ -660,9 +620,9 @@ const RoadRiskForm = () => {
               {optionalAssessments.infrastructureEnabled && (
                 <div className="detailed-assessment">
                   <h3>🏗️ Infrastructure Assessment</h3>
-                  <p>This section would contain detailed infrastructure evaluation fields.</p>
+                  <p>Factors include road surface type/condition, ditch condition, culvert sizing and condition, and road age.</p>
                   <div className="placeholder-notice">
-                    <p>📝 Detailed infrastructure assessment form would be implemented here.</p>
+                    <p>📝 Detailed infrastructure assessment form would be implemented here with Good/Fair/Poor ratings for each factor.</p>
                   </div>
                 </div>
               )}
@@ -670,7 +630,7 @@ const RoadRiskForm = () => {
           </div>
         )}
 
-        {/* Results Section - Enhanced */}
+        {/* Results Section - Enhanced with Official Methodology */}
         {activeSection === 'results' && (
           <div className="form-section" style={{ borderTop: '4px solid #4caf50' }}>
             <h2 className="section-header" style={{ color: '#4caf50' }}>
@@ -680,6 +640,13 @@ const RoadRiskForm = () => {
             
             {riskAssessment ? (
               <div className="risk-results-container">
+                {/* Official Methodology Display */}
+                <div className="methodology-display">
+                  <h3>📋 Assessment Methodology</h3>
+                  <p><strong>Risk Score = Hazard Score × Consequence Score</strong></p>
+                  <p>Using official forest road risk assessment scoring system with 4-point scale (2, 4, 6, 10)</p>
+                </div>
+
                 {/* Risk Calculation Flow */}
                 <div className="risk-calculation-display">
                   <div className="calculation-step">
@@ -690,7 +657,7 @@ const RoadRiskForm = () => {
                     <div className="score-card hazard-card">
                       <div className="score-main">
                         <span className="score-value">{riskAssessment.hazard.score}</span>
-                        <span className="score-label">Total Score</span>
+                        <span className="score-label">/ 50 points</span>
                       </div>
                       <div className="score-description">
                         {riskAssessment.hazard.description}
@@ -700,7 +667,7 @@ const RoadRiskForm = () => {
 
                   <div className="calculation-operator">
                     <span className="operator-symbol">×</span>
-                    <span className="operator-label">Risk Matrix</span>
+                    <span className="operator-label">Multiply</span>
                   </div>
 
                   <div className="calculation-step">
@@ -711,7 +678,7 @@ const RoadRiskForm = () => {
                     <div className="score-card consequence-card">
                       <div className="score-main">
                         <span className="score-value">{riskAssessment.consequence.score}</span>
-                        <span className="score-label">Total Score</span>
+                        <span className="score-label">/ 40 points</span>
                       </div>
                       <div className="score-description">
                         {riskAssessment.consequence.description}
@@ -735,38 +702,25 @@ const RoadRiskForm = () => {
                         <span className="risk-score-display">Score: {riskAssessment.riskScore}</span>
                       </div>
                       <div className="risk-reasoning">
-                        {riskAssessment.reasoning}
+                        {riskAssessment.detailedReasoning}
                       </div>
                     </div>
                   </div>
                 </div>
 
-                {/* Risk Summary Card */}
-                <div className="risk-summary-card">
-                  <div className="summary-header">
-                    <h3>Assessment Summary</h3>
-                    <div className={`risk-status-badge ${riskAssessment.finalRisk.toLowerCase().replace(' ', '-')}-risk`}>
-                      {riskAssessment.finalRisk.toUpperCase()} RISK
-                    </div>
+                {/* Management Recommendations */}
+                <div className="management-recommendations">
+                  <h3>📋 Management Recommendations</h3>
+                  <div className="recommendations-list">
+                    {riskCalculator.getManagementRecommendations(riskAssessment.finalRisk).map((recommendation, index) => (
+                      <div key={index} className="recommendation-item">
+                        <span className="recommendation-bullet">•</span>
+                        <span className="recommendation-text">{recommendation}</span>
+                      </div>
+                    ))}
                   </div>
-                  
-                  <div className="summary-details">
-                    <div className="detail-item">
-                      <span className="detail-label">Assessment Date:</span>
-                      <span className="detail-value">{basicInfo.assessmentDate}</span>
-                    </div>
-                    <div className="detail-item">
-                      <span className="detail-label">Road Segment:</span>
-                      <span className="detail-value">{basicInfo.roadName || 'Not specified'}</span>
-                    </div>
-                    <div className="detail-item">
-                      <span className="detail-label">Assessor:</span>
-                      <span className="detail-value">{basicInfo.assessor || 'Not specified'}</span>
-                    </div>
-                    <div className="detail-item">
-                      <span className="detail-label">Calculation Method:</span>
-                      <span className="detail-value">Hazard × Consequence Matrix</span>
-                    </div>
+                  <div className="priority-badge">
+                    <strong>Priority: {riskAssessment.priority}</strong>
                   </div>
                 </div>
 
@@ -816,7 +770,7 @@ const RoadRiskForm = () => {
                   <div className="professional-override-card">
                     <div className="override-header">
                       <h4>⚖️ Professional Override</h4>
-                      <p>If professional judgment suggests a different risk level, you can override the calculated result:</p>
+                      <p>If professional judgment suggests a different risk level based on site-specific conditions, you can override the calculated result:</p>
                     </div>
                     <button 
                       type="button" 
@@ -833,7 +787,7 @@ const RoadRiskForm = () => {
                   <div className="override-form-card">
                     <div className="override-form-header">
                       <h4>Apply Professional Override</h4>
-                      <p>Override the calculated risk level based on professional judgment and site-specific factors.</p>
+                      <p>Override the calculated risk level based on professional judgment and site-specific factors not fully captured in the standard assessment.</p>
                     </div>
                     
                     <div className="override-form-content">
@@ -859,7 +813,7 @@ const RoadRiskForm = () => {
                           id="override-justification"
                           value={overrideJustification}
                           onChange={(e) => setOverrideJustification(e.target.value)}
-                          placeholder="Provide detailed professional justification for the override, including specific site conditions, professional experience, or additional factors not captured in the standard assessment..."
+                          placeholder="Provide detailed professional justification for the override, including specific site conditions, professional experience, local knowledge, or additional factors not captured in the standard assessment methodology..."
                           rows={5}
                           className="override-textarea"
                           required
@@ -886,29 +840,6 @@ const RoadRiskForm = () => {
                     </div>
                   </div>
                 )}
-
-                {/* Additional Assessment Information */}
-                {(optionalAssessments.geotechnicalEnabled || optionalAssessments.infrastructureEnabled) && (
-                  <div className="additional-assessments-card">
-                    <h4>📋 Additional Assessments Completed</h4>
-                    <div className="assessment-badges">
-                      {optionalAssessments.geotechnicalEnabled && (
-                        <span className="assessment-badge geotechnical">
-                          🏔️ Geotechnical Assessment
-                        </span>
-                      )}
-                      {optionalAssessments.infrastructureEnabled && (
-                        <span className="assessment-badge infrastructure">
-                          🏗️ Infrastructure Assessment
-                        </span>
-                      )}
-                    </div>
-                    <p className="assessment-note">
-                      Additional detailed assessments have been completed and should be considered 
-                      alongside this risk calculation for comprehensive project planning.
-                    </p>
-                  </div>
-                )}
               </div>
             ) : (
               <div className="no-results-card">
@@ -917,12 +848,12 @@ const RoadRiskForm = () => {
                 <p>Complete both the <strong>Hazard Factors</strong> and <strong>Consequence Factors</strong> assessments to view your risk calculation results.</p>
                 <div className="completion-status">
                   <div className="status-item">
-                    <span className={`status-indicator ${Object.values(hazardFactors).filter((val, idx) => idx < 5 && val !== null).length === 5 ? 'complete' : 'incomplete'}`}></span>
-                    <span>Hazard Factors ({Object.values(hazardFactors).filter((val, idx) => idx < 5 && val !== null).length}/5 complete)</span>
+                    <span className={`status-indicator ${Object.values(hazardFactors).filter(val => val !== null).length === 5 ? 'complete' : 'incomplete'}`}></span>
+                    <span>Hazard Factors ({Object.values(hazardFactors).filter(val => val !== null).length}/5 complete)</span>
                   </div>
                   <div className="status-item">
-                    <span className={`status-indicator ${Object.values(consequenceFactors).filter((val, idx) => idx < 4 && val !== null).length === 4 ? 'complete' : 'incomplete'}`}></span>
-                    <span>Consequence Factors ({Object.values(consequenceFactors).filter((val, idx) => idx < 4 && val !== null).length}/4 complete)</span>
+                    <span className={`status-indicator ${Object.values(consequenceFactors).filter(val => val !== null).length === 4 ? 'complete' : 'incomplete'}`}></span>
+                    <span>Consequence Factors ({Object.values(consequenceFactors).filter(val => val !== null).length}/4 complete)</span>
                   </div>
                 </div>
               </div>
