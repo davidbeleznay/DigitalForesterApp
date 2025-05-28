@@ -434,7 +434,7 @@ const RoadRiskForm = () => {
                 </div>
               </div>
 
-              {/* Road/Slope Failure History */}
+              {/* Road/Slope Failure History - Fixed to remove extra dot */}
               <div className="factor-group">
                 <h3>5. Road/Slope Failure History</h3>
                 <p>Consider historical performance and failure record</p>
