@@ -25,6 +25,8 @@ const CulvertSizingForm = () => {
     pipeRoughness: '0.024',
     maxHwdRatio: '0.8', // Default to conservative 0.8 HW/D ratio
     fishPassage: false,
+    manningCapacityTest: false, // NEW: Optional Manning capacity test
+    climateRatio: '3.0', // Climate ratio (CR) - default 3x bankfull
     latitude: '',
     longitude: ''
   });
@@ -132,6 +134,14 @@ const CulvertSizingForm = () => {
       fishPassage: !prev.fishPassage
     }));
   };
+
+  // Toggle Manning capacity test
+  const toggleManningTest = () => {
+    setFormValues(prev => ({
+      ...prev,
+      manningCapacityTest: !prev.manningCapacityTest
+    }));
+  };
   
   // Get current location using GPS
   const getCurrentLocation = () => {
@@ -219,10 +229,19 @@ const CulvertSizingForm = () => {
         newErrors.slopePercent = 'Must be a positive number';
       }
       
-      if (!formValues.maxHwdRatio) {
-        newErrors.maxHwdRatio = 'Headwater ratio is required';
-      } else if (isNaN(formValues.maxHwdRatio) || parseFloat(formValues.maxHwdRatio) <= 0 || parseFloat(formValues.maxHwdRatio) > 1.5) {
-        newErrors.maxHwdRatio = 'Must be a positive number between 0 and 1.5';
+      if (!formValues.climateRatio) {
+        newErrors.climateRatio = 'Climate ratio is required';
+      } else if (isNaN(formValues.climateRatio) || parseFloat(formValues.climateRatio) <= 0) {
+        newErrors.climateRatio = 'Must be a positive number';
+      }
+      
+      // Only validate Manning-related fields if the test is enabled
+      if (formValues.manningCapacityTest) {
+        if (!formValues.maxHwdRatio) {
+          newErrors.maxHwdRatio = 'Headwater ratio is required for Manning capacity test';
+        } else if (isNaN(formValues.maxHwdRatio) || parseFloat(formValues.maxHwdRatio) <= 0 || parseFloat(formValues.maxHwdRatio) > 1.5) {
+          newErrors.maxHwdRatio = 'Must be a positive number between 0 and 1.5';
+        }
       }
     }
     
@@ -243,10 +262,12 @@ const CulvertSizingForm = () => {
       bottomWidth: useBottomWidth ? avgBottomWidth : undefined, // Only pass if using bottom width
       avgStreamDepth: avgDepth,
       slopePercent: parseFloat(formValues.slopePercent),
+      climateRatio: parseFloat(formValues.climateRatio),
       streamRoughness: parseFloat(formValues.streamRoughness),
       pipeRoughness: parseFloat(formValues.pipeRoughness),
-      maxHwdRatio: parseFloat(formValues.maxHwdRatio),
-      fishPassage: formValues.fishPassage
+      maxHwdRatio: formValues.manningCapacityTest ? parseFloat(formValues.maxHwdRatio) : null,
+      fishPassage: formValues.fishPassage,
+      manningCapacityTest: formValues.manningCapacityTest
     };
     
     // Small delay to allow loading state to be visible
@@ -674,7 +695,7 @@ const CulvertSizingForm = () => {
     );
   };
   
-  // Render Settings stage
+  // Render Settings stage with optional Manning test
   const renderSettingsStage = () => {
     return (
       <div className="form-section" style={{ borderTop: '4px solid #9c27b0' }}>
@@ -703,21 +724,20 @@ const CulvertSizingForm = () => {
           </div>
           
           <div className="form-group">
-            <label htmlFor="maxHwdRatio">Maximum Headwater Ratio (HW/D)</label>
+            <label htmlFor="climateRatio">Climate Ratio (CR)</label>
             <input
               type="number"
-              id="maxHwdRatio"
-              name="maxHwdRatio"
-              className={`form-input ${errors.maxHwdRatio ? 'error' : ''}`}
-              value={formValues.maxHwdRatio}
+              id="climateRatio"
+              name="climateRatio"
+              className={`form-input ${errors.climateRatio ? 'error' : ''}`}
+              value={formValues.climateRatio}
               onChange={handleInputChange}
-              placeholder="e.g., 0.8"
+              placeholder="e.g., 3.0"
               step="0.1"
               min="0"
-              max="1.5"
             />
-            {errors.maxHwdRatio && <div className="status-message error">{errors.maxHwdRatio}</div>}
-            <div className="helper-text">Conservative value is 0.8. Maximum recommended is 1.5.</div>
+            {errors.climateRatio && <div className="status-message error">{errors.climateRatio}</div>}
+            <div className="helper-text">Multiplier for bankfull area (typically 3.0 for climate resilience)</div>
           </div>
           
           <div className="form-group">
@@ -763,7 +783,57 @@ const CulvertSizingForm = () => {
             
             {formValues.fishPassage && (
               <div className="helper-text" style={{ marginTop: '8px', padding: '12px', background: '#e8f5e8', borderRadius: '8px' }}>
-                <strong>Note:</strong> For fish passage, culverts will be embedded 20% of the culvert diameter below the stream bed to allow for natural substrate accumulation.
+                <strong>Note:</strong> For fish passage, culverts will be embedded 20% of the culvert diameter below the stream bed and sized 20% larger to allow for natural substrate accumulation.
+              </div>
+            )}
+          </div>
+          
+          {/* NEW: OPTIONAL MANNING CAPACITY TEST */}
+          <div className="form-group full-width" style={{ borderTop: '1px solid #ddd', paddingTop: '20px', marginTop: '20px' }}>
+            <label>
+              <input
+                type="checkbox"
+                name="manningCapacityTest"
+                checked={formValues.manningCapacityTest}
+                onChange={toggleManningTest}
+              />
+              {" "}Enable Manning Capacity Test (Advanced)
+            </label>
+            
+            <div className="helper-text" style={{ marginTop: '8px' }}>
+              <strong>Optional:</strong> Perform hydraulic capacity calculations to verify culvert can handle channel flow. 
+              Uses Manning's equation to compare channel capacity vs. culvert capacity. Leave unchecked for simplified sizing.
+            </div>
+            
+            {formValues.manningCapacityTest && (
+              <div style={{ marginTop: '16px', padding: '16px', background: '#f0f8ff', borderRadius: '8px', border: '1px solid #2196f3' }}>
+                <h4 style={{ margin: '0 0 12px 0', color: '#2196f3' }}>Manning Capacity Test Settings</h4>
+                
+                <div className="form-group">
+                  <label htmlFor="maxHwdRatio">Maximum Headwater Ratio (HW/D)</label>
+                  <input
+                    type="number"
+                    id="maxHwdRatio"
+                    name="maxHwdRatio"
+                    className={`form-input ${errors.maxHwdRatio ? 'error' : ''}`}
+                    value={formValues.maxHwdRatio}
+                    onChange={handleInputChange}
+                    placeholder="e.g., 0.8"
+                    step="0.1"
+                    min="0"
+                    max="1.5"
+                  />
+                  {errors.maxHwdRatio && <div className="status-message error">{errors.maxHwdRatio}</div>}
+                  <div className="helper-text">Conservative value is 0.8. Maximum recommended is 1.5.</div>
+                </div>
+                
+                <div className="helper-text" style={{ background: '#fff', padding: '12px', borderRadius: '6px', marginTop: '12px' }}>
+                  <strong>Manning Test Process:</strong>
+                  <br />1. Calculate channel flow capacity: Q<sub>ch</sub> = (1/n) × A × R<sup>2/3</sup> × S<sup>1/2</sup>
+                  <br />2. Calculate culvert flow capacity: Q<sub>culv</sub> = C<sub>d</sub> × A × √(2gH)
+                  <br />3. If Q<sub>culv</sub> &lt; Q<sub>ch</sub>, increase pipe size until capacities match
+                  <br />4. Large culverts (≥2m or Q&gt;6 m³/s) trigger professional review requirement
+                </div>
               </div>
             )}
           </div>
@@ -816,18 +886,20 @@ const CulvertSizingForm = () => {
       material: formValues.pipeRoughness === "0.024" ? "Corrugated Metal Pipe (CMP)" : 
                formValues.pipeRoughness === "0.012" ? "Smooth HDPE" : "Concrete",
       manningsN: parseFloat(formValues.pipeRoughness),
-      hwdCriterion: `HW/D ≤ ${formValues.maxHwdRatio}`,
-      climateChangeFactor: 1.20, // Assuming climate factor of 1.2
+      hwdCriterion: formValues.manningCapacityTest ? `HW/D ≤ ${formValues.maxHwdRatio}` : "Not applied (simplified sizing)",
+      climateChangeFactor: parseFloat(formValues.climateRatio),
       governingMethod: results.governingMethod,
       californiaMethodSize: results.californiaSize,
       hydraulicCalculationSize: results.hydraulicSize,
+      manningTestApplied: formValues.manningCapacityTest,
       bankfullArea: parseFloat(results.streamArea),
       endArea: parseFloat(results.requiredCulvertArea),
       designDischarge: parseFloat(results.bankfullFlow),
       measurements: formattedMeasurements,
       avgWidth: avgTopWidth,
       avgBottom: avgBottomWidth,
-      avgDepth: avgDepth
+      avgDepth: avgDepth,
+      requiresProfessional: results.requiresProfessional || false
     };
     
     return (
@@ -836,6 +908,15 @@ const CulvertSizingForm = () => {
           <span className="section-accent" style={{ background: 'linear-gradient(to bottom, #4caf50, #81c784)' }}></span>
           Culvert Sizing Results
         </h2>
+        
+        {results.requiresProfessional && (
+          <div style={{ background: '#fff3cd', border: '1px solid #ffeaa7', borderRadius: '8px', padding: '16px', marginBottom: '20px' }}>
+            <h4 style={{ color: '#856404', margin: '0 0 8px 0' }}>⚠️ Professional Review Required</h4>
+            <p style={{ color: '#856404', margin: 0 }}>
+              This culvert design requires professional engineering review due to large size (≥2m diameter) or high flow capacity (&gt;6 m³/s).
+            </p>
+          </div>
+        )}
         
         <CulvertResults calculationResults={calculationResults} />
         
