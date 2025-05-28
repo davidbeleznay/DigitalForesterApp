@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { calculateCulvert, getStandardPipeSizes, getRoughnessCoefficients } from '../utils/CulvertCalculator';
+import { calculateCulvert } from '../utils/CulvertCalculator';
 import CulvertResults from '../components/culvert/CulvertResults';
 import '../styles/enhanced-form.css';
 
@@ -23,12 +23,34 @@ const CulvertSizingForm = () => {
     slopePercent: '',
     streamRoughness: '0.04',
     pipeRoughness: '0.024',
-    maxHwdRatio: '0.8', // Default to conservative 0.8 HW/D ratio
+    maxHwdRatio: '0.8',
     fishPassage: false,
-    manningCapacityTest: false, // NEW: Optional Manning capacity test
-    climateRatio: '3.0', // Climate ratio (CR) - default 3x bankfull
     latitude: '',
     longitude: ''
+  });
+  
+  // Optional assessment toggles
+  const [optionalAssessments, setOptionalAssessments] = useState({
+    hydraulicCapacityEnabled: false, // Manning capacity test
+    climateFactorsEnabled: false,    // Climate change factors
+    debrisAssessmentEnabled: false   // Debris and sediment assessment
+  });
+  
+  // Climate factors state
+  const [climateFactors, setClimateFactors] = useState({
+    precipitationIncrease: '20',     // % increase in precipitation
+    temperatureIncrease: '2.0',      // °C temperature increase
+    stormIntensityFactor: '1.2',     // Storm intensity multiplier
+    planningHorizon: '2050'          // Planning year
+  });
+  
+  // Debris assessment state
+  const [debrisAssessment, setDebrisAssessment] = useState({
+    debrisRisk: 'moderate',          // low, moderate, high
+    largeWoodPresence: false,        // Large wood upstream
+    sedimentLoad: 'normal',          // low, normal, high
+    maintenanceAccess: 'good',       // poor, fair, good
+    blockageFactor: '1.0'            // Multiplier for debris blockage
   });
   
   // SIMPLIFIED MEASUREMENTS - just simple strings for each measurement type
@@ -45,10 +67,6 @@ const CulvertSizingForm = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isGettingLocation, setIsGettingLocation] = useState(false);
   const [locationError, setLocationError] = useState('');
-  
-  // Get standard pipe sizes and roughness coefficients
-  const standardPipeSizes = getStandardPipeSizes();
-  const roughnessCoefficients = getRoughnessCoefficients();
 
   // Handle input changes for form values
   const handleInputChange = (e) => {
@@ -65,6 +83,30 @@ const CulvertSizingForm = () => {
         [name]: null
       }));
     }
+  };
+
+  // Handle climate factors changes
+  const handleClimateFactorChange = (name, value) => {
+    setClimateFactors(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  // Handle debris assessment changes
+  const handleDebrisAssessmentChange = (name, value) => {
+    setDebrisAssessment(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  // Toggle optional assessments
+  const toggleOptionalAssessment = (assessmentType) => {
+    setOptionalAssessments(prev => ({
+      ...prev,
+      [assessmentType]: !prev[assessmentType]
+    }));
   };
   
   // Toggle bottom width measurements
@@ -134,14 +176,6 @@ const CulvertSizingForm = () => {
       fishPassage: !prev.fishPassage
     }));
   };
-
-  // Toggle Manning capacity test
-  const toggleManningTest = () => {
-    setFormValues(prev => ({
-      ...prev,
-      manningCapacityTest: !prev.manningCapacityTest
-    }));
-  };
   
   // Get current location using GPS
   const getCurrentLocation = () => {
@@ -172,7 +206,7 @@ const CulvertSizingForm = () => {
             case error.TIMEOUT:
               errorMessage = 'Location request timed out.';
               break;
-            case error.UNKNOWN_ERROR:
+            default:
               errorMessage = 'An unknown error occurred getting location.';
               break;
           }
@@ -223,22 +257,16 @@ const CulvertSizingForm = () => {
     }
     
     if (activeSection === STAGES.SETTINGS) {
-      if (!formValues.slopePercent) {
-        newErrors.slopePercent = 'Channel slope is required';
-      } else if (isNaN(formValues.slopePercent) || parseFloat(formValues.slopePercent) <= 0) {
-        newErrors.slopePercent = 'Must be a positive number';
-      }
-      
-      if (!formValues.climateRatio) {
-        newErrors.climateRatio = 'Climate ratio is required';
-      } else if (isNaN(formValues.climateRatio) || parseFloat(formValues.climateRatio) <= 0) {
-        newErrors.climateRatio = 'Must be a positive number';
-      }
-      
-      // Only validate Manning-related fields if the test is enabled
-      if (formValues.manningCapacityTest) {
+      // Only validate hydraulic capacity fields if that assessment is enabled
+      if (optionalAssessments.hydraulicCapacityEnabled) {
+        if (!formValues.slopePercent) {
+          newErrors.slopePercent = 'Channel slope is required for hydraulic capacity test';
+        } else if (isNaN(formValues.slopePercent) || parseFloat(formValues.slopePercent) <= 0) {
+          newErrors.slopePercent = 'Must be a positive number';
+        }
+        
         if (!formValues.maxHwdRatio) {
-          newErrors.maxHwdRatio = 'Headwater ratio is required for Manning capacity test';
+          newErrors.maxHwdRatio = 'Headwater ratio is required for hydraulic capacity test';
         } else if (isNaN(formValues.maxHwdRatio) || parseFloat(formValues.maxHwdRatio) <= 0 || parseFloat(formValues.maxHwdRatio) > 1.5) {
           newErrors.maxHwdRatio = 'Must be a positive number between 0 and 1.5';
         }
@@ -259,15 +287,21 @@ const CulvertSizingForm = () => {
     
     const params = {
       topWidth: avgTopWidth,
-      bottomWidth: useBottomWidth ? avgBottomWidth : undefined, // Only pass if using bottom width
+      bottomWidth: useBottomWidth ? avgBottomWidth : undefined,
       avgStreamDepth: avgDepth,
-      slopePercent: parseFloat(formValues.slopePercent),
-      climateRatio: parseFloat(formValues.climateRatio),
-      streamRoughness: parseFloat(formValues.streamRoughness),
-      pipeRoughness: parseFloat(formValues.pipeRoughness),
-      maxHwdRatio: formValues.manningCapacityTest ? parseFloat(formValues.maxHwdRatio) : null,
       fishPassage: formValues.fishPassage,
-      manningCapacityTest: formValues.manningCapacityTest
+      // Hydraulic capacity parameters (only if enabled)
+      hydraulicCapacityTest: optionalAssessments.hydraulicCapacityEnabled,
+      slopePercent: optionalAssessments.hydraulicCapacityEnabled ? parseFloat(formValues.slopePercent) : null,
+      streamRoughness: optionalAssessments.hydraulicCapacityEnabled ? parseFloat(formValues.streamRoughness) : null,
+      pipeRoughness: optionalAssessments.hydraulicCapacityEnabled ? parseFloat(formValues.pipeRoughness) : null,
+      maxHwdRatio: optionalAssessments.hydraulicCapacityEnabled ? parseFloat(formValues.maxHwdRatio) : null,
+      // Climate factors (only if enabled)
+      climateFactorsEnabled: optionalAssessments.climateFactorsEnabled,
+      climateFactors: optionalAssessments.climateFactorsEnabled ? climateFactors : null,
+      // Debris assessment (only if enabled)
+      debrisAssessmentEnabled: optionalAssessments.debrisAssessmentEnabled,
+      debrisAssessment: optionalAssessments.debrisAssessmentEnabled ? debrisAssessment : null
     };
     
     // Small delay to allow loading state to be visible
@@ -321,6 +355,9 @@ const CulvertSizingForm = () => {
         longitude: formValues.longitude
       },
       formValues,
+      optionalAssessments,
+      climateFactors,
+      debrisAssessment,
       topWidthMeasurements,
       bottomWidthMeasurements,
       depthMeasurements,
@@ -346,7 +383,7 @@ const CulvertSizingForm = () => {
   const sections = [
     { id: STAGES.SITE_INFO, title: 'Site Information', icon: '📋' },
     { id: STAGES.MEASUREMENTS, title: 'Stream Measurements', icon: '📏' },
-    { id: STAGES.SETTINGS, title: 'Culvert Settings', icon: '⚙️' },
+    { id: STAGES.SETTINGS, title: 'Optional Assessments', icon: '⚙️' },
     { id: STAGES.RESULTS, title: 'Results', icon: '📊' }
   ];
 
@@ -440,6 +477,24 @@ const CulvertSizingForm = () => {
               </div>
             </div>
           </div>
+        </div>
+
+        <div className="form-group full-width" style={{ marginTop: '24px' }}>
+          <label>
+            <input
+              type="checkbox"
+              name="fishPassage"
+              checked={formValues.fishPassage}
+              onChange={toggleFishPassage}
+            />
+            {" "}Fish Passage Required
+          </label>
+          
+          {formValues.fishPassage && (
+            <div className="helper-text" style={{ marginTop: '8px', padding: '12px', background: '#e8f5e8', borderRadius: '8px' }}>
+              <strong>Note:</strong> For fish passage, culverts will be embedded 20% of the culvert diameter below the stream bed and sized 20% larger to allow for natural substrate accumulation.
+            </div>
+          )}
         </div>
       </div>
     );
@@ -695,119 +750,55 @@ const CulvertSizingForm = () => {
     );
   };
   
-  // Render Settings stage with optional Manning test
+  // Render Optional Assessments stage
   const renderSettingsStage = () => {
     return (
       <div className="form-section" style={{ borderTop: '4px solid #9c27b0' }}>
         <h2 className="section-header" style={{ color: '#9c27b0' }}>
           <span className="section-accent" style={{ background: 'linear-gradient(to bottom, #9c27b0, #ba68c8)' }}></span>
-          Culvert Settings
+          Optional Assessments
         </h2>
-        <p>Configure site parameters and culvert requirements for the sizing calculation.</p>
+        <p>Enable additional assessments for more detailed culvert analysis. Basic California Method sizing is applied by default.</p>
         
-        <div className="form-grid">
-          <div className="form-group">
-            <label htmlFor="slopePercent">Channel Slope (%)</label>
+        {/* HYDRAULIC CAPACITY ASSESSMENT */}
+        <div style={{ marginBottom: '32px', border: '2px solid #e0e0e0', borderRadius: '12px', padding: '20px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', marginBottom: '16px' }}>
             <input
-              type="number"
-              id="slopePercent"
-              name="slopePercent"
-              className={`form-input ${errors.slopePercent ? 'error' : ''}`}
-              value={formValues.slopePercent}
-              onChange={handleInputChange}
-              placeholder="e.g., 2.5"
-              step="0.1"
-              min="0"
+              type="checkbox"
+              id="hydraulicCapacityEnabled"
+              checked={optionalAssessments.hydraulicCapacityEnabled}
+              onChange={() => toggleOptionalAssessment('hydraulicCapacityEnabled')}
+              style={{ marginRight: '12px', transform: 'scale(1.2)' }}
             />
-            {errors.slopePercent && <div className="status-message error">{errors.slopePercent}</div>}
-            <div className="helper-text">Measure between points 10-20× bankfull width apart</div>
-          </div>
-          
-          <div className="form-group">
-            <label htmlFor="climateRatio">Climate Ratio (CR)</label>
-            <input
-              type="number"
-              id="climateRatio"
-              name="climateRatio"
-              className={`form-input ${errors.climateRatio ? 'error' : ''}`}
-              value={formValues.climateRatio}
-              onChange={handleInputChange}
-              placeholder="e.g., 3.0"
-              step="0.1"
-              min="0"
-            />
-            {errors.climateRatio && <div className="status-message error">{errors.climateRatio}</div>}
-            <div className="helper-text">Multiplier for bankfull area (typically 3.0 for climate resilience)</div>
-          </div>
-          
-          <div className="form-group">
-            <label htmlFor="streamRoughness">Stream Roughness (Manning's n)</label>
-            <select
-              id="streamRoughness"
-              name="streamRoughness"
-              value={formValues.streamRoughness}
-              onChange={handleInputChange}
-            >
-              <option value="0.035">Gravel Bed (0.035)</option>
-              <option value="0.04">Mixed Bed (0.04)</option>
-              <option value="0.045">Cobble Bed (0.045)</option>
-              <option value="0.05">Boulder/Bedrock (0.05)</option>
-            </select>
-            <div className="helper-text">Select based on dominant channel substrate</div>
-          </div>
-          
-          <div className="form-group">
-            <label htmlFor="pipeRoughness">Pipe Material</label>
-            <select
-              id="pipeRoughness"
-              name="pipeRoughness"
-              value={formValues.pipeRoughness}
-              onChange={handleInputChange}
-            >
-              <option value="0.024">Corrugated Steel (0.024)</option>
-              <option value="0.012">Smooth HDPE (0.012)</option>
-              <option value="0.013">Concrete (0.013)</option>
-            </select>
-          </div>
-          
-          <div className="form-group full-width">
-            <label>
-              <input
-                type="checkbox"
-                name="fishPassage"
-                checked={formValues.fishPassage}
-                onChange={toggleFishPassage}
-              />
-              {" "}Fish Passage Required
+            <label htmlFor="hydraulicCapacityEnabled" style={{ fontSize: '18px', fontWeight: '600', color: '#2196f3' }}>
+              🌊 Hydraulic Capacity Assessment (Manning's Equation)
             </label>
-            
-            {formValues.fishPassage && (
-              <div className="helper-text" style={{ marginTop: '8px', padding: '12px', background: '#e8f5e8', borderRadius: '8px' }}>
-                <strong>Note:</strong> For fish passage, culverts will be embedded 20% of the culvert diameter below the stream bed and sized 20% larger to allow for natural substrate accumulation.
-              </div>
-            )}
           </div>
           
-          {/* NEW: OPTIONAL MANNING CAPACITY TEST */}
-          <div className="form-group full-width" style={{ borderTop: '1px solid #ddd', paddingTop: '20px', marginTop: '20px' }}>
-            <label>
-              <input
-                type="checkbox"
-                name="manningCapacityTest"
-                checked={formValues.manningCapacityTest}
-                onChange={toggleManningTest}
-              />
-              {" "}Enable Manning Capacity Test (Advanced)
-            </label>
-            
-            <div className="helper-text" style={{ marginTop: '8px' }}>
-              <strong>Optional:</strong> Perform hydraulic capacity calculations to verify culvert can handle channel flow. 
-              Uses Manning's equation to compare channel capacity vs. culvert capacity. Leave unchecked for simplified sizing.
-            </div>
-            
-            {formValues.manningCapacityTest && (
-              <div style={{ marginTop: '16px', padding: '16px', background: '#f0f8ff', borderRadius: '8px', border: '1px solid #2196f3' }}>
-                <h4 style={{ margin: '0 0 12px 0', color: '#2196f3' }}>Manning Capacity Test Settings</h4>
+          <p style={{ color: '#666', marginBottom: '16px' }}>
+            Verify culvert can handle channel flow using Manning's equation to compare channel vs. culvert capacity. 
+            Includes slope, roughness, and headwater calculations against basic California Method.
+          </p>
+          
+          {optionalAssessments.hydraulicCapacityEnabled && (
+            <div style={{ background: '#f0f8ff', padding: '20px', borderRadius: '8px', border: '1px solid #2196f3' }}>
+              <div className="form-grid">
+                <div className="form-group">
+                  <label htmlFor="slopePercent">Channel Slope (%)</label>
+                  <input
+                    type="number"
+                    id="slopePercent"
+                    name="slopePercent"
+                    className={`form-input ${errors.slopePercent ? 'error' : ''}`}
+                    value={formValues.slopePercent}
+                    onChange={handleInputChange}
+                    placeholder="e.g., 2.5"
+                    step="0.1"
+                    min="0"
+                  />
+                  {errors.slopePercent && <div className="status-message error">{errors.slopePercent}</div>}
+                  <div className="helper-text">Measure between points 10-20× bankfull width apart</div>
+                </div>
                 
                 <div className="form-group">
                   <label htmlFor="maxHwdRatio">Maximum Headwater Ratio (HW/D)</label>
@@ -827,16 +818,206 @@ const CulvertSizingForm = () => {
                   <div className="helper-text">Conservative value is 0.8. Maximum recommended is 1.5.</div>
                 </div>
                 
-                <div className="helper-text" style={{ background: '#fff', padding: '12px', borderRadius: '6px', marginTop: '12px' }}>
-                  <strong>Manning Test Process:</strong>
-                  <br />1. Calculate channel flow capacity: Q<sub>ch</sub> = (1/n) × A × R<sup>2/3</sup> × S<sup>1/2</sup>
-                  <br />2. Calculate culvert flow capacity: Q<sub>culv</sub> = C<sub>d</sub> × A × √(2gH)
-                  <br />3. If Q<sub>culv</sub> &lt; Q<sub>ch</sub>, increase pipe size until capacities match
-                  <br />4. Large culverts (≥2m or Q&gt;6 m³/s) trigger professional review requirement
+                <div className="form-group">
+                  <label htmlFor="streamRoughness">Stream Roughness (Manning's n)</label>
+                  <select
+                    id="streamRoughness"
+                    name="streamRoughness"
+                    value={formValues.streamRoughness}
+                    onChange={handleInputChange}
+                  >
+                    <option value="0.035">Gravel Bed (0.035)</option>
+                    <option value="0.04">Mixed Bed (0.04)</option>
+                    <option value="0.045">Cobble Bed (0.045)</option>
+                    <option value="0.05">Boulder/Bedrock (0.05)</option>
+                  </select>
+                  <div className="helper-text">Select based on dominant channel substrate</div>
+                </div>
+                
+                <div className="form-group">
+                  <label htmlFor="pipeRoughness">Pipe Material</label>
+                  <select
+                    id="pipeRoughness"
+                    name="pipeRoughness"
+                    value={formValues.pipeRoughness}
+                    onChange={handleInputChange}
+                  >
+                    <option value="0.024">Corrugated Steel (0.024)</option>
+                    <option value="0.012">Smooth HDPE (0.012)</option>
+                    <option value="0.013">Concrete (0.013)</option>
+                  </select>
                 </div>
               </div>
-            )}
+            </div>
+          )}
+        </div>
+
+        {/* CLIMATE FACTORS ASSESSMENT */}
+        <div style={{ marginBottom: '32px', border: '2px solid #e0e0e0', borderRadius: '12px', padding: '20px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', marginBottom: '16px' }}>
+            <input
+              type="checkbox"
+              id="climateFactorsEnabled"
+              checked={optionalAssessments.climateFactorsEnabled}
+              onChange={() => toggleOptionalAssessment('climateFactorsEnabled')}
+              style={{ marginRight: '12px', transform: 'scale(1.2)' }}
+            />
+            <label htmlFor="climateFactorsEnabled" style={{ fontSize: '18px', fontWeight: '600', color: '#ff9800' }}>
+              🌡️ Climate Change Factors
+            </label>
           </div>
+          
+          <p style={{ color: '#666', marginBottom: '16px' }}>
+            Apply climate change adjustments to account for increased precipitation intensity, 
+            temperature effects, and future storm patterns in culvert sizing.
+          </p>
+          
+          {optionalAssessments.climateFactorsEnabled && (
+            <div style={{ background: '#fff8e1', padding: '20px', borderRadius: '8px', border: '1px solid #ff9800' }}>
+              <div className="form-grid">
+                <div className="form-group">
+                  <label>Precipitation Increase (%)</label>
+                  <input
+                    type="number"
+                    value={climateFactors.precipitationIncrease}
+                    onChange={(e) => handleClimateFactorChange('precipitationIncrease', e.target.value)}
+                    placeholder="20"
+                    step="1"
+                    min="0"
+                    max="100"
+                    style={{ padding: '12px 16px', fontSize: '14px', border: '2px solid #ddd', borderRadius: '8px' }}
+                  />
+                  <div className="helper-text">Expected % increase in extreme precipitation (typically 10-30%)</div>
+                </div>
+                
+                <div className="form-group">
+                  <label>Temperature Increase (°C)</label>
+                  <input
+                    type="number"
+                    value={climateFactors.temperatureIncrease}
+                    onChange={(e) => handleClimateFactorChange('temperatureIncrease', e.target.value)}
+                    placeholder="2.0"
+                    step="0.1"
+                    min="0"
+                    max="10"
+                    style={{ padding: '12px 16px', fontSize: '14px', border: '2px solid #ddd', borderRadius: '8px' }}
+                  />
+                  <div className="helper-text">Expected temperature increase for planning horizon</div>
+                </div>
+                
+                <div className="form-group">
+                  <label>Storm Intensity Factor</label>
+                  <select
+                    value={climateFactors.stormIntensityFactor}
+                    onChange={(e) => handleClimateFactorChange('stormIntensityFactor', e.target.value)}
+                    style={{ padding: '12px 16px', fontSize: '14px', border: '2px solid #ddd', borderRadius: '8px' }}
+                  >
+                    <option value="1.0">No adjustment (1.0)</option>
+                    <option value="1.1">Conservative (1.1)</option>
+                    <option value="1.2">Moderate (1.2)</option>
+                    <option value="1.3">Aggressive (1.3)</option>
+                    <option value="1.5">Maximum (1.5)</option>
+                  </select>
+                  <div className="helper-text">Multiplier for storm intensity increases</div>
+                </div>
+                
+                <div className="form-group">
+                  <label>Planning Horizon</label>
+                  <select
+                    value={climateFactors.planningHorizon}
+                    onChange={(e) => handleClimateFactorChange('planningHorizon', e.target.value)}
+                    style={{ padding: '12px 16px', fontSize: '14px', border: '2px solid #ddd', borderRadius: '8px' }}
+                  >
+                    <option value="2030">2030 (Short-term)</option>
+                    <option value="2050">2050 (Mid-term)</option>
+                    <option value="2080">2080 (Long-term)</option>
+                    <option value="2100">2100 (End-of-century)</option>
+                  </select>
+                  <div className="helper-text">Target year for climate projections</div>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* DEBRIS ASSESSMENT */}
+        <div style={{ marginBottom: '32px', border: '2px solid #e0e0e0', borderRadius: '12px', padding: '20px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', marginBottom: '16px' }}>
+            <input
+              type="checkbox"
+              id="debrisAssessmentEnabled"
+              checked={optionalAssessments.debrisAssessmentEnabled}
+              onChange={() => toggleOptionalAssessment('debrisAssessmentEnabled')}
+              style={{ marginRight: '12px', transform: 'scale(1.2)' }}
+            />
+            <label htmlFor="debrisAssessmentEnabled" style={{ fontSize: '18px', fontWeight: '600', color: '#795548' }}>
+              🪵 Debris & Sediment Assessment
+            </label>
+          </div>
+          
+          <p style={{ color: '#666', marginBottom: '16px' }}>
+            Evaluate debris and sediment risks that could affect culvert performance, 
+            including large wood, sediment transport, and maintenance accessibility.
+          </p>
+          
+          {optionalAssessments.debrisAssessmentEnabled && (
+            <div style={{ background: '#f3e5f5', padding: '20px', borderRadius: '8px', border: '1px solid #795548' }}>
+              <div className="form-grid">
+                <div className="form-group">
+                  <label>Debris Risk Level</label>
+                  <select
+                    value={debrisAssessment.debrisRisk}
+                    onChange={(e) => handleDebrisAssessmentChange('debrisRisk', e.target.value)}
+                    style={{ padding: '12px 16px', fontSize: '14px', border: '2px solid #ddd', borderRadius: '8px' }}
+                  >
+                    <option value="low">Low - Minimal debris expected</option>
+                    <option value="moderate">Moderate - Some debris transport</option>
+                    <option value="high">High - Significant debris hazard</option>
+                  </select>
+                </div>
+                
+                <div className="form-group">
+                  <label>Sediment Load</label>
+                  <select
+                    value={debrisAssessment.sedimentLoad}
+                    onChange={(e) => handleDebrisAssessmentChange('sedimentLoad', e.target.value)}
+                    style={{ padding: '12px 16px', fontSize: '14px', border: '2px solid #ddd', borderRadius: '8px' }}
+                  >
+                    <option value="low">Low - Clear water streams</option>
+                    <option value="normal">Normal - Typical sediment transport</option>
+                    <option value="high">High - Heavy sediment loading</option>
+                  </select>
+                </div>
+                
+                <div className="form-group">
+                  <label>
+                    <input
+                      type="checkbox"
+                      checked={debrisAssessment.largeWoodPresence}
+                      onChange={(e) => handleDebrisAssessmentChange('largeWoodPresence', e.target.checked)}
+                      style={{ marginRight: '8px' }}
+                    />
+                    Large Wood Present Upstream
+                  </label>
+                  <div className="helper-text">Check if significant large wood debris is present upstream</div>
+                </div>
+                
+                <div className="form-group">
+                  <label>Maintenance Access</label>
+                  <select
+                    value={debrisAssessment.maintenanceAccess}
+                    onChange={(e) => handleDebrisAssessmentChange('maintenanceAccess', e.target.value)}
+                    style={{ padding: '12px 16px', fontSize: '14px', border: '2px solid #ddd', borderRadius: '8px' }}
+                  >
+                    <option value="poor">Poor - Difficult access for cleaning</option>
+                    <option value="fair">Fair - Limited access</option>
+                    <option value="good">Good - Easy maintenance access</option>
+                  </select>
+                  <div className="helper-text">Ability to perform routine debris removal</div>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     );
@@ -883,15 +1064,18 @@ const CulvertSizingForm = () => {
       // finalSize is the overall recommended pipe size from the calculator
       recommendedSize: results.finalSize,
       shape: "Circular",
-      material: formValues.pipeRoughness === "0.024" ? "Corrugated Metal Pipe (CMP)" : 
-               formValues.pipeRoughness === "0.012" ? "Smooth HDPE" : "Concrete",
-      manningsN: parseFloat(formValues.pipeRoughness),
-      hwdCriterion: formValues.manningCapacityTest ? `HW/D ≤ ${formValues.maxHwdRatio}` : "Not applied (simplified sizing)",
-      climateChangeFactor: parseFloat(formValues.climateRatio),
+      material: optionalAssessments.hydraulicCapacityEnabled ? 
+               (formValues.pipeRoughness === "0.024" ? "Corrugated Metal Pipe (CMP)" : 
+                formValues.pipeRoughness === "0.012" ? "Smooth HDPE" : "Concrete") : 
+               "California Method (material not specified)",
+      manningsN: optionalAssessments.hydraulicCapacityEnabled ? parseFloat(formValues.pipeRoughness) : null,
+      hwdCriterion: optionalAssessments.hydraulicCapacityEnabled ? `HW/D ≤ ${formValues.maxHwdRatio}` : "Not applied (California Method only)",
+      hydraulicCapacityTest: optionalAssessments.hydraulicCapacityEnabled,
+      climateFactorsApplied: optionalAssessments.climateFactorsEnabled,
+      debrisAssessmentApplied: optionalAssessments.debrisAssessmentEnabled,
       governingMethod: results.governingMethod,
       californiaMethodSize: results.californiaSize,
       hydraulicCalculationSize: results.hydraulicSize,
-      manningTestApplied: formValues.manningCapacityTest,
       bankfullArea: parseFloat(results.streamArea),
       endArea: parseFloat(results.requiredCulvertArea),
       designDischarge: parseFloat(results.bankfullFlow),
@@ -899,7 +1083,9 @@ const CulvertSizingForm = () => {
       avgWidth: avgTopWidth,
       avgBottom: avgBottomWidth,
       avgDepth: avgDepth,
-      requiresProfessional: results.requiresProfessional || false
+      requiresProfessional: results.requiresProfessional || false,
+      climateFactors: optionalAssessments.climateFactorsEnabled ? climateFactors : null,
+      debrisAssessment: optionalAssessments.debrisAssessmentEnabled ? debrisAssessment : null
     };
     
     return (
@@ -971,7 +1157,7 @@ const CulvertSizingForm = () => {
         {/* Stream Measurements Section */}
         {activeSection === STAGES.MEASUREMENTS && renderMeasurementsStage()}
 
-        {/* Culvert Settings Section */}
+        {/* Optional Assessments Section */}
         {activeSection === STAGES.SETTINGS && renderSettingsStage()}
 
         {/* Results Section */}
