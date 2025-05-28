@@ -2,11 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { calculateCulvert, getStandardPipeSizes, getRoughnessCoefficients } from '../utils/CulvertCalculator';
 import CulvertResults from '../components/culvert/CulvertResults';
+import '../styles/enhanced-form.css';
 
 const CulvertSizingForm = () => {
   const navigate = useNavigate();
   
-  // Define form stages
+  // Define form stages to match the ribbon navigation style
   const STAGES = {
     SITE_INFO: 'site_info',
     MEASUREMENTS: 'measurements',
@@ -15,7 +16,7 @@ const CulvertSizingForm = () => {
   };
   
   // Form state
-  const [stage, setStage] = useState(STAGES.SITE_INFO);
+  const [activeSection, setActiveSection] = useState(STAGES.SITE_INFO);
   const [formValues, setFormValues] = useState({
     culvertId: '',
     roadName: '',
@@ -188,7 +189,7 @@ const CulvertSizingForm = () => {
   const validateStage = () => {
     const newErrors = {};
     
-    if (stage === STAGES.SITE_INFO) {
+    if (activeSection === STAGES.SITE_INFO) {
       if (!formValues.culvertId.trim()) {
         newErrors.culvertId = 'Culvert ID is required';
       }
@@ -198,7 +199,7 @@ const CulvertSizingForm = () => {
       }
     }
     
-    if (stage === STAGES.MEASUREMENTS) {
+    if (activeSection === STAGES.MEASUREMENTS) {
       const { avgTopWidth, avgBottomWidth, avgDepth } = calculateAverages();
       
       if (avgTopWidth <= 0) {
@@ -218,7 +219,7 @@ const CulvertSizingForm = () => {
       }
     }
     
-    if (stage === STAGES.SETTINGS) {
+    if (activeSection === STAGES.SETTINGS) {
       if (!formValues.slopePercent) {
         newErrors.slopePercent = 'Channel slope is required';
       } else if (isNaN(formValues.slopePercent) || parseFloat(formValues.slopePercent) <= 0) {
@@ -234,30 +235,6 @@ const CulvertSizingForm = () => {
     
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
-  };
-  
-  // Navigate to the next stage
-  const goToNextStage = () => {
-    if (!validateStage()) return;
-    
-    if (stage === STAGES.SITE_INFO) {
-      setStage(STAGES.MEASUREMENTS);
-    } else if (stage === STAGES.MEASUREMENTS) {
-      setStage(STAGES.SETTINGS);
-    } else if (stage === STAGES.SETTINGS) {
-      calculateSize();
-    }
-  };
-  
-  // Navigate to the previous stage
-  const goToPreviousStage = () => {
-    if (stage === STAGES.MEASUREMENTS) {
-      setStage(STAGES.SITE_INFO);
-    } else if (stage === STAGES.SETTINGS) {
-      setStage(STAGES.MEASUREMENTS);
-    } else if (stage === STAGES.RESULTS) {
-      setStage(STAGES.SETTINGS);
-    }
   };
   
   // Calculate culvert size
@@ -283,9 +260,32 @@ const CulvertSizingForm = () => {
     setTimeout(() => {
       const calculationResults = calculateCulvert(params);
       setResults(calculationResults);
-      setStage(STAGES.RESULTS);
+      setActiveSection(STAGES.RESULTS);
       setIsLoading(false);
     }, 500);
+  };
+  
+  // Navigation functions for ribbon
+  const goToNextSection = () => {
+    if (!validateStage()) return;
+    
+    if (activeSection === STAGES.SITE_INFO) {
+      setActiveSection(STAGES.MEASUREMENTS);
+    } else if (activeSection === STAGES.MEASUREMENTS) {
+      setActiveSection(STAGES.SETTINGS);
+    } else if (activeSection === STAGES.SETTINGS) {
+      calculateSize();
+    }
+  };
+  
+  const goToPreviousSection = () => {
+    if (activeSection === STAGES.MEASUREMENTS) {
+      setActiveSection(STAGES.SITE_INFO);
+    } else if (activeSection === STAGES.SETTINGS) {
+      setActiveSection(STAGES.MEASUREMENTS);
+    } else if (activeSection === STAGES.RESULTS) {
+      setActiveSection(STAGES.SETTINGS);
+    }
   };
   
   // Save the calculation as a draft
@@ -327,105 +327,103 @@ const CulvertSizingForm = () => {
     // Future implementation
     alert('PDF export functionality will be implemented in a future update.');
   };
-  
-  // Handle going back to home
-  const handleBack = () => {
-    navigate('/');
-  };
-  
-  // Render different stages of the form
-  const renderStageContent = () => {
-    switch (stage) {
-      case STAGES.SITE_INFO:
-        return renderSiteInfoStage();
-      case STAGES.MEASUREMENTS:
-        return renderMeasurementsStage();
-      case STAGES.SETTINGS:
-        return renderSettingsStage();
-      case STAGES.RESULTS:
-        return renderResultsStage();
-      default:
-        return renderSiteInfoStage();
-    }
-  };
-  
+
+  // Define sections for ribbon navigation
+  const sections = [
+    { id: STAGES.SITE_INFO, title: 'Site Information', icon: '📋' },
+    { id: STAGES.MEASUREMENTS, title: 'Stream Measurements', icon: '📏' },
+    { id: STAGES.SETTINGS, title: 'Culvert Settings', icon: '⚙️' },
+    { id: STAGES.RESULTS, title: 'Results', icon: '📊' }
+  ];
+
   // Render Site Info stage
   const renderSiteInfoStage = () => {
     return (
-      <div className="card">
-        <div className="card-title">Site Information</div>
-        <div className="card-description">
-          Enter the culvert and road identification details.
-        </div>
+      <div className="form-section" style={{ borderTop: '4px solid #2196f3' }}>
+        <h2 className="section-header" style={{ color: '#2196f3' }}>
+          <span className="section-accent" style={{ background: 'linear-gradient(to bottom, #2196f3, #64b5f6)' }}></span>
+          Site Information
+        </h2>
+        <p>Enter the culvert and road identification details for this assessment.</p>
         
-        <div className="form-group">
-          <label className="form-label">Culvert ID</label>
-          <input
-            type="text"
-            name="culvertId"
-            className={`form-input ${errors.culvertId ? 'error' : ''}`}
-            value={formValues.culvertId}
-            onChange={handleInputChange}
-            placeholder="Enter culvert ID"
-          />
-          {errors.culvertId && <div className="error-text">{errors.culvertId}</div>}
-        </div>
-        
-        <div className="form-group">
-          <label className="form-label">Road Name</label>
-          <input
-            type="text"
-            name="roadName"
-            className={`form-input ${errors.roadName ? 'error' : ''}`}
-            value={formValues.roadName}
-            onChange={handleInputChange}
-            placeholder="Enter road name"
-          />
-          {errors.roadName && <div className="error-text">{errors.roadName}</div>}
-        </div>
-        
-        <div className="form-group">
-          <label className="form-label">Location</label>
+        <div className="form-grid">
+          <div className="form-group">
+            <label htmlFor="culvertId">Culvert ID</label>
+            <input
+              type="text"
+              id="culvertId"
+              name="culvertId"
+              className={`form-input ${errors.culvertId ? 'error' : ''}`}
+              value={formValues.culvertId}
+              onChange={handleInputChange}
+              placeholder="Enter culvert ID"
+            />
+            {errors.culvertId && <div className="error-text">{errors.culvertId}</div>}
+          </div>
           
-          <button 
-            className={`gps-button ${isGettingLocation ? 'loading' : ''}`} 
-            onClick={getCurrentLocation}
-            disabled={isGettingLocation}
-          >
-            {isGettingLocation ? 'Getting Location...' : 'Get GPS Location'}
-          </button>
+          <div className="form-group">
+            <label htmlFor="roadName">Road Name/ID</label>
+            <input
+              type="text"
+              id="roadName"
+              name="roadName"
+              className={`form-input ${errors.roadName ? 'error' : ''}`}
+              value={formValues.roadName}
+              onChange={handleInputChange}
+              placeholder="Enter road name or ID"
+            />
+            {errors.roadName && <div className="error-text">{errors.roadName}</div>}
+          </div>
           
-          {locationError && (
-            <div className="error-text location-error">{locationError}</div>
-          )}
-          
-          {(formValues.latitude && formValues.longitude) && (
-            <div className="location-display">
-              <span className="location-text">
-                Lat: {formValues.latitude}, Lng: {formValues.longitude}
-              </span>
+          <div className="form-group full-width">
+            <label>GPS Location</label>
+            <div className="gps-section">
+              <button 
+                type="button"
+                className={`gps-button ${isGettingLocation ? 'loading' : ''}`} 
+                onClick={getCurrentLocation}
+                disabled={isGettingLocation}
+              >
+                📍 {isGettingLocation ? 'Getting Location...' : 'Capture GPS Location'}
+              </button>
+              
+              {locationError && (
+                <div className="status-message error">⚠️ {locationError}</div>
+              )}
+              
+              {(formValues.latitude && formValues.longitude) && (
+                <div className="location-display">
+                  <span className="location-icon">🎯</span>
+                  <span className="location-text">
+                    {formValues.latitude}, {formValues.longitude}
+                  </span>
+                </div>
+              )}
             </div>
-          )}
-          
-          <div className="manual-location">
-            <div className="form-label">Manual Coordinates</div>
-            <div className="manual-coords">
-              <input
-                type="text"
-                name="latitude"
-                className="form-input"
-                value={formValues.latitude}
-                onChange={handleInputChange}
-                placeholder="Latitude"
-              />
-              <input
-                type="text"
-                name="longitude"
-                className="form-input"
-                value={formValues.longitude}
-                onChange={handleInputChange}
-                placeholder="Longitude"
-              />
+            
+            <div className="form-grid" style={{ marginTop: '16px' }}>
+              <div className="form-group">
+                <label htmlFor="latitude">Manual Latitude</label>
+                <input
+                  type="text"
+                  id="latitude"
+                  name="latitude"
+                  value={formValues.latitude}
+                  onChange={handleInputChange}
+                  placeholder="e.g., 49.2827"
+                />
+              </div>
+              <div className="form-group">
+                <label htmlFor="longitude">Manual Longitude</label>
+                <input
+                  type="text"
+                  id="longitude"
+                  name="longitude"
+                  value={formValues.longitude}
+                  onChange={handleInputChange}
+                  placeholder="e.g., -123.1207"
+                />
+              </div>
             </div>
           </div>
         </div>
@@ -438,96 +436,42 @@ const CulvertSizingForm = () => {
     const { avgTopWidth, avgBottomWidth, avgDepth } = calculateAverages();
     
     return (
-      <div className="card">
-        <div className="card-title">Stream Measurements</div>
-        <div className="card-description">
-          Measure the stream at multiple representative cross-sections.
-        </div>
-        
-        <div className="stream-diagram">
-          <div className="diagram-header">Stream Cross-Section</div>
-          <div className="diagram-visual">
-            <div className="top-width-label">Top Width</div>
-            <div className="bottom-width-label">Bottom Width</div>
-            <div className="depth-label">Depth</div>
-          </div>
-        </div>
+      <div className="form-section" style={{ borderTop: '4px solid #ff9800' }}>
+        <h2 className="section-header" style={{ color: '#ff9800' }}>
+          <span className="section-accent" style={{ background: 'linear-gradient(to bottom, #ff9800, #ffb74d)' }}></span>
+          Stream Measurements
+        </h2>
+        <p>Measure the stream at multiple representative cross-sections to determine average bankfull dimensions.</p>
         
         <div className="form-group">
-          <label className="form-label">
+          <label>
             <input
               type="checkbox"
               checked={useBottomWidth}
               onChange={toggleBottomWidth}
             />
-            {" "}Include Bottom Width (for incised streams)
+            {" "}Include Bottom Width Measurements
           </label>
           <div className="helper-text">
-            If the channel is incised or has a distinct bottom width different from the top width, enable this option.
+            Enable this for incised channels where bottom width differs significantly from top width.
           </div>
         </div>
         
         <div className="measurement-section">
-          <div className="measurement-header">
+          <div className="factor-group">
             <h3>Top Width Measurements (m)</h3>
-            <button className="add-button" onClick={() => addMeasurement(setTopWidthMeasurements)}>
-              <span>Add Measurement</span>
-            </button>
-          </div>
-          
-          <div className="measurement-grid">
-            {topWidthMeasurements.map(measurement => (
-              <div className="measurement-item" key={measurement.id}>
-                <div className="measurement-item-header">
-                  <span className="measurement-number">#{measurement.id}</span>
-                  <button 
-                    className="remove-button"
-                    onClick={() => removeMeasurement(measurement.id, setTopWidthMeasurements)}
-                    disabled={topWidthMeasurements.length <= 1}
-                  >
-                    ✕
-                  </button>
-                </div>
-                <input
-                  type="number"
-                  className="measurement-input"
-                  value={measurement.value}
-                  onChange={(e) => handleMeasurementChange(
-                    measurement.id, 
-                    e.target.value, 
-                    setTopWidthMeasurements
-                  )}
-                  placeholder="Width"
-                  step="0.01"
-                  min="0"
-                />
-              </div>
-            ))}
-          </div>
-          
-          {errors.topWidthMeasurements && (
-            <div className="error-text">{errors.topWidthMeasurements}</div>
-          )}
-        </div>
-        
-        {useBottomWidth && (
-          <div className="measurement-section">
-            <div className="measurement-header">
-              <h3>Bottom Width Measurements (m)</h3>
-              <button className="add-button" onClick={() => addMeasurement(setBottomWidthMeasurements)}>
-                <span>Add Measurement</span>
-              </button>
-            </div>
+            <p>Measure the stream width at bankfull level at multiple cross-sections</p>
             
             <div className="measurement-grid">
-              {bottomWidthMeasurements.map(measurement => (
+              {topWidthMeasurements.map(measurement => (
                 <div className="measurement-item" key={measurement.id}>
                   <div className="measurement-item-header">
                     <span className="measurement-number">#{measurement.id}</span>
                     <button 
+                      type="button"
                       className="remove-button"
-                      onClick={() => removeMeasurement(measurement.id, setBottomWidthMeasurements)}
-                      disabled={bottomWidthMeasurements.length <= 1}
+                      onClick={() => removeMeasurement(measurement.id, setTopWidthMeasurements)}
+                      disabled={topWidthMeasurements.length <= 1}
                     >
                       ✕
                     </button>
@@ -539,9 +483,9 @@ const CulvertSizingForm = () => {
                     onChange={(e) => handleMeasurementChange(
                       measurement.id, 
                       e.target.value, 
-                      setBottomWidthMeasurements
+                      setTopWidthMeasurements
                     )}
-                    placeholder="Width"
+                    placeholder="Width (m)"
                     step="0.01"
                     min="0"
                   />
@@ -549,81 +493,142 @@ const CulvertSizingForm = () => {
               ))}
             </div>
             
-            {errors.bottomWidthMeasurements && (
-              <div className="error-text">{errors.bottomWidthMeasurements}</div>
+            <button 
+              type="button"
+              className="gps-button" 
+              onClick={() => addMeasurement(setTopWidthMeasurements)}
+              style={{ marginTop: '12px', width: 'fit-content' }}
+            >
+              + Add Measurement
+            </button>
+            
+            {errors.topWidthMeasurements && (
+              <div className="status-message error">{errors.topWidthMeasurements}</div>
             )}
+          </div>
+        </div>
+        
+        {useBottomWidth && (
+          <div className="measurement-section">
+            <div className="factor-group">
+              <h3>Bottom Width Measurements (m)</h3>
+              <p>Measure the stream width at the channel bottom</p>
+              
+              <div className="measurement-grid">
+                {bottomWidthMeasurements.map(measurement => (
+                  <div className="measurement-item" key={measurement.id}>
+                    <div className="measurement-item-header">
+                      <span className="measurement-number">#{measurement.id}</span>
+                      <button 
+                        type="button"
+                        className="remove-button"
+                        onClick={() => removeMeasurement(measurement.id, setBottomWidthMeasurements)}
+                        disabled={bottomWidthMeasurements.length <= 1}
+                      >
+                        ✕
+                      </button>
+                    </div>
+                    <input
+                      type="number"
+                      className="measurement-input"
+                      value={measurement.value}
+                      onChange={(e) => handleMeasurementChange(
+                        measurement.id, 
+                        e.target.value, 
+                        setBottomWidthMeasurements
+                      )}
+                      placeholder="Width (m)"
+                      step="0.01"
+                      min="0"
+                    />
+                  </div>
+                ))}
+              </div>
+              
+              <button 
+                type="button"
+                className="gps-button" 
+                onClick={() => addMeasurement(setBottomWidthMeasurements)}
+                style={{ marginTop: '12px', width: 'fit-content' }}
+              >
+                + Add Measurement
+              </button>
+              
+              {errors.bottomWidthMeasurements && (
+                <div className="status-message error">{errors.bottomWidthMeasurements}</div>
+              )}
+            </div>
           </div>
         )}
         
         <div className="measurement-section">
-          <div className="measurement-header">
+          <div className="factor-group">
             <h3>Depth Measurements (m)</h3>
-            <button className="add-button" onClick={() => addMeasurement(setDepthMeasurements)}>
-              <span>Add Measurement</span>
-            </button>
-          </div>
-          
-          <div className="measurement-grid">
-            {depthMeasurements.map(measurement => (
-              <div className="measurement-item" key={measurement.id}>
-                <div className="measurement-item-header">
-                  <span className="measurement-number">#{measurement.id}</span>
-                  <button 
-                    className="remove-button"
-                    onClick={() => removeMeasurement(measurement.id, setDepthMeasurements)}
-                    disabled={depthMeasurements.length <= 1}
-                  >
-                    ✕
-                  </button>
+            <p>Measure the stream depth at bankfull level</p>
+            
+            <div className="measurement-grid">
+              {depthMeasurements.map(measurement => (
+                <div className="measurement-item" key={measurement.id}>
+                  <div className="measurement-item-header">
+                    <span className="measurement-number">#{measurement.id}</span>
+                    <button 
+                      type="button"
+                      className="remove-button"
+                      onClick={() => removeMeasurement(measurement.id, setDepthMeasurements)}
+                      disabled={depthMeasurements.length <= 1}
+                    >
+                      ✕
+                    </button>
+                  </div>
+                  <input
+                    type="number"
+                    className="measurement-input"
+                    value={measurement.value}
+                    onChange={(e) => handleMeasurementChange(
+                      measurement.id, 
+                      e.target.value, 
+                      setDepthMeasurements
+                    )}
+                    placeholder="Depth (m)"
+                    step="0.01"
+                    min="0"
+                  />
                 </div>
-                <input
-                  type="number"
-                  className="measurement-input"
-                  value={measurement.value}
-                  onChange={(e) => handleMeasurementChange(
-                    measurement.id, 
-                    e.target.value, 
-                    setDepthMeasurements
-                  )}
-                  placeholder="Depth"
-                  step="0.01"
-                  min="0"
-                />
-              </div>
-            ))}
+              ))}
+            </div>
+            
+            <button 
+              type="button"
+              className="gps-button" 
+              onClick={() => addMeasurement(setDepthMeasurements)}
+              style={{ marginTop: '12px', width: 'fit-content' }}
+            >
+              + Add Measurement
+            </button>
+            
+            {errors.depthMeasurements && (
+              <div className="status-message error">{errors.depthMeasurements}</div>
+            )}
           </div>
-          
-          {errors.depthMeasurements && <div className="error-text">{errors.depthMeasurements}</div>}
         </div>
         
-        <div className="averages-container">
-          <h3>Average Measurements</h3>
-          <div className="averages-grid">
-            <div className="average-item">
-              <div className="average-label">Average Top Width</div>
-              <div className="average-value">{avgTopWidth.toFixed(2)} m</div>
+        <div className="total-score-display">
+          <div className="total-score-label">Average Measurements</div>
+          <div className="form-grid" style={{ marginTop: '16px' }}>
+            <div className="form-group">
+              <label>Average Top Width</label>
+              <div className="total-score-value">{avgTopWidth.toFixed(2)} m</div>
             </div>
-            
             {useBottomWidth && (
-              <div className="average-item">
-                <div className="average-label">Average Bottom Width</div>
-                <div className="average-value">{avgBottomWidth.toFixed(2)} m</div>
+              <div className="form-group">
+                <label>Average Bottom Width</label>
+                <div className="total-score-value">{avgBottomWidth.toFixed(2)} m</div>
               </div>
             )}
-            
-            <div className="average-item">
-              <div className="average-label">Average Depth</div>
-              <div className="average-value">{avgDepth.toFixed(2)} m</div>
+            <div className="form-group">
+              <label>Average Depth</label>
+              <div className="total-score-value">{avgDepth.toFixed(2)} m</div>
             </div>
-            
-            {useBottomWidth && (
-              <div className="average-item">
-                <div className="average-label">Incision Ratio (T/B)</div>
-                <div className="average-value">
-                  {avgBottomWidth > 0 ? (avgTopWidth / avgBottomWidth).toFixed(2) : 'N/A'}
-                </div>
-              </div>
-            )}
           </div>
         </div>
       </div>
@@ -633,96 +638,95 @@ const CulvertSizingForm = () => {
   // Render Settings stage
   const renderSettingsStage = () => {
     return (
-      <div className="card">
-        <div className="card-title">Culvert Settings</div>
-        <div className="card-description">
-          Enter additional site parameters and culvert requirements.
-        </div>
+      <div className="form-section" style={{ borderTop: '4px solid #9c27b0' }}>
+        <h2 className="section-header" style={{ color: '#9c27b0' }}>
+          <span className="section-accent" style={{ background: 'linear-gradient(to bottom, #9c27b0, #ba68c8)' }}></span>
+          Culvert Settings
+        </h2>
+        <p>Configure site parameters and culvert requirements for the sizing calculation.</p>
         
-        <div className="form-group">
-          <label className="form-label">Channel Slope (%)</label>
-          <input
-            type="number"
-            name="slopePercent"
-            className={`form-input ${errors.slopePercent ? 'error' : ''}`}
-            value={formValues.slopePercent}
-            onChange={handleInputChange}
-            placeholder="e.g., 2.5"
-            step="0.1"
-            min="0"
-          />
-          {errors.slopePercent && <div className="error-text">{errors.slopePercent}</div>}
-          <div className="helper-text">Measure between points 10-20× bankfull width apart</div>
-        </div>
-        
-        <div className="form-group">
-          <label className="form-label">Maximum Headwater Ratio (HW/D)</label>
-          <input
-            type="number"
-            name="maxHwdRatio"
-            className={`form-input ${errors.maxHwdRatio ? 'error' : ''}`}
-            value={formValues.maxHwdRatio}
-            onChange={handleInputChange}
-            placeholder="e.g., 0.8"
-            step="0.1"
-            min="0"
-            max="1.5"
-          />
-          {errors.maxHwdRatio && <div className="error-text">{errors.maxHwdRatio}</div>}
-          <div className="helper-text">Conservative value is 0.8. Maximum recommended is 1.5.</div>
-        </div>
-        
-        <div className="form-group">
-          <label className="form-label">Stream Roughness (Manning's n)</label>
-          <select
-            name="streamRoughness"
-            className="form-input"
-            value={formValues.streamRoughness}
-            onChange={handleInputChange}
-          >
-            <option value="0.035">Gravel Bed (0.035)</option>
-            <option value="0.04">Mixed Bed (0.04)</option>
-            <option value="0.045">Cobble Bed (0.045)</option>
-            <option value="0.05">Boulder/Bedrock (0.05)</option>
-          </select>
-          <div className="helper-text">Select based on dominant channel substrate</div>
-        </div>
-        
-        <div className="form-group">
-          <label className="form-label">Pipe Material</label>
-          <select
-            name="pipeRoughness"
-            className="form-input"
-            value={formValues.pipeRoughness}
-            onChange={handleInputChange}
-          >
-            <option value="0.024">Corrugated Steel (0.024)</option>
-            <option value="0.012">Smooth HDPE (0.012)</option>
-            <option value="0.013">Concrete (0.013)</option>
-          </select>
-        </div>
-        
-        <div className="form-group fish-passage-group">
-          <label className="form-label">
+        <div className="form-grid">
+          <div className="form-group">
+            <label htmlFor="slopePercent">Channel Slope (%)</label>
             <input
-              type="checkbox"
-              name="fishPassage"
-              checked={formValues.fishPassage}
-              onChange={toggleFishPassage}
+              type="number"
+              id="slopePercent"
+              name="slopePercent"
+              className={`form-input ${errors.slopePercent ? 'error' : ''}`}
+              value={formValues.slopePercent}
+              onChange={handleInputChange}
+              placeholder="e.g., 2.5"
+              step="0.1"
+              min="0"
             />
-            {" "}Fish Passage Required
-          </label>
+            {errors.slopePercent && <div className="status-message error">{errors.slopePercent}</div>}
+            <div className="helper-text">Measure between points 10-20× bankfull width apart</div>
+          </div>
           
-          {formValues.fishPassage && (
-            <div className="fish-passage-note">
-              <strong>Note:</strong> For fish passage, culverts will be embedded 20% of the culvert diameter below the stream bed.
-              This allows for natural substrate to accumulate in the culvert bottom.
-            </div>
-          )}
+          <div className="form-group">
+            <label htmlFor="maxHwdRatio">Maximum Headwater Ratio (HW/D)</label>
+            <input
+              type="number"
+              id="maxHwdRatio"
+              name="maxHwdRatio"
+              className={`form-input ${errors.maxHwdRatio ? 'error' : ''}`}
+              value={formValues.maxHwdRatio}
+              onChange={handleInputChange}
+              placeholder="e.g., 0.8"
+              step="0.1"
+              min="0"
+              max="1.5"
+            />
+            {errors.maxHwdRatio && <div className="status-message error">{errors.maxHwdRatio}</div>}
+            <div className="helper-text">Conservative value is 0.8. Maximum recommended is 1.5.</div>
+          </div>
           
-          <div className="fish-info">
-            <span className="fish-badge">Fish Passage</span>
-            <p>When enabled, culverts will be sized and embedded to facilitate fish movement through the structure.</p>
+          <div className="form-group">
+            <label htmlFor="streamRoughness">Stream Roughness (Manning's n)</label>
+            <select
+              id="streamRoughness"
+              name="streamRoughness"
+              value={formValues.streamRoughness}
+              onChange={handleInputChange}
+            >
+              <option value="0.035">Gravel Bed (0.035)</option>
+              <option value="0.04">Mixed Bed (0.04)</option>
+              <option value="0.045">Cobble Bed (0.045)</option>
+              <option value="0.05">Boulder/Bedrock (0.05)</option>
+            </select>
+            <div className="helper-text">Select based on dominant channel substrate</div>
+          </div>
+          
+          <div className="form-group">
+            <label htmlFor="pipeRoughness">Pipe Material</label>
+            <select
+              id="pipeRoughness"
+              name="pipeRoughness"
+              value={formValues.pipeRoughness}
+              onChange={handleInputChange}
+            >
+              <option value="0.024">Corrugated Steel (0.024)</option>
+              <option value="0.012">Smooth HDPE (0.012)</option>
+              <option value="0.013">Concrete (0.013)</option>
+            </select>
+          </div>
+          
+          <div className="form-group full-width">
+            <label>
+              <input
+                type="checkbox"
+                name="fishPassage"
+                checked={formValues.fishPassage}
+                onChange={toggleFishPassage}
+              />
+              {" "}Fish Passage Required
+            </label>
+            
+            {formValues.fishPassage && (
+              <div className="helper-text" style={{ marginTop: '8px', padding: '12px', background: '#e8f5e8', borderRadius: '8px' }}>
+                <strong>Note:</strong> For fish passage, culverts will be embedded 20% of the culvert diameter below the stream bed to allow for natural substrate accumulation.
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -733,7 +737,11 @@ const CulvertSizingForm = () => {
   const renderResultsStage = () => {
     if (!results) {
       return (
-        <div className="card">
+        <div className="form-section" style={{ borderTop: '4px solid #4caf50' }}>
+          <h2 className="section-header" style={{ color: '#4caf50' }}>
+            <span className="section-accent" style={{ background: 'linear-gradient(to bottom, #4caf50, #81c784)' }}></span>
+            Calculation Results
+          </h2>
           <div className="status-message error">
             No calculation results available. Please go back and complete the form.
           </div>
@@ -784,111 +792,96 @@ const CulvertSizingForm = () => {
     };
     
     return (
-      <div>
+      <div className="form-section" style={{ borderTop: '4px solid #4caf50' }}>
+        <h2 className="section-header" style={{ color: '#4caf50' }}>
+          <span className="section-accent" style={{ background: 'linear-gradient(to bottom, #4caf50, #81c784)' }}></span>
+          Culvert Sizing Results
+        </h2>
+        
         <CulvertResults calculationResults={calculationResults} />
         
-        <div className="action-buttons">
+        <div className="form-grid" style={{ marginTop: '24px' }}>
           <button 
+            type="button"
             className="gps-button"
             onClick={saveDraft}
           >
-            Save Draft
+            💾 Save Draft
           </button>
           
           <button 
+            type="button"
             className="gps-button"
             onClick={exportPDF}
           >
-            Export as PDF
+            📄 Export PDF
           </button>
         </div>
       </div>
     );
   };
-  
-  // Render navigation buttons
-  const renderNavButtons = () => {
-    if (stage === STAGES.RESULTS) {
-      return (
-        <div className="action-buttons">
-          <button 
-            className="gps-button"
-            onClick={handleBack}
-          >
-            Return to Home
-          </button>
-          
-          <button 
-            className="gps-button"
-            onClick={goToPreviousStage}
-          >
-            Back to Settings
-          </button>
-        </div>
-      );
-    }
-    
-    return (
-      <div className="action-buttons">
-        {stage !== STAGES.SITE_INFO && (
-          <button 
-            className="gps-button"
-            onClick={goToPreviousStage}
-            style={{ backgroundColor: 'var(--secondary-color)' }}
-          >
-            Previous
-          </button>
-        )}
-        
-        <button 
-          className={`gps-button ${isLoading ? 'loading' : ''}`}
-          onClick={goToNextStage}
-          disabled={isLoading}
-        >
-          {isLoading ? 'Calculating...' : stage === STAGES.SETTINGS ? 'Calculate Size' : 'Next'}
+
+  return (
+    <div className="road-risk-form">
+      <div className="form-header">
+        <h1>🌊 Culvert Sizing Tool</h1>
+        <p>Professional culvert sizing using stream measurements and hydraulic calculations</p>
+        <button onClick={() => navigate('/')} className="back-button">
+          ← Back to Home
         </button>
       </div>
-    );
-  };
-  
-  // Render progress indicator
-  const renderProgressIndicator = () => {
-    const stages = [
-      { key: STAGES.SITE_INFO, label: 'Site Info' },
-      { key: STAGES.MEASUREMENTS, label: 'Measurements' },
-      { key: STAGES.SETTINGS, label: 'Settings' },
-      { key: STAGES.RESULTS, label: 'Results' }
-    ];
-    
-    return (
-      <div className="progress-indicator">
-        {stages.map((s, index) => (
-          <div 
-            key={s.key} 
-            className={`progress-step ${stage === s.key ? 'active' : ''} ${
-              stages.indexOf(stages.find(item => item.key === stage)) >= index ? 'completed' : ''
-            }`}
+
+      <div className="section-navigation">
+        {sections.map((section) => (
+          <button
+            key={section.id}
+            className={`nav-button ${activeSection === section.id ? 'active' : ''}`}
+            onClick={() => setActiveSection(section.id)}
           >
-            <div className="progress-number">{index + 1}</div>
-            <div className="progress-label">{s.label}</div>
-          </div>
+            <span className="nav-icon">{section.icon}</span>
+            <span className="nav-title">{section.title}</span>
+          </button>
         ))}
       </div>
-    );
-  };
-  
-  return (
-    <div className="culvert-form-container">
-      <div className="page-header">
-        <button onClick={handleBack} className="back-button">
-          <span>← Back</span>
-        </button>
-        <h1 className="page-title">Culvert Sizing Tool</h1>
+
+      <div className="form-content">
+        {/* Site Information Section */}
+        {activeSection === STAGES.SITE_INFO && renderSiteInfoStage()}
+
+        {/* Stream Measurements Section */}
+        {activeSection === STAGES.MEASUREMENTS && renderMeasurementsStage()}
+
+        {/* Culvert Settings Section */}
+        {activeSection === STAGES.SETTINGS && renderSettingsStage()}
+
+        {/* Results Section */}
+        {activeSection === STAGES.RESULTS && renderResultsStage()}
       </div>
-      
-      {renderProgressIndicator()}
-      {renderStageContent()}
-      {renderNavButtons()}
+
+      {/* Navigation Buttons */}
+      {activeSection !== STAGES.RESULTS && (
+        <div className="form-grid" style={{ marginTop: '24px' }}>
+          {activeSection !== STAGES.SITE_INFO && (
+            <button 
+              type="button"
+              className="gps-button"
+              onClick={goToPreviousSection}
+              style={{ backgroundColor: '#666' }}
+            >
+              ← Previous
+            </button>
+          )}
+          
+          <button 
+            type="button"
+            className={`gps-button ${isLoading ? 'loading' : ''}`}
+            onClick={goToNextSection}
+            disabled={isLoading}
+          >
+            {isLoading ? 'Calculating...' : activeSection === STAGES.SETTINGS ? 'Calculate Size' : 'Next →'}
+          </button>
+        </div>
+      )}
     </div>
   );
 };
