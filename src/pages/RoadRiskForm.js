@@ -336,7 +336,10 @@ const RoadRiskForm = () => {
             <div className="hazard-factors">
               {/* Terrain Stability */}
               <div className="factor-group">
-                <h3>1. Terrain Stability</h3>
+                <h3>
+                  <span className="factor-number">1</span>
+                  Terrain Stability
+                </h3>
                 <p>Evaluate overall terrain stability and slope conditions</p>
                 <div className="rating-options">
                   {[
@@ -361,7 +364,10 @@ const RoadRiskForm = () => {
 
               {/* Slope Grade */}
               <div className="factor-group">
-                <h3>2. Slope Grade</h3>
+                <h3>
+                  <span className="factor-number">2</span>
+                  Slope Grade
+                </h3>
                 <p>Assess the steepness of the road gradient</p>
                 <div className="rating-options">
                   {[
@@ -386,7 +392,10 @@ const RoadRiskForm = () => {
 
               {/* Geology/Soil Type */}
               <div className="factor-group">
-                <h3>3. Geology/Soil Type</h3>
+                <h3>
+                  <span className="factor-number">3</span>
+                  Geology/Soil Type
+                </h3>
                 <p>Evaluate soil stability and erosion characteristics</p>
                 <div className="rating-options">
                   {[
@@ -411,7 +420,10 @@ const RoadRiskForm = () => {
 
               {/* Drainage Conditions */}
               <div className="factor-group">
-                <h3>4. Drainage Conditions</h3>
+                <h3>
+                  <span className="factor-number">4</span>
+                  Drainage Conditions
+                </h3>
                 <p>Assess effectiveness of water management and drainage</p>
                 <div className="rating-options">
                   {[
@@ -434,9 +446,12 @@ const RoadRiskForm = () => {
                 </div>
               </div>
 
-              {/* Road/Slope Failure History - Fixed to remove extra dot */}
+              {/* Road/Slope Failure History - Cleaned up title with factor number */}
               <div className="factor-group">
-                <h3>5. Road/Slope Failure History</h3>
+                <h3>
+                  <span className="factor-number">5</span>
+                  Road/Slope Failure History
+                </h3>
                 <p>Consider historical performance and failure record</p>
                 <div className="rating-options">
                   {[
@@ -481,7 +496,10 @@ const RoadRiskForm = () => {
             <div className="consequence-factors">
               {/* Proximity to Water Resources */}
               <div className="factor-group">
-                <h3>1. Proximity to Water Resources</h3>
+                <h3>
+                  <span className="factor-number">1</span>
+                  Proximity to Water Resources
+                </h3>
                 <p>Assess potential impacts to water bodies and aquatic resources</p>
                 <div className="rating-options">
                   {[
@@ -506,7 +524,10 @@ const RoadRiskForm = () => {
               
               {/* Drainage Structure Capacity */}
               <div className="factor-group">
-                <h3>2. Drainage Structure Capacity</h3>
+                <h3>
+                  <span className="factor-number">2</span>
+                  Drainage Structure Capacity
+                </h3>
                 <p>Evaluate adequacy of culverts and drainage infrastructure</p>
                 <div className="rating-options">
                   {[
@@ -531,7 +552,10 @@ const RoadRiskForm = () => {
 
               {/* Public/Industrial Use Level */}
               <div className="factor-group">
-                <h3>3. Public/Industrial Use Level</h3>
+                <h3>
+                  <span className="factor-number">3</span>
+                  Public/Industrial Use Level
+                </h3>
                 <p>Consider traffic volume and importance of road access</p>
                 <div className="rating-options">
                   {[
@@ -556,7 +580,10 @@ const RoadRiskForm = () => {
 
               {/* Environmental/Cultural Values */}
               <div className="factor-group">
-                <h3>4. Environmental/Cultural Values</h3>
+                <h3>
+                  <span className="factor-number">4</span>
+                  Environmental/Cultural Values
+                </h3>
                 <p>Assess significance of environmental and cultural resources</p>
                 <div className="rating-options">
                   {[
