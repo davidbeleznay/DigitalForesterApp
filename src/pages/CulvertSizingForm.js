@@ -514,18 +514,50 @@ const CulvertSizingForm = () => {
         </h2>
         <p>Measure the stream at multiple representative cross-sections to determine average bankfull dimensions.</p>
         
-        <div className="form-group">
-          <label>
+        <div className="form-group" style={{ marginBottom: '32px' }}>
+          <label style={{ display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
             <input
               type="checkbox"
               checked={useBottomWidth}
               onChange={toggleBottomWidth}
+              style={{ marginTop: '4px' }}
             />
-            {" "}Include Bottom Width Measurements
+            <div>
+              <span style={{ fontWeight: '600', fontSize: '16px' }}>
+                Record Bottom-Width (trapezoidal / incised channel)
+              </span>
+              <div className="helper-text" style={{ 
+                fontSize: '14px', 
+                color: '#666', 
+                margin: '6px 0 0 0',
+                lineHeight: '1.4'
+              }}>
+                Tick when the stream bed is noticeably <strong>narrower than the bank-full top width</strong> so you can enter a tape-measured bottom width.
+              </div>
+              {/* Tooltip would go here - for now using a simple explanation */}
+              <details style={{ marginTop: '8px' }}>
+                <summary style={{ 
+                  cursor: 'pointer', 
+                  color: '#2196f3', 
+                  fontSize: '13px',
+                  userSelect: 'none'
+                }}>
+                  ❓ When should I use this option?
+                </summary>
+                <div style={{ 
+                  marginTop: '8px', 
+                  padding: '12px', 
+                  background: '#f0f8ff', 
+                  borderRadius: '6px',
+                  fontSize: '13px',
+                  lineHeight: '1.4',
+                  color: '#555'
+                }}>
+                  If <strong>left unticked</strong>, the app assumes <strong>steep side-slopes</strong> from the waterline to the bed (default 0.8 H : 1 V) and <em>calculates</em> the bottom width from the top-width and depth you entered. Tick the box when the banks are vertical, undercut, or otherwise <em>incised</em> so you can enter an actual bottom-width reading.
+                </div>
+              </details>
+            </div>
           </label>
-          <p style={{ fontSize: '14px', color: '#666', margin: '8px 0' }}>
-            Enable this for incised channels where bottom width differs significantly from top width.
-          </p>
         </div>
         
         {/* SIMPLIFIED TOP WIDTH MEASUREMENTS */}
