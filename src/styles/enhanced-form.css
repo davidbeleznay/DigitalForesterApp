@@ -1,4 +1,4 @@
-/* Enhanced Form Styles - Final Score Badge Alignment Fix */
+/* Enhanced Form Styles - Clean Layout Without Badges */
 
 /* Score Badge Positioning - Perfect Alignment Fix */
 .score-badge {
@@ -25,7 +25,7 @@
 .option-header {
   display: flex;
   justify-content: space-between;
-  align-items: center; /* Changed back to center for perfect vertical alignment */
+  align-items: center;
   width: 100%;
   gap: 16px; /* Consistent gap for all options */
 }
@@ -37,25 +37,6 @@
   color: #333;
   line-height: 1.3;
   margin-right: 8px; /* Extra spacing to ensure badge stays right-aligned */
-}
-
-/* Factor Number Styling - Small number in top-right corner */
-.factor-number {
-  position: absolute;
-  top: 12px;
-  right: 16px;
-  background: linear-gradient(135deg, #ff9800, #ffb74d);
-  color: white;
-  font-size: 12px;
-  font-weight: 700;
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 2px 6px rgba(255, 152, 0, 0.3);
-  z-index: 10;
 }
 
 /* Ensure ALL score badges have identical sizing and alignment */
@@ -74,7 +55,7 @@
   margin-left: auto; /* Push all badges to the right */
 }
 
-/* Factor Group Styling */
+/* Factor Group Styling - Clean without badges */
 .factor-group {
   background: white;
   border-radius: 12px;
@@ -82,7 +63,7 @@
   margin-bottom: 24px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
   border: 1px solid #e0e0e0;
-  position: relative; /* Enable positioning for factor number */
+  position: relative;
 }
 
 .factor-group h3 {
@@ -91,7 +72,6 @@
   margin-bottom: 8px;
   font-size: 18px;
   font-weight: 600;
-  padding-right: 40px; /* Make room for factor number */
 }
 
 .factor-group p {
@@ -499,18 +479,5 @@
     padding: 3px 6px;
     min-width: 24px;
     height: 20px;
-  }
-  
-  .factor-number {
-    width: 20px;
-    height: 20px;
-    font-size: 11px;
-    top: 10px;
-    right: 12px;
-  }
-  
-  .factor-group h3 {
-    padding-right: 32px;
-    font-size: 16px;
   }
 }
