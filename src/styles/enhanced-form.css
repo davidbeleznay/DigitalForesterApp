@@ -317,27 +317,28 @@
   box-shadow: 0 0 0 3px rgba(33, 150, 243, 0.1);
 }
 
-/* ENHANCED MEASUREMENT INPUT STYLES */
+/* DRAMATICALLY ENHANCED MEASUREMENT INPUT STYLES */
 .measurement-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 16px;
-  margin-top: 16px;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 24px;
+  margin-top: 24px;
 }
 
 .measurement-item {
   background: linear-gradient(135deg, #f8f9fa, #ffffff);
-  border: 2px solid #e9ecef;
-  border-radius: 12px;
-  padding: 16px;
+  border: 3px solid #e9ecef;
+  border-radius: 16px;
+  padding: 24px;
   position: relative;
   transition: all 0.3s ease;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+  min-height: 140px; /* Much larger minimum height */
 }
 
 .measurement-item:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
   border-color: #2196f3;
 }
 
@@ -345,16 +346,18 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 12px;
+  margin-bottom: 16px;
 }
 
 .measurement-number {
-  font-size: 12px;
-  font-weight: 600;
+  font-size: 14px;
+  font-weight: 700;
   color: #666;
   background: #e9ecef;
-  padding: 4px 8px;
-  border-radius: 8px;
+  padding: 8px 12px;
+  border-radius: 12px;
+  min-width: 40px;
+  text-align: center;
 }
 
 .remove-button {
@@ -362,19 +365,20 @@
   color: white;
   border: none;
   border-radius: 50%;
-  width: 24px;
-  height: 24px;
+  width: 32px;
+  height: 32px;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  font-size: 12px;
+  font-size: 16px;
+  font-weight: bold;
   transition: all 0.3s ease;
 }
 
 .remove-button:hover:not(:disabled) {
   background: #d32f2f;
-  transform: scale(1.1);
+  transform: scale(1.15);
 }
 
 .remove-button:disabled {
@@ -383,57 +387,67 @@
   opacity: 0.5;
 }
 
+/* SUPER LARGE MEASUREMENT INPUTS */
 .measurement-input {
-  width: 100%;
-  padding: 16px 20px !important; /* Enhanced padding for better visibility */
-  border: 2px solid #e9ecef !important;
-  border-radius: 10px !important;
-  font-size: 18px !important; /* Larger font size for better readability */
-  font-weight: 600 !important;
-  text-align: center;
+  width: 100% !important;
+  padding: 24px 32px !important; /* MUCH larger padding */
+  border: 3px solid #e9ecef !important;
+  border-radius: 16px !important;
+  font-size: 28px !important; /* MUCH larger font size */
+  font-weight: 700 !important; /* Bold text */
+  text-align: center !important;
   background: white !important;
   transition: all 0.3s ease !important;
-  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.05) !important;
-  min-height: 56px; /* Minimum height for touch-friendly interface */
-  color: #333 !important;
+  box-shadow: inset 0 4px 8px rgba(0, 0, 0, 0.05) !important;
+  min-height: 80px !important; /* MUCH larger minimum height */
+  color: #2c3e50 !important;
+  letter-spacing: 1px !important; /* Better number spacing */
 }
 
 .measurement-input:focus {
   outline: none !important;
   border-color: #2196f3 !important;
-  box-shadow: 0 0 0 4px rgba(33, 150, 243, 0.15) !important;
+  border-width: 4px !important;
+  box-shadow: 0 0 0 6px rgba(33, 150, 243, 0.2) !important;
   background: #fafbfc !important;
-  transform: scale(1.02);
+  transform: scale(1.05) !important; /* Slight enlargement on focus */
 }
 
 .measurement-input:hover {
   border-color: #64b5f6 !important;
-  box-shadow: 0 2px 8px rgba(33, 150, 243, 0.1) !important;
+  border-width: 3px !important;
+  box-shadow: 0 4px 16px rgba(33, 150, 243, 0.15) !important;
+  transform: translateY(-2px) !important;
 }
 
 .measurement-input::placeholder {
-  color: #999 !important;
+  color: #95a5a6 !important;
   font-weight: 400 !important;
-  font-size: 16px !important;
+  font-size: 22px !important;
+  letter-spacing: 0.5px !important;
 }
 
 /* Measurement Section Styling */
 .measurement-section {
-  margin-bottom: 32px;
+  margin-bottom: 40px;
 }
 
 .measurement-section .factor-group {
-  border-left: 4px solid #ff9800;
-  padding-left: 28px;
+  border-left: 6px solid #ff9800;
+  padding-left: 32px;
 }
 
 /* Helper text for measurements */
 .helper-text {
-  font-size: 13px;
+  font-size: 14px;
   color: #666;
-  margin-top: 8px;
+  margin-top: 12px;
   font-style: italic;
-  line-height: 1.4;
+  line-height: 1.5;
+  padding: 8px 12px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  border-left: 4px solid #2196f3;
 }
 
 /* GPS Section Styling */
@@ -600,18 +614,24 @@
     height: 20px;
   }
   
-  /* Mobile measurement input adjustments */
+  /* Mobile measurement input adjustments - STILL LARGE */
   .measurement-grid {
     grid-template-columns: 1fr;
-    gap: 12px;
+    gap: 20px;
   }
   
   .measurement-input {
-    font-size: 16px !important; /* Prevent zoom on iOS */
-    min-height: 48px;
+    font-size: 24px !important; /* Large font even on mobile */
+    min-height: 70px !important; /* Large height on mobile */
+    padding: 20px 24px !important;
   }
   
   .measurement-item {
-    padding: 12px;
+    padding: 20px;
+    min-height: 120px;
+  }
+  
+  .measurement-input::placeholder {
+    font-size: 18px !important;
   }
 }
