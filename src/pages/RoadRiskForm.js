@@ -1,8 +1,9 @@
-// Road Risk Assessment Form - Updated with Enhanced GPS and Fixed Scoring Display
+// Road Risk Assessment Form - Updated with Complete Optional Assessments
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import MatrixRiskAssessment from '../utils/MatrixRiskAssessment';
 import '../styles/enhanced-form.css';
+import '../styles/optional-assessments.css';
 
 const RoadRiskForm = () => {
   const navigate = useNavigate();
@@ -49,12 +50,24 @@ const RoadRiskForm = () => {
     environmentalCulturalValues: null
   });
 
-  // Optional Assessments State
+  // Optional Assessments State - Enhanced with actual assessment factors
   const [optionalAssessments, setOptionalAssessments] = useState({
     geotechnicalEnabled: false,
     infrastructureEnabled: false,
-    geotechnical: {},
-    infrastructure: {}
+    geotechnical: {
+      cutSlopeHeight: null,
+      fillSlopeHeight: null,
+      bedrockCondition: null,
+      groundwaterConditions: null,
+      erosionEvidence: null
+    },
+    infrastructure: {
+      roadSurfaceType: null,
+      ditchCondition: null,
+      culvertSizing: null,
+      culvertCondition: null,
+      roadAge: null
+    }
   });
 
   // Results and Override State
@@ -129,7 +142,6 @@ const RoadRiskForm = () => {
 
   // Calculate Risk Assessment using updated methodology
   const calculateRiskAssessment = () => {
-    // Check if required assessments are complete
     const hazardComplete = Object.values(hazardFactors).filter(val => val !== null).length === 5;
     const consequenceComplete = Object.values(consequenceFactors).filter(val => val !== null).length === 4;
 
@@ -138,16 +150,10 @@ const RoadRiskForm = () => {
       return;
     }
 
-    // Calculate hazard score (sum of 5 factors, each rated 2, 4, 6, or 10)
     const hazardScore = Object.values(hazardFactors).reduce((sum, val) => sum + (val || 0), 0);
-    
-    // Calculate consequence score (sum of 4 factors, each rated 2, 4, 6, or 10)
     const consequenceScore = Object.values(consequenceFactors).reduce((sum, val) => sum + (val || 0), 0);
-
-    // Use MatrixRiskAssessment utility for calculation
     const assessment = riskCalculator.calculateInitialRisk(hazardScore, consequenceScore);
     
-    // Add detailed reasoning
     const detailedReasoning = `Based on hazard assessment (${hazardScore}/50 points) and consequence assessment (${consequenceScore}/40 points), the calculated risk score is ${assessment.riskScore} points, resulting in ${assessment.riskLevel} risk classification.`;
     
     setRiskAssessment({
@@ -159,13 +165,7 @@ const RoadRiskForm = () => {
   // Apply Professional Override
   const applyOverride = () => {
     if (!overrideRiskLevel || !overrideJustification.trim()) return;
-
-    const overriddenAssessment = riskCalculator.applyDirectOverride(
-      riskAssessment, 
-      overrideRiskLevel, 
-      overrideJustification
-    );
-
+    const overriddenAssessment = riskCalculator.applyDirectOverride(riskAssessment, overrideRiskLevel, overrideJustification);
     setRiskAssessment(overriddenAssessment);
     setShowOverride(false);
     setOverrideRiskLevel('');
@@ -191,28 +191,33 @@ const RoadRiskForm = () => {
     setShowOverride(true);
   };
 
-  // Calculate risk whenever factors change
   useEffect(() => {
     calculateRiskAssessment();
   }, [hazardFactors, consequenceFactors]);
 
-  // Handle basic info changes
   const handleBasicInfoChange = (e) => {
     const { name, value } = e.target;
     setBasicInfo(prev => ({ ...prev, [name]: value }));
   };
 
-  // Handle hazard factor changes
   const handleHazardFactorChange = (factor, value) => {
     setHazardFactors(prev => ({ ...prev, [factor]: parseInt(value) }));
   };
 
-  // Handle consequence factor changes
   const handleConsequenceFactorChange = (factor, value) => {
     setConsequenceFactors(prev => ({ ...prev, [factor]: parseInt(value) }));
   };
 
-  // Section navigation
+  const handleOptionalAssessmentChange = (assessmentType, factor, value) => {
+    setOptionalAssessments(prev => ({
+      ...prev,
+      [assessmentType]: {
+        ...prev[assessmentType],
+        [factor]: value
+      }
+    }));
+  };
+
   const sections = [
     { id: 'basic', title: 'Basic Information', icon: '📝' },
     { id: 'hazard', title: 'Hazard Factors', icon: '⚠️' },
@@ -231,7 +236,6 @@ const RoadRiskForm = () => {
         </button>
       </div>
 
-      {/* Section Navigation */}
       <div className="section-navigation">
         {sections.map((section) => (
           <button
@@ -246,7 +250,7 @@ const RoadRiskForm = () => {
       </div>
 
       <div className="form-content">
-        {/* Basic Information Section - Enhanced with GPS */}
+        {/* Basic Information Section */}
         {activeSection === 'basic' && (
           <div className="form-section" style={{ borderTop: '4px solid #2196f3' }}>
             <h2 className="section-header" style={{ color: '#2196f3' }}>
@@ -257,125 +261,51 @@ const RoadRiskForm = () => {
             <div className="form-grid">
               <div className="form-group">
                 <label htmlFor="assessmentDate">Assessment Date</label>
-                <input
-                  type="date"
-                  id="assessmentDate"
-                  name="assessmentDate"
-                  value={basicInfo.assessmentDate}
-                  onChange={handleBasicInfoChange}
-                  required
-                />
+                <input type="date" id="assessmentDate" name="assessmentDate" value={basicInfo.assessmentDate} onChange={handleBasicInfoChange} required />
               </div>
-
               <div className="form-group">
                 <label htmlFor="roadName">Road Name/ID</label>
-                <input
-                  type="text"
-                  id="roadName"
-                  name="roadName"
-                  value={basicInfo.roadName}
-                  onChange={handleBasicInfoChange}
-                  placeholder="e.g., Forest Service Road 123"
-                />
+                <input type="text" id="roadName" name="roadName" value={basicInfo.roadName} onChange={handleBasicInfoChange} placeholder="e.g., Forest Service Road 123" />
               </div>
-
               <div className="form-group">
                 <label htmlFor="assessor">Assessor Name</label>
-                <input
-                  type="text"
-                  id="assessor"
-                  name="assessor"
-                  value={basicInfo.assessor}
-                  onChange={handleBasicInfoChange}
-                  placeholder="Your name"
-                />
+                <input type="text" id="assessor" name="assessor" value={basicInfo.assessor} onChange={handleBasicInfoChange} placeholder="Your name" />
               </div>
-
-              {/* Enhanced GPS Location Section */}
               <div className="form-group">
                 <label htmlFor="startKm">Start Kilometer</label>
-                <input
-                  type="text"
-                  id="startKm"
-                  name="startKm"
-                  value={basicInfo.startKm}
-                  onChange={handleBasicInfoChange}
-                  placeholder="e.g., 5.2 km"
-                />
+                <input type="text" id="startKm" name="startKm" value={basicInfo.startKm} onChange={handleBasicInfoChange} placeholder="e.g., 5.2 km" />
                 <div className="gps-section">
-                  <button
-                    type="button"
-                    className={`gps-button ${gpsState.startLoading ? 'loading' : ''}`}
-                    onClick={() => captureGPS('start')}
-                    disabled={gpsState.startLoading}
-                  >
+                  <button type="button" className={`gps-button ${gpsState.startLoading ? 'loading' : ''}`} onClick={() => captureGPS('start')} disabled={gpsState.startLoading}>
                     📍 {gpsState.startLoading ? 'Getting GPS...' : 'Capture Start GPS'}
                   </button>
-                  
                   {basicInfo.startGPS.latitude && (
                     <div className="location-display">
                       <span className="location-icon">🎯</span>
-                      <span className="location-text">
-                        {basicInfo.startGPS.latitude}, {basicInfo.startGPS.longitude}
-                        {basicInfo.startGPS.accuracy && ` (±${basicInfo.startGPS.accuracy}m)`}
-                      </span>
+                      <span className="location-text">{basicInfo.startGPS.latitude}, {basicInfo.startGPS.longitude}{basicInfo.startGPS.accuracy && ` (±${basicInfo.startGPS.accuracy}m)`}</span>
                     </div>
                   )}
-                  
-                  {gpsState.startError && (
-                    <div className="status-message error">
-                      ⚠️ {gpsState.startError}
-                    </div>
-                  )}
+                  {gpsState.startError && <div className="status-message error">⚠️ {gpsState.startError}</div>}
                 </div>
               </div>
-
               <div className="form-group">
                 <label htmlFor="endKm">End Kilometer</label>
-                <input
-                  type="text"
-                  id="endKm"
-                  name="endKm"
-                  value={basicInfo.endKm}
-                  onChange={handleBasicInfoChange}
-                  placeholder="e.g., 7.8 km"
-                />
+                <input type="text" id="endKm" name="endKm" value={basicInfo.endKm} onChange={handleBasicInfoChange} placeholder="e.g., 7.8 km" />
                 <div className="gps-section">
-                  <button
-                    type="button"
-                    className={`gps-button ${gpsState.endLoading ? 'loading' : ''}`}
-                    onClick={() => captureGPS('end')}
-                    disabled={gpsState.endLoading}
-                  >
+                  <button type="button" className={`gps-button ${gpsState.endLoading ? 'loading' : ''}`} onClick={() => captureGPS('end')} disabled={gpsState.endLoading}>
                     📍 {gpsState.endLoading ? 'Getting GPS...' : 'Capture End GPS'}
                   </button>
-                  
                   {basicInfo.endGPS.latitude && (
                     <div className="location-display">
                       <span className="location-icon">🎯</span>
-                      <span className="location-text">
-                        {basicInfo.endGPS.latitude}, {basicInfo.endGPS.longitude}
-                        {basicInfo.endGPS.accuracy && ` (±${basicInfo.endGPS.accuracy}m)`}
-                      </span>
+                      <span className="location-text">{basicInfo.endGPS.latitude}, {basicInfo.endGPS.longitude}{basicInfo.endGPS.accuracy && ` (±${basicInfo.endGPS.accuracy}m)`}</span>
                     </div>
                   )}
-                  
-                  {gpsState.endError && (
-                    <div className="status-message error">
-                      ⚠️ {gpsState.endError}
-                    </div>
-                  )}
+                  {gpsState.endError && <div className="status-message error">⚠️ {gpsState.endError}</div>}
                 </div>
               </div>
-
               <div className="form-group">
                 <label htmlFor="weatherConditions">Weather Conditions</label>
-                <select
-                  id="weatherConditions"
-                  name="weatherConditions"
-                  value={basicInfo.weatherConditions}
-                  onChange={handleBasicInfoChange}
-                >
+                <select id="weatherConditions" name="weatherConditions" value={basicInfo.weatherConditions} onChange={handleBasicInfoChange}>
                   <option value="">Select conditions</option>
                   <option value="dry">Dry</option>
                   <option value="recent-rain">Recent Rain</option>
@@ -384,23 +314,15 @@ const RoadRiskForm = () => {
                   <option value="frozen">Frozen</option>
                 </select>
               </div>
-
               <div className="form-group full-width">
                 <label htmlFor="notes">Additional Notes</label>
-                <textarea
-                  id="notes"
-                  name="notes"
-                  value={basicInfo.notes}
-                  onChange={handleBasicInfoChange}
-                  rows={3}
-                  placeholder="Any additional observations or context"
-                />
+                <textarea id="notes" name="notes" value={basicInfo.notes} onChange={handleBasicInfoChange} rows={3} placeholder="Any additional observations or context" />
               </div>
             </div>
           </div>
         )}
 
-        {/* Hazard Factors Section - Updated with Fixed Scoring Display */}
+        {/* Hazard Factors Section */}
         {activeSection === 'hazard' && (
           <div className="form-section" style={{ borderTop: '4px solid #ff9800' }}>
             <h2 className="section-header" style={{ color: '#ff9800' }}>
@@ -424,13 +346,7 @@ const RoadRiskForm = () => {
                     { value: 10, label: 'Unstable terrain (Class IV/V)', description: 'High frequency/vulnerability to failure', score: '10' }
                   ].map((option) => (
                     <label key={option.value} className="rating-option">
-                      <input
-                        type="radio"
-                        name="terrainStability"
-                        value={option.value}
-                        checked={hazardFactors.terrainStability === option.value}
-                        onChange={(e) => handleHazardFactorChange('terrainStability', e.target.value)}
-                      />
+                      <input type="radio" name="terrainStability" value={option.value} checked={hazardFactors.terrainStability === option.value} onChange={(e) => handleHazardFactorChange('terrainStability', e.target.value)} />
                       <div className={`option-content score-${option.value}`}>
                         <div className="option-header">
                           <span className="option-label">{option.label}</span>
@@ -455,13 +371,7 @@ const RoadRiskForm = () => {
                     { value: 10, label: 'Very steep grade (>18%)', description: 'High erosion potential and stability risks', score: '10' }
                   ].map((option) => (
                     <label key={option.value} className="rating-option">
-                      <input
-                        type="radio"
-                        name="slopeGrade"
-                        value={option.value}
-                        checked={hazardFactors.slopeGrade === option.value}
-                        onChange={(e) => handleHazardFactorChange('slopeGrade', e.target.value)}
-                      />
+                      <input type="radio" name="slopeGrade" value={option.value} checked={hazardFactors.slopeGrade === option.value} onChange={(e) => handleHazardFactorChange('slopeGrade', e.target.value)} />
                       <div className={`option-content score-${option.value}`}>
                         <div className="option-header">
                           <span className="option-label">{option.label}</span>
@@ -486,13 +396,7 @@ const RoadRiskForm = () => {
                     { value: 10, label: 'Highly erodible soils/talus', description: 'Very high erosion risk, unstable materials', score: '10' }
                   ].map((option) => (
                     <label key={option.value} className="rating-option">
-                      <input
-                        type="radio"
-                        name="geologySoil"
-                        value={option.value}
-                        checked={hazardFactors.geologySoil === option.value}
-                        onChange={(e) => handleHazardFactorChange('geologySoil', e.target.value)}
-                      />
+                      <input type="radio" name="geologySoil" value={option.value} checked={hazardFactors.geologySoil === option.value} onChange={(e) => handleHazardFactorChange('geologySoil', e.target.value)} />
                       <div className={`option-content score-${option.value}`}>
                         <div className="option-header">
                           <span className="option-label">{option.label}</span>
@@ -517,13 +421,7 @@ const RoadRiskForm = () => {
                     { value: 10, label: 'Severe drainage, seepage/springs', description: 'Critical water management issues', score: '10' }
                   ].map((option) => (
                     <label key={option.value} className="rating-option">
-                      <input
-                        type="radio"
-                        name="drainageConditions"
-                        value={option.value}
-                        checked={hazardFactors.drainageConditions === option.value}
-                        onChange={(e) => handleHazardFactorChange('drainageConditions', e.target.value)}
-                      />
+                      <input type="radio" name="drainageConditions" value={option.value} checked={hazardFactors.drainageConditions === option.value} onChange={(e) => handleHazardFactorChange('drainageConditions', e.target.value)} />
                       <div className={`option-content score-${option.value}`}>
                         <div className="option-header">
                           <span className="option-label">{option.label}</span>
@@ -548,13 +446,7 @@ const RoadRiskForm = () => {
                     { value: 10, label: 'Frequent/significant failures', description: 'History of major failures or chronic problems', score: '10' }
                   ].map((option) => (
                     <label key={option.value} className="rating-option">
-                      <input
-                        type="radio"
-                        name="failureHistory"
-                        value={option.value}
-                        checked={hazardFactors.failureHistory === option.value}
-                        onChange={(e) => handleHazardFactorChange('failureHistory', e.target.value)}
-                      />
+                      <input type="radio" name="failureHistory" value={option.value} checked={hazardFactors.failureHistory === option.value} onChange={(e) => handleHazardFactorChange('failureHistory', e.target.value)} />
                       <div className={`option-content score-${option.value}`}>
                         <div className="option-header">
                           <span className="option-label">{option.label}</span>
@@ -567,18 +459,15 @@ const RoadRiskForm = () => {
                 </div>
               </div>
 
-              {/* Total Score Display */}
               <div className="total-score-display">
                 <div className="total-score-label">Total Hazard Score:</div>
-                <div className="total-score-value">
-                  {Object.values(hazardFactors).reduce((sum, val) => sum + (val || 0), 0)} / 50
-                </div>
+                <div className="total-score-value">{Object.values(hazardFactors).reduce((sum, val) => sum + (val || 0), 0)} / 50</div>
               </div>
             </div>
           </div>
         )}
 
-        {/* Consequence Factors Section - Similar structure with fixed scoring display */}
+        {/* Consequence Factors Section */}
         {activeSection === 'consequence' && (
           <div className="form-section" style={{ borderTop: '4px solid #f44336' }}>
             <h2 className="section-header" style={{ color: '#f44336' }}>
@@ -602,13 +491,7 @@ const RoadRiskForm = () => {
                     { value: 10, label: 'Adjacent to fish stream (<10m) or drinking water', description: 'Critical aquatic resource proximity', score: '10' }
                   ].map((option) => (
                     <label key={option.value} className="rating-option">
-                      <input
-                        type="radio"
-                        name="proximityToWater"
-                        value={option.value}
-                        checked={consequenceFactors.proximityToWater === option.value}
-                        onChange={(e) => handleConsequenceFactorChange('proximityToWater', e.target.value)}
-                      />
+                      <input type="radio" name="proximityToWater" value={option.value} checked={consequenceFactors.proximityToWater === option.value} onChange={(e) => handleConsequenceFactorChange('proximityToWater', e.target.value)} />
                       <div className={`option-content score-${option.value}`}>
                         <div className="option-header">
                           <span className="option-label">{option.label}</span>
@@ -621,7 +504,6 @@ const RoadRiskForm = () => {
                 </div>
               </div>
               
-              {/* Similar structure for other consequence factors */}
               {/* Drainage Structure Capacity */}
               <div className="factor-group">
                 <h3>2. Drainage Structure Capacity</h3>
@@ -634,13 +516,7 @@ const RoadRiskForm = () => {
                     { value: 10, label: 'Undersized or deteriorating', description: 'Inadequate capacity, high failure risk', score: '10' }
                   ].map((option) => (
                     <label key={option.value} className="rating-option">
-                      <input
-                        type="radio"
-                        name="drainageStructureCapacity"
-                        value={option.value}
-                        checked={consequenceFactors.drainageStructureCapacity === option.value}
-                        onChange={(e) => handleConsequenceFactorChange('drainageStructureCapacity', e.target.value)}
-                      />
+                      <input type="radio" name="drainageStructureCapacity" value={option.value} checked={consequenceFactors.drainageStructureCapacity === option.value} onChange={(e) => handleConsequenceFactorChange('drainageStructureCapacity', e.target.value)} />
                       <div className={`option-content score-${option.value}`}>
                         <div className="option-header">
                           <span className="option-label">{option.label}</span>
@@ -665,13 +541,7 @@ const RoadRiskForm = () => {
                     { value: 10, label: 'High volume/mainline road', description: 'Critical access route with heavy use', score: '10' }
                   ].map((option) => (
                     <label key={option.value} className="rating-option">
-                      <input
-                        type="radio"
-                        name="publicIndustrialUse"
-                        value={option.value}
-                        checked={consequenceFactors.publicIndustrialUse === option.value}
-                        onChange={(e) => handleConsequenceFactorChange('publicIndustrialUse', e.target.value)}
-                      />
+                      <input type="radio" name="publicIndustrialUse" value={option.value} checked={consequenceFactors.publicIndustrialUse === option.value} onChange={(e) => handleConsequenceFactorChange('publicIndustrialUse', e.target.value)} />
                       <div className={`option-content score-${option.value}`}>
                         <div className="option-header">
                           <span className="option-label">{option.label}</span>
@@ -696,13 +566,7 @@ const RoadRiskForm = () => {
                     { value: 10, label: 'Critical habitat or culturally significant', description: 'Highly sensitive or protected areas', score: '10' }
                   ].map((option) => (
                     <label key={option.value} className="rating-option">
-                      <input
-                        type="radio"
-                        name="environmentalCulturalValues"
-                        value={option.value}
-                        checked={consequenceFactors.environmentalCulturalValues === option.value}
-                        onChange={(e) => handleConsequenceFactorChange('environmentalCulturalValues', e.target.value)}
-                      />
+                      <input type="radio" name="environmentalCulturalValues" value={option.value} checked={consequenceFactors.environmentalCulturalValues === option.value} onChange={(e) => handleConsequenceFactorChange('environmentalCulturalValues', e.target.value)} />
                       <div className={`option-content score-${option.value}`}>
                         <div className="option-header">
                           <span className="option-label">{option.label}</span>
@@ -715,63 +579,285 @@ const RoadRiskForm = () => {
                 </div>
               </div>
 
-              {/* Total Score Display */}
               <div className="total-score-display">
                 <div className="total-score-label">Total Consequence Score:</div>
-                <div className="total-score-value">
-                  {Object.values(consequenceFactors).reduce((sum, val) => sum + (val || 0), 0)} / 40
-                </div>
+                <div className="total-score-value">{Object.values(consequenceFactors).reduce((sum, val) => sum + (val || 0), 0)} / 40</div>
               </div>
             </div>
           </div>
         )}
 
-        {/* Optional Assessments and Results sections remain the same */}
+        {/* Enhanced Optional Assessments Section */}
         {activeSection === 'optional' && (
           <div className="form-section" style={{ borderTop: '4px solid #9c27b0' }}>
             <h2 className="section-header" style={{ color: '#9c27b0' }}>
               <span className="section-accent" style={{ background: 'linear-gradient(to bottom, #9c27b0, #ba68c8)' }}></span>
               Optional Detailed Assessments
             </h2>
+
             <div className="optional-assessments">
               <p className="section-description">
                 These additional assessments provide more detailed analysis for complex situations.
-                They are not required for the basic risk calculation but can inform decision-making.
+                They are not required for the basic risk calculation but can inform decision-making and provide supporting documentation.
               </p>
+
               <div className="assessment-toggles">
                 <div className="assessment-toggle">
                   <label>
-                    <input
-                      type="checkbox"
-                      checked={optionalAssessments.geotechnicalEnabled}
-                      onChange={(e) => setOptionalAssessments(prev => ({
-                        ...prev,
-                        geotechnicalEnabled: e.target.checked
-                      }))}
-                    />
+                    <input type="checkbox" checked={optionalAssessments.geotechnicalEnabled} onChange={(e) => setOptionalAssessments(prev => ({ ...prev, geotechnicalEnabled: e.target.checked }))} />
                     <span className="toggle-content">
                       <strong>🏔️ Geotechnical Assessment</strong>
-                      <p>Detailed soil and slope stability analysis including cut/fill slopes, bedrock conditions, and groundwater</p>
+                      <p>Detailed evaluation of cut/fill slopes, bedrock conditions, groundwater, and erosion evidence</p>
                     </span>
                   </label>
                 </div>
+
                 <div className="assessment-toggle">
                   <label>
-                    <input
-                      type="checkbox"
-                      checked={optionalAssessments.infrastructureEnabled}
-                      onChange={(e) => setOptionalAssessments(prev => ({
-                        ...prev,
-                        infrastructureEnabled: e.target.checked
-                      }))}
-                    />
+                    <input type="checkbox" checked={optionalAssessments.infrastructureEnabled} onChange={(e) => setOptionalAssessments(prev => ({ ...prev, infrastructureEnabled: e.target.checked }))} />
                     <span className="toggle-content">
                       <strong>🏗️ Infrastructure Assessment</strong>
-                      <p>Detailed analysis of road surface, ditches, culverts, and overall infrastructure condition</p>
+                      <p>Comprehensive evaluation of road surface, drainage systems, culvert condition, and overall infrastructure age</p>
                     </span>
                   </label>
                 </div>
               </div>
+
+              {/* Geotechnical Assessment */}
+              {optionalAssessments.geotechnicalEnabled && (
+                <div className="detailed-assessment">
+                  <h3>🏔️ Geotechnical Assessment</h3>
+                  <p className="assessment-description">
+                    Evaluate specific geotechnical factors that may influence road stability and failure risk.
+                    Each factor uses Low/Moderate/High ratings based on site-specific conditions.
+                  </p>
+
+                  <div className="assessment-factors">
+                    {/* Cut Slope Height */}
+                    <div className="assessment-factor">
+                      <h4>Cut Slope Height</h4>
+                      <p>Height of cut slopes adjacent to the roadway</p>
+                      <div className="simple-rating-options">
+                        {[
+                          { value: 'low', label: 'Low Risk', description: '<3m height' },
+                          { value: 'moderate', label: 'Moderate Risk', description: '3-10m height' },
+                          { value: 'high', label: 'High Risk', description: '>10m height' }
+                        ].map((option) => (
+                          <label key={option.value} className="simple-rating-option">
+                            <input type="radio" name="cutSlopeHeight" value={option.value} checked={optionalAssessments.geotechnical.cutSlopeHeight === option.value} onChange={(e) => handleOptionalAssessmentChange('geotechnical', 'cutSlopeHeight', e.target.value)} />
+                            <div className={`simple-option-content ${option.value}-risk`}>
+                              <span className="simple-option-label">{option.label}</span>
+                              <span className="simple-option-description">{option.description}</span>
+                            </div>
+                          </label>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Fill Slope Height */}
+                    <div className="assessment-factor">
+                      <h4>Fill Slope Height</h4>
+                      <p>Height of fill slopes supporting the roadway</p>
+                      <div className="simple-rating-options">
+                        {[
+                          { value: 'low', label: 'Low Risk', description: '<2m height' },
+                          { value: 'moderate', label: 'Moderate Risk', description: '2-5m height' },
+                          { value: 'high', label: 'High Risk', description: '>5m height' }
+                        ].map((option) => (
+                          <label key={option.value} className="simple-rating-option">
+                            <input type="radio" name="fillSlopeHeight" value={option.value} checked={optionalAssessments.geotechnical.fillSlopeHeight === option.value} onChange={(e) => handleOptionalAssessmentChange('geotechnical', 'fillSlopeHeight', e.target.value)} />
+                            <div className={`simple-option-content ${option.value}-risk`}>
+                              <span className="simple-option-label">{option.label}</span>
+                              <span className="simple-option-description">{option.description}</span>
+                            </div>
+                          </label>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Bedrock Condition */}
+                    <div className="assessment-factor">
+                      <h4>Bedrock Condition</h4>
+                      <p>Condition and stability of underlying bedrock</p>
+                      <div className="simple-rating-options">
+                        {[
+                          { value: 'low', label: 'Low Risk', description: 'Competent, solid bedrock' },
+                          { value: 'moderate', label: 'Moderate Risk', description: 'Moderately fractured' },
+                          { value: 'high', label: 'High Risk', description: 'Highly fractured/weathered' }
+                        ].map((option) => (
+                          <label key={option.value} className="simple-rating-option">
+                            <input type="radio" name="bedrockCondition" value={option.value} checked={optionalAssessments.geotechnical.bedrockCondition === option.value} onChange={(e) => handleOptionalAssessmentChange('geotechnical', 'bedrockCondition', e.target.value)} />
+                            <div className={`simple-option-content ${option.value}-risk`}>
+                              <span className="simple-option-label">{option.label}</span>
+                              <span className="simple-option-description">{option.description}</span>
+                            </div>
+                          </label>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Groundwater Conditions */}
+                    <div className="assessment-factor">
+                      <h4>Groundwater Conditions</h4>
+                      <p>Presence and impact of groundwater on slope stability</p>
+                      <div className="simple-rating-options">
+                        {[
+                          { value: 'low', label: 'Low Risk', description: 'Dry/well-drained conditions' },
+                          { value: 'moderate', label: 'Moderate Risk', description: 'Seasonal seepage' },
+                          { value: 'high', label: 'High Risk', description: 'Persistent seepage/springs' }
+                        ].map((option) => (
+                          <label key={option.value} className="simple-rating-option">
+                            <input type="radio" name="groundwaterConditions" value={option.value} checked={optionalAssessments.geotechnical.groundwaterConditions === option.value} onChange={(e) => handleOptionalAssessmentChange('geotechnical', 'groundwaterConditions', e.target.value)} />
+                            <div className={`simple-option-content ${option.value}-risk`}>
+                              <span className="simple-option-label">{option.label}</span>
+                              <span className="simple-option-description">{option.description}</span>
+                            </div>
+                          </label>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Erosion Evidence */}
+                    <div className="assessment-factor">
+                      <h4>Erosion Evidence</h4>
+                      <p>Visible signs of erosion or mass movement</p>
+                      <div className="simple-rating-options">
+                        {[
+                          { value: 'low', label: 'Low Risk', description: 'No visible erosion' },
+                          { value: 'moderate', label: 'Moderate Risk', description: 'Minor rilling/gullying' },
+                          { value: 'high', label: 'High Risk', description: 'Active erosion/mass movement' }
+                        ].map((option) => (
+                          <label key={option.value} className="simple-rating-option">
+                            <input type="radio" name="erosionEvidence" value={option.value} checked={optionalAssessments.geotechnical.erosionEvidence === option.value} onChange={(e) => handleOptionalAssessmentChange('geotechnical', 'erosionEvidence', e.target.value)} />
+                            <div className={`simple-option-content ${option.value}-risk`}>
+                              <span className="simple-option-label">{option.label}</span>
+                              <span className="simple-option-description">{option.description}</span>
+                            </div>
+                          </label>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Infrastructure Assessment */}
+              {optionalAssessments.infrastructureEnabled && (
+                <div className="detailed-assessment">
+                  <h3>🏗️ Infrastructure Assessment</h3>
+                  <p className="assessment-description">
+                    Evaluate the condition and adequacy of existing road infrastructure components.
+                    Each factor uses Good/Fair/Poor ratings based on current condition and functionality.
+                  </p>
+
+                  <div className="assessment-factors">
+                    {/* Road Surface Type */}
+                    <div className="assessment-factor">
+                      <h4>Road Surface Type & Condition</h4>
+                      <p>Type and current condition of road surface</p>
+                      <div className="simple-rating-options">
+                        {[
+                          { value: 'good', label: 'Good', description: 'Paved or well-maintained gravel' },
+                          { value: 'fair', label: 'Fair', description: 'Worn gravel or native surface' },
+                          { value: 'poor', label: 'Poor', description: 'Degraded or severely rutted' }
+                        ].map((option) => (
+                          <label key={option.value} className="simple-rating-option">
+                            <input type="radio" name="roadSurfaceType" value={option.value} checked={optionalAssessments.infrastructure.roadSurfaceType === option.value} onChange={(e) => handleOptionalAssessmentChange('infrastructure', 'roadSurfaceType', e.target.value)} />
+                            <div className={`simple-option-content condition-${option.value}`}>
+                              <span className="simple-option-label">{option.label}</span>
+                              <span className="simple-option-description">{option.description}</span>
+                            </div>
+                          </label>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Ditch Condition */}
+                    <div className="assessment-factor">
+                      <h4>Ditch Condition</h4>
+                      <p>Condition and functionality of roadside ditches</p>
+                      <div className="simple-rating-options">
+                        {[
+                          { value: 'good', label: 'Good', description: 'Clean and fully functional' },
+                          { value: 'fair', label: 'Fair', description: 'Partially blocked or silted' },
+                          { value: 'poor', label: 'Poor', description: 'Blocked or non-functional' }
+                        ].map((option) => (
+                          <label key={option.value} className="simple-rating-option">
+                            <input type="radio" name="ditchCondition" value={option.value} checked={optionalAssessments.infrastructure.ditchCondition === option.value} onChange={(e) => handleOptionalAssessmentChange('infrastructure', 'ditchCondition', e.target.value)} />
+                            <div className={`simple-option-content condition-${option.value}`}>
+                              <span className="simple-option-label">{option.label}</span>
+                              <span className="simple-option-description">{option.description}</span>
+                            </div>
+                          </label>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Culvert Sizing */}
+                    <div className="assessment-factor">
+                      <h4>Culvert Sizing Adequacy</h4>
+                      <p>Adequacy of culvert size for expected flows</p>
+                      <div className="simple-rating-options">
+                        {[
+                          { value: 'good', label: 'Good', description: 'Adequate (>100-year capacity)' },
+                          { value: 'fair', label: 'Fair', description: 'Marginal (50-100-year capacity)' },
+                          { value: 'poor', label: 'Poor', description: 'Undersized (<50-year capacity)' }
+                        ].map((option) => (
+                          <label key={option.value} className="simple-rating-option">
+                            <input type="radio" name="culvertSizing" value={option.value} checked={optionalAssessments.infrastructure.culvertSizing === option.value} onChange={(e) => handleOptionalAssessmentChange('infrastructure', 'culvertSizing', e.target.value)} />
+                            <div className={`simple-option-content condition-${option.value}`}>
+                              <span className="simple-option-label">{option.label}</span>
+                              <span className="simple-option-description">{option.description}</span>
+                            </div>
+                          </label>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Culvert Condition */}
+                    <div className="assessment-factor">
+                      <h4>Culvert Physical Condition</h4>
+                      <p>Physical condition of culvert materials and structure</p>
+                      <div className="simple-rating-options">
+                        {[
+                          { value: 'good', label: 'Good', description: 'New or excellent condition' },
+                          { value: 'fair', label: 'Fair', description: 'Minor deterioration present' },
+                          { value: 'poor', label: 'Poor', description: 'Significant damage or corrosion' }
+                        ].map((option) => (
+                          <label key={option.value} className="simple-rating-option">
+                            <input type="radio" name="culvertCondition" value={option.value} checked={optionalAssessments.infrastructure.culvertCondition === option.value} onChange={(e) => handleOptionalAssessmentChange('infrastructure', 'culvertCondition', e.target.value)} />
+                            <div className={`simple-option-content condition-${option.value}`}>
+                              <span className="simple-option-label">{option.label}</span>
+                              <span className="simple-option-description">{option.description}</span>
+                            </div>
+                          </label>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Road Age */}
+                    <div className="assessment-factor">
+                      <h4>Road Age</h4>
+                      <p>Age of road construction or last major reconstruction</p>
+                      <div className="simple-rating-options">
+                        {[
+                          { value: 'good', label: 'Good', description: '<10 years old' },
+                          { value: 'fair', label: 'Fair', description: '10-25 years old' },
+                          { value: 'poor', label: 'Poor', description: '>25 years old' }
+                        ].map((option) => (
+                          <label key={option.value} className="simple-rating-option">
+                            <input type="radio" name="roadAge" value={option.value} checked={optionalAssessments.infrastructure.roadAge === option.value} onChange={(e) => handleOptionalAssessmentChange('infrastructure', 'roadAge', e.target.value)} />
+                            <div className={`simple-option-content condition-${option.value}`}>
+                              <span className="simple-option-label">{option.label}</span>
+                              <span className="simple-option-description">{option.description}</span>
+                            </div>
+                          </label>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         )}
@@ -803,9 +889,7 @@ const RoadRiskForm = () => {
                         <span className="score-value">{riskAssessment.hazard.score}</span>
                         <span className="score-label">/ 50 points</span>
                       </div>
-                      <div className="score-description">
-                        {riskAssessment.hazard.description}
-                      </div>
+                      <div className="score-description">{riskAssessment.hazard.description}</div>
                     </div>
                   </div>
 
@@ -824,9 +908,7 @@ const RoadRiskForm = () => {
                         <span className="score-value">{riskAssessment.consequence.score}</span>
                         <span className="score-label">/ 40 points</span>
                       </div>
-                      <div className="score-description">
-                        {riskAssessment.consequence.description}
-                      </div>
+                      <div className="score-description">{riskAssessment.consequence.description}</div>
                     </div>
                   </div>
 
@@ -845,9 +927,7 @@ const RoadRiskForm = () => {
                         <span className="risk-level-badge">{riskAssessment.finalRisk.toUpperCase()}</span>
                         <span className="risk-score-display">Score: {riskAssessment.riskScore}</span>
                       </div>
-                      <div className="risk-reasoning">
-                        {riskAssessment.detailedReasoning}
-                      </div>
+                      <div className="risk-reasoning">{riskAssessment.detailedReasoning}</div>
                     </div>
                   </div>
                 </div>
@@ -867,7 +947,55 @@ const RoadRiskForm = () => {
                   </div>
                 </div>
 
-                {/* Professional Override Section - keeping existing functionality */}
+                {/* Optional Assessment Summary */}
+                {(optionalAssessments.geotechnicalEnabled || optionalAssessments.infrastructureEnabled) && (
+                  <div className="optional-summary-card">
+                    <h3>📋 Optional Assessment Summary</h3>
+                    <div className="assessment-summary">
+                      {optionalAssessments.geotechnicalEnabled && (
+                        <div className="summary-section">
+                          <h4>🏔️ Geotechnical Factors</h4>
+                          <div className="summary-items">
+                            {Object.entries(optionalAssessments.geotechnical).map(([key, value]) => {
+                              if (value) {
+                                const factorName = key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
+                                return (
+                                  <div key={key} className="summary-item">
+                                    <span className="summary-label">{factorName}:</span>
+                                    <span className={`summary-value ${value}-risk`}>{value.charAt(0).toUpperCase() + value.slice(1)}</span>
+                                  </div>
+                                );
+                              }
+                              return null;
+                            })}
+                          </div>
+                        </div>
+                      )}
+                      
+                      {optionalAssessments.infrastructureEnabled && (
+                        <div className="summary-section">
+                          <h4>🏗️ Infrastructure Factors</h4>
+                          <div className="summary-items">
+                            {Object.entries(optionalAssessments.infrastructure).map(([key, value]) => {
+                              if (value) {
+                                const factorName = key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
+                                return (
+                                  <div key={key} className="summary-item">
+                                    <span className="summary-label">{factorName}:</span>
+                                    <span className={`summary-value condition-${value}`}>{value.charAt(0).toUpperCase() + value.slice(1)}</span>
+                                  </div>
+                                );
+                              }
+                              return null;
+                            })}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* Professional Override Section */}
                 {riskAssessment.isOverridden ? (
                   <div className="override-applied-card">
                     <div className="override-header">
@@ -882,9 +1010,7 @@ const RoadRiskForm = () => {
                         <div className="override-arrow">→</div>
                         <div className="override-result">
                           <span className="comparison-label">Professional Override:</span>
-                          <span className={`comparison-value ${riskAssessment.finalRisk.toLowerCase().replace(' ', '-')}-risk`}>
-                            {riskAssessment.finalRisk}
-                          </span>
+                          <span className={`comparison-value ${riskAssessment.finalRisk.toLowerCase().replace(' ', '-')}-risk`}>{riskAssessment.finalRisk}</span>
                         </div>
                       </div>
                       <div className="override-justification">
@@ -892,20 +1018,8 @@ const RoadRiskForm = () => {
                         <p>{riskAssessment.overrideJustification}</p>
                       </div>
                       <div className="override-actions">
-                        <button 
-                          type="button" 
-                          className="override-action-button modify"
-                          onClick={modifyOverride}
-                        >
-                          Modify Override
-                        </button>
-                        <button 
-                          type="button" 
-                          className="override-action-button remove"
-                          onClick={resetOverride}
-                        >
-                          Remove Override
-                        </button>
+                        <button type="button" className="override-action-button modify" onClick={modifyOverride}>Modify Override</button>
+                        <button type="button" className="override-action-button remove" onClick={resetOverride}>Remove Override</button>
                       </div>
                     </div>
                   </div>
@@ -915,13 +1029,7 @@ const RoadRiskForm = () => {
                       <h4>⚖️ Professional Override</h4>
                       <p>If professional judgment suggests a different risk level based on site-specific conditions, you can override the calculated result:</p>
                     </div>
-                    <button 
-                      type="button" 
-                      className="show-override-button"
-                      onClick={() => setShowOverride(true)}
-                    >
-                      Apply Professional Override
-                    </button>
+                    <button type="button" className="show-override-button" onClick={() => setShowOverride(true)}>Apply Professional Override</button>
                   </div>
                 )}
 
@@ -936,12 +1044,7 @@ const RoadRiskForm = () => {
                     <div className="override-form-content">
                       <div className="form-group">
                         <label htmlFor="override-risk-level">Override Risk Level:</label>
-                        <select
-                          id="override-risk-level"
-                          value={overrideRiskLevel}
-                          onChange={(e) => setOverrideRiskLevel(e.target.value)}
-                          className="override-select"
-                        >
+                        <select id="override-risk-level" value={overrideRiskLevel} onChange={(e) => setOverrideRiskLevel(e.target.value)} className="override-select">
                           <option value="">Select Risk Level</option>
                           <option value="Low">Low Risk</option>
                           <option value="Moderate">Moderate Risk</option>
@@ -952,33 +1055,12 @@ const RoadRiskForm = () => {
                       
                       <div className="form-group">
                         <label htmlFor="override-justification">Professional Justification:</label>
-                        <textarea
-                          id="override-justification"
-                          value={overrideJustification}
-                          onChange={(e) => setOverrideJustification(e.target.value)}
-                          placeholder="Provide detailed professional justification for the override, including specific site conditions, professional experience, local knowledge, or additional factors not captured in the standard assessment methodology..."
-                          rows={5}
-                          className="override-textarea"
-                          required
-                        />
+                        <textarea id="override-justification" value={overrideJustification} onChange={(e) => setOverrideJustification(e.target.value)} placeholder="Provide detailed professional justification for the override, including specific site conditions, professional experience, local knowledge, or additional factors not captured in the standard assessment methodology..." rows={5} className="override-textarea" required />
                       </div>
                       
                       <div className="override-form-actions">
-                        <button 
-                          type="button" 
-                          className="override-action-button apply"
-                          onClick={applyOverride}
-                          disabled={!overrideRiskLevel || !overrideJustification.trim()}
-                        >
-                          Apply Override
-                        </button>
-                        <button 
-                          type="button" 
-                          className="override-action-button cancel"
-                          onClick={() => setShowOverride(false)}
-                        >
-                          Cancel Override
-                        </button>
+                        <button type="button" className="override-action-button apply" onClick={applyOverride} disabled={!overrideRiskLevel || !overrideJustification.trim()}>Apply Override</button>
+                        <button type="button" className="override-action-button cancel" onClick={() => setShowOverride(false)}>Cancel Override</button>
                       </div>
                     </div>
                   </div>
