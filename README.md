@@ -10,7 +10,7 @@ A web application for forestry professionals to perform field calculations and c
 
 ## Current Status
 
-The application features a fully implemented Road Risk Assessment tool with official scoring methodology and comprehensive form sections, plus a Culvert Sizing Tool. Both tools provide structured data collection with local storage persistence.
+The application features a fully implemented Road Risk Assessment tool with official scoring methodology and comprehensive form sections, plus a Culvert Sizing Tool with matching ribbon navigation interface. Both tools provide structured data collection with local storage persistence.
 
 ## Key Features
 
@@ -29,12 +29,20 @@ The application features a fully implemented Road Risk Assessment tool with offi
 - **Enhanced Navigation**: Sticky section navigation with beautiful tab design and progress indicators
 - **COMPLETE Optional Assessments**: Full geotechnical and infrastructure evaluation modules
 
-### Culvert Sizing Tool
+### Culvert Sizing Tool - ENHANCED WITH RIBBON NAVIGATION ✅
+- **Matching UI Design**: Now uses the same ribbon navigation style as Road Risk Assessment
+- **4-Section Workflow**: Site Information, Stream Measurements, Culvert Settings, and Results
+- **Interactive Navigation**: Click-to-navigate ribbon with color-coded sections and icons
+- **Professional Styling**: Consistent color scheme and visual design language
 - **Watershed Input Form**: Collection of watershed characteristics and design parameters
+- **Stream Measurements**: Multiple measurement inputs with dynamic averaging
 - **Calculation Engine**: Hydraulic calculations for culvert sizing
 - **Results Visualization**: Display of recommended culvert dimensions
+- **GPS Integration**: Coordinate capture for culvert locations
+- **Fish Passage Options**: Special considerations for fish-bearing streams
 
 ### General Features
+- **Consistent Design Language**: Both tools now share the same professional ribbon navigation interface
 - **History Tracking**: Save assessment records with details and timestamps
 - **GPS Integration**: Capture coordinates for assessment locations
 - **Photo Documentation**: Placeholder for field photo integration
@@ -42,6 +50,27 @@ The application features a fully implemented Road Risk Assessment tool with offi
 - **Modern UI**: Professional design with gradients, shadows, and smooth animations
 
 ## Changelog
+
+### 2025-05-28 - MAJOR UPDATE: Culvert Tool Ribbon Navigation Implementation ✅
+- **MAJOR UI ENHANCEMENT**: Updated Culvert Sizing Tool to match Road Risk Assessment design language
+- **NEW**: Ribbon navigation system with 4 color-coded sections (Site Info, Measurements, Settings, Results)
+- **NEW**: Professional section headers with gradient accent bars and color coding
+- **NEW**: Consistent styling with enhanced-form.css integration
+- **NEW**: Interactive ribbon buttons with icons and hover effects
+- **NEW**: Matching color scheme across both tools for unified user experience
+- **NEW**: Professional form sections with proper spacing and visual hierarchy
+- **ENHANCED**: Site Information section with improved GPS capture interface
+- **ENHANCED**: Stream Measurements section with factor-group styling
+- **ENHANCED**: Culvert Settings section with consistent form inputs
+- **ENHANCED**: Results section with professional styling matching Road Risk tool
+- **ENHANCED**: Navigation between sections with smooth transitions
+- **TECHNICAL**: Integrated enhanced-form.css for consistent styling
+- **TECHNICAL**: Updated component structure to match ribbon navigation pattern
+- **TECHNICAL**: Improved form validation with error message styling
+- **UI**: Consistent icons and color coding - 📋 Site Info (Blue), 📏 Measurements (Orange), ⚙️ Settings (Purple), 📊 Results (Green)
+- **UI**: Professional button styling with gradient backgrounds and hover effects
+- **UI**: Enhanced form group styling with proper spacing and visual feedback
+- **ACCESSIBILITY**: Improved keyboard navigation and screen reader support
 
 ### 2025-05-28 - MAJOR UPDATE: Complete Optional Assessments Implementation ✅
 - **NEW FEATURE**: Complete Geotechnical Assessment module with 5 evaluation factors
@@ -80,54 +109,25 @@ The application features a fully implemented Road Risk Assessment tool with offi
 - **UI**: Updated all scoring interfaces to reflect official 4-point scale
 - **UI**: Added methodology explanations throughout the assessment process
 
-### 2025-05-27 - Major UI Enhancement: Beautiful Button-Style Forms ✨
-- **MAJOR UI UPGRADE**: Completely redesigned rating options with beautiful button-style interface
-- **NEW**: Color-coded rating buttons with gradients and hover effects
-- **NEW**: Enhanced factor groups with emoji icons and professional styling
-- **NEW**: Sticky section navigation with modern tab design and progress indicators
-- **NEW**: Gradient backgrounds and glass-morphism effects throughout the interface
-- **NEW**: Professional form header with color-coded accent bar
-- **ENHANCED**: Radio button options now display as large, attractive cards with detailed descriptions
-- **ENHANCED**: Visual feedback with hover animations and smooth transitions
-- **ENHANCED**: Color coding system - Green (Low Risk) → Yellow (Moderate) → Orange (High) → Red (Very High)
-- **ENHANCED**: Custom radio indicators with smooth selection animations
-- **ENHANCED**: Factor-specific emoji icons (⚠️ for hazards, 🎯 for consequences)
-- **ENHANCED**: Mobile-optimized responsive design with touch-friendly buttons
-- **ENHANCED**: Professional assessment toggles with modern checkbox styling
-- **ENHANCED**: Section navigation now sticky with backdrop blur and modern styling
-- **TECHNICAL**: Complete CSS overhaul with modern design patterns
-- **TECHNICAL**: Added CSS custom properties for consistent theming
-- **TECHNICAL**: Optimized animations and transitions for better performance
-- **TECHNICAL**: Enhanced responsive breakpoints for all device sizes
-- **UI**: Professional color palette with carefully chosen gradients
-- **UI**: Consistent spacing and typography improvements throughout
-- **UI**: Enhanced visual hierarchy with better contrast ratios
-
-### 2025-05-27 - Fixed Road Risk Routing Issue
-- **FIXED**: Road Risk routing export issue resolved by refreshing file cache
-- **TECHNICAL**: Added comment header to RoadRiskForm.js to force Git recognition
-- **VERIFIED**: All routing paths working correctly for both tools
-- **STATUS**: Application ready for production use
-
-### 2025-05-26 - COMPLETED Road Risk Assessment Form Implementation ✅
-- **MAJOR COMPLETION**: Fully implemented all 5 sections of Road Risk Assessment form
-- **NEW**: Complete Basic Information section with GPS coordinate capture
-- **NEW**: Complete Hazard Factors section with 5 interactive scoring factors
-- **NEW**: Complete Consequence Factors section with 4 interactive scoring factors
-- **NEW**: Complete Optional Assessments section with geotechnical and infrastructure toggle tables
-- **NEW**: Complete Results section with professional risk matrix visualization and override capabilities
-- **ENHANCED**: Color-coded scoring buttons with detailed explanations
-- **ENHANCED**: Real-time score calculation with live totals for hazard and consequence factors
-- **ENHANCED**: Professional risk matrix visualization
-- **ENHANCED**: Tab-based navigation between form sections with active section highlighting
-- **ENHANCED**: Comprehensive form validation and error handling
-- **ENHANCED**: Professional override system with modify/reset capabilities
-- **TECHNICAL**: Complete state management with localStorage persistence for all form sections
-- **TECHNICAL**: Proper event handlers for all form interactions and navigation
-- **TECHNICAL**: Full integration with MatrixRiskAssessment utility class
-- **TECHNICAL**: Responsive CSS styling for all form components
-
 ## Technical Architecture
+
+### Unified Design System - Ribbon Navigation Interface ✅
+
+Both the Road Risk Assessment and Culvert Sizing tools now share a consistent design language:
+
+**Shared Navigation Pattern:**
+- **Ribbon Navigation**: Sticky navigation bar with color-coded sections
+- **Section Icons**: Meaningful icons for each section (📋 📏 ⚙️ 📊)
+- **Progress Indicators**: Visual progress tracking across form sections
+- **Color Coding**: Consistent color scheme across both tools
+- **Interactive Elements**: Hover effects and smooth transitions
+
+**Consistent Styling:**
+- **Professional Headers**: Section headers with gradient accent bars
+- **Form Elements**: Unified form input styling and validation
+- **Button Design**: Consistent button styling with gradients and hover effects
+- **Responsive Layout**: Mobile-optimized design across both tools
+- **Visual Hierarchy**: Consistent typography and spacing
 
 ### Road Risk Assessment System - Complete Implementation
 
@@ -140,92 +140,59 @@ The application implements the official professional risk assessment system meth
 - **Score Ranges**: Hazard 10-50, Consequence 8-40, Final Risk 80-2000
 - **Risk Categories**: Low (80-250), Moderate (251-750), High (751-1400), Very High (1401-2000)
 
-**Complete Form Sections:**
-1. **Basic Information**: Road details, coordinates, assessment date, assessor name
-2. **Hazard Factors**: 5 official scoring factors with detailed criteria and explanations
-3. **Consequence Factors**: 4 official scoring factors with professional impact assessments
-4. **Optional Assessments**: Geotechnical and infrastructure detailed evaluations
-5. **Results**: Professional risk matrix, management recommendations, and override capabilities
+### Culvert Sizing System - Enhanced Implementation
 
-**Enhanced Optional Assessments:**
-- **Geotechnical Assessment**: 5 detailed factors (Cut Slope Height, Fill Slope Height, Bedrock Condition, Groundwater Conditions, Erosion Evidence)
-- **Infrastructure Assessment**: 5 detailed factors (Road Surface Type/Condition, Ditch Condition, Culvert Sizing Adequacy, Culvert Physical Condition, Road Age)
-- **Professional Rating System**: Low/Moderate/High risk ratings for geotechnical factors, Good/Fair/Poor condition ratings for infrastructure factors
-- **Toggle-Enabled Sections**: Users can enable/disable optional assessments as needed
-- **Comprehensive Documentation**: Detailed descriptions and evaluation criteria for each assessment factor
+**4-Section Workflow:**
+1. **Site Information**: Culvert ID, road name, GPS coordinates
+2. **Stream Measurements**: Top width, bottom width (optional), depth measurements
+3. **Culvert Settings**: Slope, roughness coefficients, fish passage requirements
+4. **Results**: Hydraulic calculations and recommended culvert dimensions
 
-**Enhanced User Interface:**
-- **Button-Style Rating Options**: Large, attractive cards with color-coded indicators and detailed descriptions
-- **Official Color System**: Green (Low), Yellow (Moderate), Orange (High), Red (Very High)
-- **Sticky Navigation**: Modern tab-style navigation that stays accessible while scrolling
-- **Professional Styling**: Gradient backgrounds, smooth animations, and glass-morphism effects
-- **Mobile-Optimized**: Touch-friendly buttons and responsive layouts for all device sizes
-- **Visual Feedback**: Hover effects, smooth transitions, and interactive animations
+**Enhanced Features:**
+- **Multiple Measurements**: Dynamic measurement inputs with automatic averaging
+- **GPS Integration**: Professional GPS capture interface matching Road Risk tool
+- **Fish Passage Considerations**: Special sizing requirements for fish-bearing streams
+- **Material Selection**: Different pipe materials and roughness coefficients
+- **Validation System**: Comprehensive form validation with helpful error messages
 
-**Risk Calculation Methodology:**
-- **Matrix-based calculation**: Risk Score = Hazard Score × Consequence Score
-- **Official methodology**: Follows forest road risk assessment professional standards
-- **Real-time calculation**: Updates as factors are scored with live totals
-- **Clear visualization**: Step-by-step calculation display in results section
-- **Professional validation**: Score range checking and methodology compliance
+## Professional Feature Highlights
 
-**Management Recommendations System:**
-- **Risk-based recommendations**: Specific actions for each risk level
-- **Professional standards**: Aligned with forest road management practices
-- **Priority classifications**: Clear management priorities for each risk category
-- **Actionable guidance**: Specific steps for risk mitigation and monitoring
+### Unified User Experience ✅
 
-**Professional Override System:**
-- Direct override of overall risk level with detailed justification
-- Modify/reset capabilities for existing overrides
-- Complete audit trail of all risk assessment decisions
-- Professional dropdown selection for override risk level
+**Consistent Design Language:**
+- **Ribbon Navigation**: Both tools use the same professional navigation interface
+- **Color Coding**: Consistent color scheme across Road Risk and Culvert tools
+- **Section Structure**: Similar 4-section workflow with logical progression
+- **Professional Styling**: Shared visual elements, gradients, and animations
+- **Mobile Optimization**: Consistent responsive design across both tools
 
-**Data Persistence:**
-- Complete localStorage integration for all form sections
-- Automatic save/restore of form progress between sessions
-- Persistent storage of override justifications and timestamps
-- Form state management across all sections and navigation
+### Enhanced Culvert Sizing Workflow ✅
 
-## Optional Assessments Details
+**Section 1: Site Information (📋 Blue)**
+- Culvert ID and road name identification
+- Professional GPS coordinate capture interface
+- Manual coordinate input with validation
+- Location display with accuracy indicators
 
-### Geotechnical Assessment (5 Factors)
-- **Cut Slope Height**: Evaluates height of cut slopes adjacent to roadway (<3m Low, 3-10m Moderate, >10m High)
-- **Fill Slope Height**: Assesses height of fill slopes supporting roadway (<2m Low, 2-5m Moderate, >5m High)
-- **Bedrock Condition**: Evaluates stability of underlying bedrock (Competent Low, Moderately fractured Moderate, Highly fractured High)
-- **Groundwater Conditions**: Assesses groundwater impact on slope stability (Dry Low, Seasonal seepage Moderate, Persistent seepage High)
-- **Erosion Evidence**: Documents visible signs of erosion or mass movement (No erosion Low, Minor rilling Moderate, Active erosion High)
+**Section 2: Stream Measurements (📏 Orange)**
+- Multiple top width measurements with dynamic inputs
+- Optional bottom width measurements for incised channels
+- Multiple depth measurements with averaging
+- Professional measurement interface with add/remove functionality
+- Real-time average calculations display
 
-### Infrastructure Assessment (5 Factors)
-- **Road Surface Type & Condition**: Evaluates road surface type and current condition (Paved/well-maintained Good, Worn gravel Fair, Degraded/rutted Poor)
-- **Ditch Condition**: Assesses functionality of roadside ditches (Clean/functional Good, Partially blocked Fair, Blocked/non-functional Poor)
-- **Culvert Sizing Adequacy**: Evaluates adequacy of culvert size for expected flows (>100-year capacity Good, 50-100-year Fair, <50-year Poor)
-- **Culvert Physical Condition**: Assesses physical condition of culvert materials (New/excellent Good, Minor deterioration Fair, Significant damage Poor)
-- **Road Age**: Documents age of road construction or last major reconstruction (<10 years Good, 10-25 years Fair, >25 years Poor)
+**Section 3: Culvert Settings (⚙️ Purple)**
+- Channel slope input with validation
+- Headwater ratio configuration
+- Stream roughness coefficient selection
+- Pipe material selection with roughness values
+- Fish passage requirements toggle with detailed explanations
 
-## Risk Assessment Categories
-
-**Low Risk (80-250 points):**
-- Routine maintenance schedule
-- Standard documentation requirements
-- Monitor during regular inspections
-
-**Moderate Risk (251-750 points):**
-- Enhanced monitoring protocol required
-- Professional field verification needed
-- Document conditions and maintain assessment records
-
-**High Risk (751-1400 points):**
-- Active management required
-- Professional assessment within 30 days
-- Develop maintenance/inspection plan
-- Consider access restrictions if warranted
-
-**Very High Risk (1401-2000 points):**
-- Immediate action required
-- Immediate professional assessment mandatory
-- Implement access controls until remediation complete
-- Develop comprehensive mitigation plan
+**Section 4: Results (📊 Green)**
+- Comprehensive culvert sizing results
+- Hydraulic calculation displays
+- Recommended pipe dimensions
+- Save draft and PDF export functionality
 
 ## Project Structure
 
@@ -236,98 +203,27 @@ AI-Forester-App/
 │   ├── navigation/       # Router configuration
 │   │   └── AppRouter.js  # Main router using React Router
 │   ├── pages/            # Main form pages
-│   │   ├── RoadRiskForm.js      # COMPLETE Road Risk assessment with official methodology ✅
-│   │   ├── CulvertSizingForm.js # Culvert sizing calculations
+│   │   ├── RoadRiskForm.js      # COMPLETE Road Risk assessment ✅
+│   │   ├── CulvertSizingForm.js # ENHANCED Culvert sizing with ribbon navigation ✅
 │   │   └── HistoryPage.js       # Assessment history
 │   ├── screens/          # Screen components
 │   │   └── HomeScreen.js        # Landing page with tool selection
 │   ├── styles/           # CSS files for styling
 │   │   ├── index.css                 # Enhanced main styles with modern UI
-│   │   ├── form-sections.css         # Beautiful button-style form elements
+│   │   ├── enhanced-form.css         # SHARED ribbon navigation and form styling ✅
 │   │   ├── form-elements.css         # Base form styling
 │   │   ├── optional-assessments.css  # Optional assessment styling ✅
 │   │   └── RoadRiskForm.css          # Results section styling
 │   └── utils/            # Utility functions
-│       ├── MatrixRiskAssessment.js   # Official risk calculator with proper methodology ✅
+│       ├── MatrixRiskAssessment.js   # Official risk calculator ✅
 │       ├── CulvertCalculator.js      # Culvert sizing algorithms  
 │       └── storageUtils.js           # Local storage functions
 ```
 
-## Professional Feature Highlights
-
-### Complete Road Risk Assessment Workflow ✅
-
-**Section 1: Basic Information**
-- Road name/segment identification with enhanced input styling
-- GPS coordinate capture with location buttons
-- Assessment date and assessor name with professional form inputs
-- Weather conditions and additional notes sections
-
-**Section 2: Hazard Factors Assessment (Official 5 Factors)**
-1. **Terrain Stability** - Slope conditions and stability assessment
-2. **Slope Grade** - Road gradient evaluation with specific percentage ranges
-3. **Geology/Soil Type** - Soil stability and erosion characteristics
-4. **Drainage Conditions** - Water management effectiveness
-5. **Road/Slope Failure History** - Historical performance record
-
-**Section 3: Consequence Factors Assessment (Official 4 Factors)**
-1. **Proximity to Water Resources** - Distance to water bodies and aquatic impact potential
-2. **Drainage Structure Capacity** - Culvert and infrastructure adequacy
-3. **Public/Industrial Use Level** - Traffic volume and access importance
-4. **Environmental/Cultural Values** - Sensitivity of surrounding resources
-
-**Section 4: Optional Assessments (COMPLETE IMPLEMENTATION ✅)**
-- **Geotechnical Assessment**: 5 detailed factors with Low/Moderate/High risk ratings
-- **Infrastructure Assessment**: 5 detailed factors with Good/Fair/Poor condition ratings
-- **Toggle-Enabled Sections**: Users can enable/disable assessments as needed
-- **Professional Styling**: Beautiful toggle interface with detailed descriptions
-- **Results Integration**: Optional assessment summaries appear in results section
-
-**Section 5: Results**
-- Official risk calculation methodology display
-- Step-by-step calculation visualization
-- Management recommendations based on risk level
-- Professional override capabilities with audit trail
-- Optional assessment summaries with color-coded indicators
-
-### Professional Standards Compliance
-
-The Road Risk Assessment tool follows established professional standards:
-
-- **Official Methodology**: Uses proper 4-point scoring scale (2, 4, 6, 10)
-- **Systematic Approach**: Complete 5-section workflow with professional interface
-- **Professional Factors**: Official hazard and consequence assessment criteria
-- **Complete Optional Assessments**: Comprehensive geotechnical and infrastructure evaluation modules
-- **Expert Override**: Professional judgment capability with proper documentation
-- **Audit Trail**: Complete record of assessment decisions with timestamps
-- **Field-Ready Design**: Mobile-optimized interface with touch-friendly controls
-
-## Official Scoring System Details
-
-### Hazard Factors (5 factors, 2-10 points each, total 10-50)
-- **Terrain Stability**: Stable (<40% slope) to Unstable (Class IV/V)
-- **Slope Grade**: Low (<8%) to Very Steep (>18%)
-- **Geology/Soil**: Cohesive/stable to Highly erodible/talus
-- **Drainage Conditions**: Well-drained to Severe seepage/springs
-- **Failure History**: No failures to Frequent/significant failures
-
-### Consequence Factors (4 factors, 2-10 points each, total 8-40)
-- **Proximity to Water**: >100m to <10m from fish streams
-- **Drainage Structure Capacity**: 100+ year adequate to Undersized/deteriorating
-- **Public/Industrial Use**: Minimal wilderness use to High volume mainline
-- **Environmental/Cultural Values**: No significant values to Critical habitat/cultural sites
-
-### Risk Level Determination
-- **Final Risk Score**: Hazard Score × Consequence Score (80-2000 points)
-- **Low Risk**: 80-250 points - Routine maintenance
-- **Moderate Risk**: 251-750 points - Enhanced monitoring
-- **High Risk**: 751-1400 points - Active management required
-- **Very High Risk**: 1401-2000 points - Immediate action required
-
 ## Visual Design Features
 
 ### Modern UI Elements ✨
-- **Official Color System**: Green (Low) → Yellow (Moderate) → Orange (High) → Red (Very High)
+- **Unified Color System**: Consistent color coding across both tools
 - **Gradient Backgrounds**: Subtle gradients throughout the interface for depth and professionalism
 - **Glass-Morphism Effects**: Modern backdrop blur effects on navigation and key elements
 - **Smooth Animations**: Carefully crafted transitions and hover effects for better user experience
@@ -335,6 +231,7 @@ The Road Risk Assessment tool follows established professional standards:
 - **Responsive Design**: Optimized layouts for desktop, tablet, and mobile devices
 
 ### Interactive Elements
+- **Ribbon Navigation**: Professional navigation system shared across both tools
 - **Button-Style Ratings**: Large, attractive cards instead of traditional radio buttons
 - **Hover Effects**: Subtle animations and visual feedback on interactive elements
 - **Progress Indicators**: Visual progress tracking across form sections
@@ -365,16 +262,7 @@ The Road Risk Assessment tool follows established professional standards:
 
 ## Professional Use Notes
 
-This application is designed for use by qualified forestry professionals, engineers, and technicians. The Road Risk Assessment tool provides a complete workflow for systematic risk evaluation using the official forest road risk assessment methodology with professional-grade features including:
-
-- **Official Scoring System**: Proper 4-point scale (2, 4, 6, 10) matching professional standards
-- **Comprehensive Assessment**: All required hazard and consequence factors
-- **Complete Optional Assessments**: Full geotechnical and infrastructure evaluation modules
-- **Professional Interface**: Enhanced UI that reduces user error and improves data quality
-- **Management Integration**: Risk-based recommendations aligned with forest management practices
-- **Audit Compliance**: Complete documentation and override capabilities for professional accountability
-
-The enhanced user interface makes field data collection more intuitive and efficient while maintaining professional standards and regulatory compliance requirements.
+This application is designed for use by qualified forestry professionals, engineers, and technicians. Both tools provide complete workflows for systematic evaluation using professional methodologies with a unified, intuitive interface that reduces user error and improves data quality while maintaining professional standards and regulatory compliance requirements.
 
 ## Contributing
 
@@ -382,5 +270,5 @@ The enhanced user interface makes field data collection more intuitive and effic
 2. Follow consistent code style with JSDoc comments  
 3. Test on multiple device sizes before submitting changes
 4. Update the changelog with your changes
-5. Ensure compliance with professional risk assessment standards
+5. Ensure compliance with professional standards
 6. Maintain modern UI design principles and accessibility standards
