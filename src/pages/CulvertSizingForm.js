@@ -26,7 +26,8 @@ const CulvertSizingForm = () => {
     maxHwdRatio: '0.8',
     fishPassage: false,
     latitude: '',
-    longitude: ''
+    longitude: '',
+    sizingMethod: 'california' // DEFAULT TO CALIFORNIA METHOD
   });
   
   // Optional assessment toggles
@@ -290,6 +291,7 @@ const CulvertSizingForm = () => {
       bottomWidth: useBottomWidth ? avgBottomWidth : undefined,
       avgStreamDepth: avgDepth,
       fishPassage: formValues.fishPassage,
+      sizingMethod: formValues.sizingMethod, // Pass the selected method
       // Hydraulic capacity parameters (only if enabled)
       hydraulicCapacityTest: optionalAssessments.hydraulicCapacityEnabled,
       slopePercent: optionalAssessments.hydraulicCapacityEnabled ? parseFloat(formValues.slopePercent) : null,
@@ -383,7 +385,7 @@ const CulvertSizingForm = () => {
   const sections = [
     { id: STAGES.SITE_INFO, title: 'Site Information', icon: '📋' },
     { id: STAGES.MEASUREMENTS, title: 'Stream Measurements', icon: '📏' },
-    { id: STAGES.SETTINGS, title: 'Optional Assessments', icon: '⚙️' },
+    { id: STAGES.SETTINGS, title: 'Sizing Method & Options', icon: '⚙️' },
     { id: STAGES.RESULTS, title: 'Results', icon: '📊' }
   ];
 
@@ -750,37 +752,92 @@ const CulvertSizingForm = () => {
     );
   };
   
-  // Render Optional Assessments stage
+  // Render Sizing Method & Optional Assessments stage
   const renderSettingsStage = () => {
     return (
       <div className="form-section" style={{ borderTop: '4px solid #9c27b0' }}>
         <h2 className="section-header" style={{ color: '#9c27b0' }}>
           <span className="section-accent" style={{ background: 'linear-gradient(to bottom, #9c27b0, #ba68c8)' }}></span>
-          Optional Assessments
+          Sizing Method & Optional Assessments
         </h2>
-        <p>Enable additional assessments for more detailed culvert analysis. Basic California Method sizing is applied by default.</p>
+        <p>Select your culvert sizing method and enable additional assessments for more detailed analysis.</p>
         
-        {/* HYDRAULIC CAPACITY ASSESSMENT */}
-        <div style={{ marginBottom: '32px', border: '2px solid #e0e0e0', borderRadius: '12px', padding: '20px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', marginBottom: '16px' }}>
-            <input
-              type="checkbox"
-              id="hydraulicCapacityEnabled"
-              checked={optionalAssessments.hydraulicCapacityEnabled}
-              onChange={() => toggleOptionalAssessment('hydraulicCapacityEnabled')}
-              style={{ marginRight: '12px', transform: 'scale(1.2)' }}
-            />
-            <label htmlFor="hydraulicCapacityEnabled" style={{ fontSize: '18px', fontWeight: '600', color: '#2196f3' }}>
-              🌊 Hydraulic Capacity Assessment (Manning's Equation)
-            </label>
-          </div>
-          
+        {/* SIZING METHOD SELECTION */}
+        <div style={{ marginBottom: '32px', border: '3px solid #4caf50', borderRadius: '12px', padding: '20px', background: '#f8fff8' }}>
+          <h3 style={{ color: '#4caf50', marginBottom: '16px' }}>📊 Sizing Method Selection</h3>
           <p style={{ color: '#666', marginBottom: '16px' }}>
-            Verify culvert can handle channel flow using Manning's equation to compare channel vs. culvert capacity. 
-            Includes slope, roughness, and headwater calculations against basic California Method.
+            Choose the primary method for culvert sizing. California Method is recommended as the standard approach.
           </p>
           
-          {optionalAssessments.hydraulicCapacityEnabled && (
+          <div className="factor-group">
+            <div className="rating-options">
+              <label className="rating-option">
+                <input 
+                  type="radio" 
+                  name="sizingMethod" 
+                  value="california" 
+                  checked={formValues.sizingMethod === 'california'} 
+                  onChange={handleInputChange} 
+                />
+                <div className="option-content score-2" style={{ background: '#e8f5e8', border: '2px solid #4caf50' }}>
+                  <div className="option-header">
+                    <span className="option-label">California Method (Recommended)</span>
+                    <span className="score-badge" style={{ background: '#4caf50' }}>DEFAULT</span>
+                  </div>
+                  <span className="option-description">Uses bankfull area × 3 with table lookup for standard culvert sizing</span>
+                </div>
+              </label>
+              
+              <label className="rating-option">
+                <input 
+                  type="radio" 
+                  name="sizingMethod" 
+                  value="hydraulic" 
+                  checked={formValues.sizingMethod === 'hydraulic'} 
+                  onChange={handleInputChange} 
+                />
+                <div className="option-content score-4">
+                  <div className="option-header">
+                    <span className="option-label">Hydraulic Calculation</span>
+                    <span className="score-badge">ADVANCED</span>
+                  </div>
+                  <span className="option-description">Uses Manning's equation with slope and roughness for detailed hydraulic analysis</span>
+                </div>
+              </label>
+              
+              <label className="rating-option">
+                <input 
+                  type="radio" 
+                  name="sizingMethod" 
+                  value="comparison" 
+                  checked={formValues.sizingMethod === 'comparison'} 
+                  onChange={handleInputChange} 
+                />
+                <div className="option-content score-6">
+                  <div className="option-header">
+                    <span className="option-label">Method Comparison</span>
+                    <span className="score-badge">COMPREHENSIVE</span>
+                  </div>
+                  <span className="option-description">Compares both California Method and Hydraulic calculations, shows largest recommended size</span>
+                </div>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        {/* HYDRAULIC CAPACITY ASSESSMENT - Only show if hydraulic or comparison is selected */}
+        {(formValues.sizingMethod === 'hydraulic' || formValues.sizingMethod === 'comparison') && (
+          <div style={{ marginBottom: '32px', border: '2px solid #e0e0e0', borderRadius: '12px', padding: '20px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', marginBottom: '16px' }}>
+              <label htmlFor="hydraulicCapacityEnabled" style={{ fontSize: '18px', fontWeight: '600', color: '#2196f3' }}>
+                🌊 Hydraulic Parameters (Required for {formValues.sizingMethod === 'hydraulic' ? 'Hydraulic' : 'Comparison'} Method)
+              </label>
+            </div>
+            
+            <p style={{ color: '#666', marginBottom: '16px' }}>
+              These parameters are required for hydraulic calculations using Manning's equation.
+            </p>
+            
             <div style={{ background: '#f0f8ff', padding: '20px', borderRadius: '8px', border: '1px solid #2196f3' }}>
               <div className="form-grid">
                 <div className="form-group">
@@ -849,8 +906,8 @@ const CulvertSizingForm = () => {
                 </div>
               </div>
             </div>
-          )}
-        </div>
+          </div>
+        )}
 
         {/* CLIMATE FACTORS ASSESSMENT */}
         <div style={{ marginBottom: '32px', border: '2px solid #e0e0e0', borderRadius: '12px', padding: '20px' }}>
@@ -1064,13 +1121,13 @@ const CulvertSizingForm = () => {
       // finalSize is the overall recommended pipe size from the calculator
       recommendedSize: results.finalSize,
       shape: "Circular",
-      material: optionalAssessments.hydraulicCapacityEnabled ? 
+      material: (formValues.sizingMethod === 'hydraulic' || formValues.sizingMethod === 'comparison') ? 
                (formValues.pipeRoughness === "0.024" ? "Corrugated Metal Pipe (CMP)" : 
                 formValues.pipeRoughness === "0.012" ? "Smooth HDPE" : "Concrete") : 
                "California Method (material not specified)",
-      manningsN: optionalAssessments.hydraulicCapacityEnabled ? parseFloat(formValues.pipeRoughness) : null,
-      hwdCriterion: optionalAssessments.hydraulicCapacityEnabled ? `HW/D ≤ ${formValues.maxHwdRatio}` : "Not applied (California Method only)",
-      hydraulicCapacityTest: optionalAssessments.hydraulicCapacityEnabled,
+      manningsN: (formValues.sizingMethod === 'hydraulic' || formValues.sizingMethod === 'comparison') ? parseFloat(formValues.pipeRoughness) : null,
+      hwdCriterion: (formValues.sizingMethod === 'hydraulic' || formValues.sizingMethod === 'comparison') ? `HW/D ≤ ${formValues.maxHwdRatio}` : "Not applied (California Method only)",
+      hydraulicCapacityTest: (formValues.sizingMethod === 'hydraulic' || formValues.sizingMethod === 'comparison'),
       climateFactorsApplied: optionalAssessments.climateFactorsEnabled,
       debrisAssessmentApplied: optionalAssessments.debrisAssessmentEnabled,
       governingMethod: results.governingMethod,
@@ -1085,7 +1142,8 @@ const CulvertSizingForm = () => {
       avgDepth: avgDepth,
       requiresProfessional: results.requiresProfessional || false,
       climateFactors: optionalAssessments.climateFactorsEnabled ? climateFactors : null,
-      debrisAssessment: optionalAssessments.debrisAssessmentEnabled ? debrisAssessment : null
+      debrisAssessment: optionalAssessments.debrisAssessmentEnabled ? debrisAssessment : null,
+      sizingMethod: formValues.sizingMethod // Pass the selected method
     };
     
     return (
@@ -1157,7 +1215,7 @@ const CulvertSizingForm = () => {
         {/* Stream Measurements Section */}
         {activeSection === STAGES.MEASUREMENTS && renderMeasurementsStage()}
 
-        {/* Optional Assessments Section */}
+        {/* Sizing Method & Optional Assessments Section */}
         {activeSection === STAGES.SETTINGS && renderSettingsStage()}
 
         {/* Results Section */}
