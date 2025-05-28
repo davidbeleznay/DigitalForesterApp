@@ -1,6 +1,6 @@
 /* Enhanced Form Styles - Final Score Badge Alignment Fix */
 
-/* Score Badge Positioning - Final Fix */
+/* Score Badge Positioning - Perfect Alignment Fix */
 .score-badge {
   background: rgba(255, 255, 255, 0.95);
   color: #333;
@@ -8,7 +8,8 @@
   font-size: 12px;
   padding: 4px 8px;
   border-radius: 12px;
-  min-width: 28px; /* Increased minimum width for consistency */
+  min-width: 28px; /* Consistent minimum width for all badges */
+  height: 24px; /* Fixed height for perfect alignment */
   text-align: center;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   flex-shrink: 0;
@@ -20,13 +21,13 @@
   border: 1px solid rgba(255, 255, 255, 0.3);
 }
 
-/* Option Header Layout - Perfect Alignment */
+/* Option Header Layout - Perfect Alignment with Consistent Spacing */
 .option-header {
   display: flex;
   justify-content: space-between;
-  align-items: flex-start; /* Changed to flex-start for better text alignment */
+  align-items: center; /* Changed back to center for perfect vertical alignment */
   width: 100%;
-  gap: 16px; /* Increased gap for better spacing */
+  gap: 16px; /* Consistent gap for all options */
 }
 
 .option-label {
@@ -35,10 +36,10 @@
   font-size: 14px;
   color: #333;
   line-height: 1.3;
-  margin-right: 8px; /* Additional margin to ensure proper spacing */
+  margin-right: 8px; /* Extra spacing to ensure badge stays right-aligned */
 }
 
-/* Ensure consistent badge styling for all score values */
+/* Ensure ALL score badges have identical sizing and alignment */
 .option-content.score-2 .score-badge,
 .option-content.score-4 .score-badge,
 .option-content.score-6 .score-badge,
@@ -46,8 +47,12 @@
   background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(4px);
   border: 1px solid rgba(255, 255, 255, 0.3);
-  min-width: 28px;
-  height: 24px; /* Fixed height for consistency */
+  min-width: 28px; /* Identical minimum width */
+  height: 24px; /* Identical fixed height */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: auto; /* Push all badges to the right */
 }
 
 /* Factor Group Styling */
@@ -95,7 +100,7 @@
   pointer-events: none;
 }
 
-/* Option Content Styling - Consistent Card Appearance */
+/* Option Content Styling - Consistent Card Appearance with Perfect Badge Alignment */
 .option-content {
   display: flex;
   flex-direction: column;
@@ -106,7 +111,7 @@
   transition: all 0.3s ease;
   position: relative;
   overflow: hidden;
-  min-height: 80px; /* Consistent minimum height */
+  min-height: 80px; /* Consistent minimum height for all cards */
 }
 
 .option-content::before {
