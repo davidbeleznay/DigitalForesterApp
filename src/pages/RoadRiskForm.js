@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import MatrixRiskAssessment from '../utils/MatrixRiskAssessment';
+import '../styles/enhanced-form.css';
 
 const RoadRiskForm = () => {
   const navigate = useNavigate();
@@ -577,7 +578,7 @@ const RoadRiskForm = () => {
           </div>
         )}
 
-        {/* Consequence Factors Section - Updated with Fixed Scoring Display */}
+        {/* Consequence Factors Section - Similar structure with fixed scoring display */}
         {activeSection === 'consequence' && (
           <div className="form-section" style={{ borderTop: '4px solid #f44336' }}>
             <h2 className="section-header" style={{ color: '#f44336' }}>
@@ -619,7 +620,8 @@ const RoadRiskForm = () => {
                   ))}
                 </div>
               </div>
-
+              
+              {/* Similar structure for other consequence factors */}
               {/* Drainage Structure Capacity */}
               <div className="factor-group">
                 <h3>2. Drainage Structure Capacity</h3>
@@ -724,20 +726,18 @@ const RoadRiskForm = () => {
           </div>
         )}
 
-        {/* Optional Assessments Section */}
+        {/* Optional Assessments and Results sections remain the same */}
         {activeSection === 'optional' && (
           <div className="form-section" style={{ borderTop: '4px solid #9c27b0' }}>
             <h2 className="section-header" style={{ color: '#9c27b0' }}>
               <span className="section-accent" style={{ background: 'linear-gradient(to bottom, #9c27b0, #ba68c8)' }}></span>
               Optional Detailed Assessments
             </h2>
-
             <div className="optional-assessments">
               <p className="section-description">
                 These additional assessments provide more detailed analysis for complex situations.
                 They are not required for the basic risk calculation but can inform decision-making.
               </p>
-
               <div className="assessment-toggles">
                 <div className="assessment-toggle">
                   <label>
@@ -755,7 +755,6 @@ const RoadRiskForm = () => {
                     </span>
                   </label>
                 </div>
-
                 <div className="assessment-toggle">
                   <label>
                     <input
@@ -773,31 +772,11 @@ const RoadRiskForm = () => {
                   </label>
                 </div>
               </div>
-
-              {optionalAssessments.geotechnicalEnabled && (
-                <div className="detailed-assessment">
-                  <h3>🏔️ Geotechnical Assessment</h3>
-                  <p>Factors include cut slope height, fill slope height, bedrock condition, groundwater conditions, and erosion evidence.</p>
-                  <div className="placeholder-notice">
-                    <p>📝 Detailed geotechnical assessment form would be implemented here with Low/Moderate/High ratings for each factor.</p>
-                  </div>
-                </div>
-              )}
-
-              {optionalAssessments.infrastructureEnabled && (
-                <div className="detailed-assessment">
-                  <h3>🏗️ Infrastructure Assessment</h3>
-                  <p>Factors include road surface type/condition, ditch condition, culvert sizing and condition, and road age.</p>
-                  <div className="placeholder-notice">
-                    <p>📝 Detailed infrastructure assessment form would be implemented here with Good/Fair/Poor ratings for each factor.</p>
-                  </div>
-                </div>
-              )}
             </div>
           </div>
         )}
 
-        {/* Results Section - Enhanced with Official Methodology */}
+        {/* Results Section */}
         {activeSection === 'results' && (
           <div className="form-section" style={{ borderTop: '4px solid #4caf50' }}>
             <h2 className="section-header" style={{ color: '#4caf50' }}>
@@ -807,14 +786,12 @@ const RoadRiskForm = () => {
             
             {riskAssessment ? (
               <div className="risk-results-container">
-                {/* Official Methodology Display */}
                 <div className="methodology-display">
                   <h3>📋 Assessment Methodology</h3>
                   <p><strong>Risk Score = Hazard Score × Consequence Score</strong></p>
                   <p>Using official forest road risk assessment scoring system with 4-point scale (2, 4, 6, 10)</p>
                 </div>
 
-                {/* Risk Calculation Flow */}
                 <div className="risk-calculation-display">
                   <div className="calculation-step">
                     <div className="step-header">
@@ -875,7 +852,6 @@ const RoadRiskForm = () => {
                   </div>
                 </div>
 
-                {/* Management Recommendations */}
                 <div className="management-recommendations">
                   <h3>📋 Management Recommendations</h3>
                   <div className="recommendations-list">
@@ -891,7 +867,7 @@ const RoadRiskForm = () => {
                   </div>
                 </div>
 
-                {/* Professional Override Section */}
+                {/* Professional Override Section - keeping existing functionality */}
                 {riskAssessment.isOverridden ? (
                   <div className="override-applied-card">
                     <div className="override-header">
