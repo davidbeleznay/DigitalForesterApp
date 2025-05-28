@@ -10,7 +10,7 @@ A web application for forestry professionals to perform field calculations and c
 
 ## Current Status
 
-The application features a fully implemented Road Risk Assessment tool with official scoring methodology and comprehensive form sections, plus a Culvert Sizing Tool with matching ribbon navigation interface. Both tools provide structured data collection with local storage persistence.
+The application features a fully implemented Road Risk Assessment tool with official scoring methodology and comprehensive form sections, plus a Culvert Sizing Tool with matching ribbon navigation interface and comprehensive sizing method selection. Both tools provide structured data collection with local storage persistence.
 
 ## Key Features
 
@@ -29,15 +29,20 @@ The application features a fully implemented Road Risk Assessment tool with offi
 - **Enhanced Navigation**: Sticky section navigation with beautiful tab design and progress indicators
 - **COMPLETE Optional Assessments**: Full geotechnical and infrastructure evaluation modules
 
-### Culvert Sizing Tool - ENHANCED WITH RIBBON NAVIGATION ✅
-- **Matching UI Design**: Now uses the same ribbon navigation style as Road Risk Assessment
-- **4-Section Workflow**: Site Information, Stream Measurements, Culvert Settings, and Results
-- **Interactive Navigation**: Click-to-navigate ribbon with color-coded sections and icons
-- **Professional Styling**: Consistent color scheme and visual design language
+### Culvert Sizing Tool - ENHANCED WITH METHOD SELECTION ✅
+- **California Method Default**: California Method is now set as the default sizing approach (recommended standard)
+- **Professional Method Selection**: Choose between California Method, Hydraulic Calculation, or Method Comparison
+- **Interactive Method Display**: Clear visualization of selected vs. reference methods in results
+- **Matching UI Design**: Uses the same ribbon navigation style as Road Risk Assessment
+- **4-Section Workflow**: Site Information, Stream Measurements, Sizing Method & Options, and Results
+- **Method-Specific Parameters**: Hydraulic parameters only required when hydraulic methods are selected
+- **Enhanced Results Display**: Shows selected method with status indicators and comparative analysis
+- **Comprehensive Sizing Comparison**: Side-by-side display of California Method vs. Hydraulic calculations
+- **Professional Styling**: Consistent color scheme and visual design language with method highlighting
 - **Watershed Input Form**: Collection of watershed characteristics and design parameters
 - **Stream Measurements**: Multiple measurement inputs with dynamic averaging
-- **Calculation Engine**: Hydraulic calculations for culvert sizing
-- **Results Visualization**: Display of recommended culvert dimensions
+- **Calculation Engine**: Hydraulic calculations for culvert sizing with method selection
+- **Results Visualization**: Display of recommended culvert dimensions with method comparison
 - **GPS Integration**: Coordinate capture for culvert locations
 - **Fish Passage Options**: Special considerations for fish-bearing streams
 
@@ -50,6 +55,25 @@ The application features a fully implemented Road Risk Assessment tool with offi
 - **Modern UI**: Professional design with gradients, shadows, and smooth animations
 
 ## Changelog
+
+### 2025-05-28 - MAJOR UPDATE: California Method Default Selection Implementation ✅
+- **NEW FEATURE**: California Method is now the default sizing method (industry standard recommended approach)
+- **NEW**: Comprehensive sizing method selection with three options: California Method, Hydraulic Calculation, and Method Comparison
+- **NEW**: Method-specific parameter requirements - hydraulic parameters only shown when hydraulic methods are selected
+- **NEW**: Enhanced results display with selected method indicators and status badges
+- **NEW**: Method comparison visualization showing California vs. Hydraulic calculations side-by-side
+- **NEW**: Professional method selection interface with detailed descriptions and recommendations
+- **ENHANCED**: CulvertResults component now shows selected method with highlighting and status indicators
+- **ENHANCED**: Calculation details table shows which method is selected vs. reference calculations
+- **ENHANCED**: Method explanation section adapts based on selected approach
+- **ENHANCED**: Form validation now method-specific - only validates required parameters for selected method
+- **TECHNICAL**: Updated CulvertSizingForm with sizingMethod state defaulting to 'california'
+- **TECHNICAL**: Enhanced CulvertResults with method-aware display logic and conditional rendering
+- **TECHNICAL**: Updated CSS with method selection styling, status indicators, and highlighted boxes
+- **UI**: California Method clearly marked as "Default" and "Recommended" in selection interface
+- **UI**: Method comparison boxes show visual indicators for selected vs. reference methods
+- **UI**: Green highlighting and status badges for selected methods throughout results
+- **UI**: Method-specific explanations and formulas displayed based on user selection
 
 ### 2025-05-28 - MAJOR UPDATE: Culvert Tool Ribbon Navigation Implementation ✅
 - **MAJOR UI ENHANCEMENT**: Updated Culvert Sizing Tool to match Road Risk Assessment design language
@@ -140,31 +164,27 @@ The application implements the official professional risk assessment system meth
 - **Score Ranges**: Hazard 10-50, Consequence 8-40, Final Risk 80-2000
 - **Risk Categories**: Low (80-250), Moderate (251-750), High (751-1400), Very High (1401-2000)
 
-### Culvert Sizing System - Enhanced Implementation
+### Culvert Sizing System - Enhanced Implementation with Method Selection
 
-**4-Section Workflow:**
+**Comprehensive Sizing Method Options:**
+1. **California Method (Default/Recommended)**: Industry standard using bankfull area × 3 with table lookup
+2. **Hydraulic Calculation**: Advanced Manning's equation approach with slope and roughness parameters
+3. **Method Comparison**: Conservative approach using the larger of both California and Hydraulic methods
+
+**Enhanced 4-Section Workflow:**
 1. **Site Information**: Culvert ID, road name, GPS coordinates
-2. **Stream Measurements**: Top width, bottom width (optional), depth measurements
-3. **Culvert Settings**: Slope, roughness coefficients, fish passage requirements
-4. **Results**: Hydraulic calculations and recommended culvert dimensions
+2. **Stream Measurements**: Top width, bottom width (optional), depth measurements with dynamic averaging
+3. **Sizing Method & Options**: Method selection, hydraulic parameters (when needed), climate and debris assessments
+4. **Results**: Method-aware calculation display with comparative analysis and selected method highlighting
 
-**Enhanced Features:**
-- **Multiple Measurements**: Dynamic measurement inputs with automatic averaging
-- **GPS Integration**: Professional GPS capture interface matching Road Risk tool
-- **Fish Passage Considerations**: Special sizing requirements for fish-bearing streams
-- **Material Selection**: Different pipe materials and roughness coefficients
-- **Validation System**: Comprehensive form validation with helpful error messages
+**Professional Method Selection Features:**
+- **Default Recommendation**: California Method set as default (industry standard)
+- **Conditional Parameters**: Hydraulic parameters only required when hydraulic methods are selected
+- **Method Comparison**: Side-by-side display of California vs. Hydraulic calculations
+- **Status Indicators**: Clear visual indicators showing selected vs. reference methods
+- **Method-Specific Explanations**: Detailed explanations adapted to the selected approach
 
 ## Professional Feature Highlights
-
-### Unified User Experience ✅
-
-**Consistent Design Language:**
-- **Ribbon Navigation**: Both tools use the same professional navigation interface
-- **Color Coding**: Consistent color scheme across Road Risk and Culvert tools
-- **Section Structure**: Similar 4-section workflow with logical progression
-- **Professional Styling**: Shared visual elements, gradients, and animations
-- **Mobile Optimization**: Consistent responsive design across both tools
 
 ### Enhanced Culvert Sizing Workflow ✅
 
@@ -181,18 +201,19 @@ The application implements the official professional risk assessment system meth
 - Professional measurement interface with add/remove functionality
 - Real-time average calculations display
 
-**Section 3: Culvert Settings (⚙️ Purple)**
-- Channel slope input with validation
-- Headwater ratio configuration
-- Stream roughness coefficient selection
-- Pipe material selection with roughness values
-- Fish passage requirements toggle with detailed explanations
+**Section 3: Sizing Method & Options (⚙️ Purple)**
+- **PRIMARY FEATURE**: Comprehensive sizing method selection with California Method as default
+- **Method Options**: California Method (recommended), Hydraulic Calculation, or Method Comparison
+- **Conditional Parameters**: Hydraulic parameters (slope, headwater ratio, roughness) only shown for hydraulic methods
+- **Optional Assessments**: Climate change factors and debris assessment modules
+- **Professional Guidance**: Clear descriptions and recommendations for each method choice
 
 **Section 4: Results (📊 Green)**
-- Comprehensive culvert sizing results
-- Hydraulic calculation displays
-- Recommended pipe dimensions
-- Save draft and PDF export functionality
+- **Method-Aware Display**: Results clearly show selected method with status indicators
+- **Comparative Analysis**: Side-by-side display of California Method vs. Hydraulic calculations
+- **Professional Recommendations**: Method-specific explanations and formulas
+- **Status Indicators**: Visual badges showing "Selected" vs. "Reference" methods
+- **Comprehensive Results**: Complete sizing analysis with method comparison tables
 
 ## Project Structure
 
@@ -200,11 +221,14 @@ The application implements the official professional risk assessment system meth
 AI-Forester-App/
 ├── src/
 │   ├── components/       # Reusable UI components
+│   │   └── culvert/      # Culvert-specific components
+│   │       ├── CulvertResults.jsx    # ENHANCED results with method selection ✅
+│   │       └── CulvertResults.css    # Enhanced styling for method display ✅
 │   ├── navigation/       # Router configuration
 │   │   └── AppRouter.js  # Main router using React Router
 │   ├── pages/            # Main form pages
 │   │   ├── RoadRiskForm.js      # COMPLETE Road Risk assessment ✅
-│   │   ├── CulvertSizingForm.js # ENHANCED Culvert sizing with ribbon navigation ✅
+│   │   ├── CulvertSizingForm.js # ENHANCED with method selection ✅
 │   │   └── HistoryPage.js       # Assessment history
 │   ├── screens/          # Screen components
 │   │   └── HomeScreen.js        # Landing page with tool selection
@@ -216,14 +240,15 @@ AI-Forester-App/
 │   │   └── RoadRiskForm.css          # Results section styling
 │   └── utils/            # Utility functions
 │       ├── MatrixRiskAssessment.js   # Official risk calculator ✅
-│       ├── CulvertCalculator.js      # Culvert sizing algorithms  
+│       ├── CulvertCalculator.js      # Culvert sizing algorithms with method support
 │       └── storageUtils.js           # Local storage functions
 ```
 
 ## Visual Design Features
 
 ### Modern UI Elements ✨
-- **Unified Color System**: Consistent color coding across both tools
+- **Unified Color System**: Consistent color coding across both tools with method-specific highlighting
+- **Method Selection Interface**: Professional method selection with clear recommendations and status indicators
 - **Gradient Backgrounds**: Subtle gradients throughout the interface for depth and professionalism
 - **Glass-Morphism Effects**: Modern backdrop blur effects on navigation and key elements
 - **Smooth Animations**: Carefully crafted transitions and hover effects for better user experience
@@ -231,6 +256,8 @@ AI-Forester-App/
 - **Responsive Design**: Optimized layouts for desktop, tablet, and mobile devices
 
 ### Interactive Elements
+- **Method Selection Cards**: Professional method selection interface with recommendations and descriptions
+- **Status Indicators**: Visual badges showing selected vs. reference methods throughout results
 - **Ribbon Navigation**: Professional navigation system shared across both tools
 - **Button-Style Ratings**: Large, attractive cards instead of traditional radio buttons
 - **Hover Effects**: Subtle animations and visual feedback on interactive elements
@@ -263,6 +290,8 @@ AI-Forester-App/
 ## Professional Use Notes
 
 This application is designed for use by qualified forestry professionals, engineers, and technicians. Both tools provide complete workflows for systematic evaluation using professional methodologies with a unified, intuitive interface that reduces user error and improves data quality while maintaining professional standards and regulatory compliance requirements.
+
+The Culvert Sizing Tool now defaults to the California Method as the industry-standard recommended approach, with options for more advanced hydraulic analysis when needed. The method selection interface provides clear guidance to help professionals choose the most appropriate sizing approach for their specific project requirements.
 
 ## Contributing
 
