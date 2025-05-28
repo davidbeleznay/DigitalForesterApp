@@ -336,24 +336,21 @@ const RoadRiskForm = () => {
             <div className="hazard-factors">
               {/* Terrain Stability */}
               <div className="factor-group">
-                <h3>
-                  <span className="factor-number">1</span>
-                  Terrain Stability
-                </h3>
+                <h3>1. Terrain Stability</h3>
                 <p>Evaluate overall terrain stability and slope conditions</p>
                 <div className="rating-options">
                   {[
-                    { value: 2, label: 'Stable terrain (slopes <40%)', description: 'Generally stable conditions with minimal risk', score: '2' },
-                    { value: 4, label: 'Moderately stable (slopes 40-60%)', description: 'Some stability concerns but manageable', score: '4' },
-                    { value: 6, label: 'Potentially unstable (slopes >60%)', description: 'Significant stability concerns present', score: '6' },
-                    { value: 10, label: 'Unstable terrain (Class IV/V)', description: 'High frequency/vulnerability to failure', score: '10' }
+                    { value: 2, label: 'Stable terrain (slopes <40%)', description: 'Generally stable conditions with minimal risk' },
+                    { value: 4, label: 'Moderately stable (slopes 40-60%)', description: 'Some stability concerns but manageable' },
+                    { value: 6, label: 'Potentially unstable (slopes >60%)', description: 'Significant stability concerns present' },
+                    { value: 10, label: 'Unstable terrain (Class IV/V)', description: 'High frequency/vulnerability to failure' }
                   ].map((option) => (
                     <label key={option.value} className="rating-option">
                       <input type="radio" name="terrainStability" value={option.value} checked={hazardFactors.terrainStability === option.value} onChange={(e) => handleHazardFactorChange('terrainStability', e.target.value)} />
                       <div className={`option-content score-${option.value}`}>
                         <div className="option-header">
                           <span className="option-label">{option.label}</span>
-                          <span className="score-badge">{option.score}</span>
+                          <span className="score-badge">{option.value}</span>
                         </div>
                         <span className="option-description">{option.description}</span>
                       </div>
@@ -364,24 +361,21 @@ const RoadRiskForm = () => {
 
               {/* Slope Grade */}
               <div className="factor-group">
-                <h3>
-                  <span className="factor-number">2</span>
-                  Slope Grade
-                </h3>
+                <h3>2. Slope Grade</h3>
                 <p>Assess the steepness of the road gradient</p>
                 <div className="rating-options">
                   {[
-                    { value: 2, label: 'Low grade (<8%)', description: 'Minimal erosion and stability risks', score: '2' },
-                    { value: 4, label: 'Moderate grade (8-12%)', description: 'Some erosion potential with proper management', score: '4' },
-                    { value: 6, label: 'Steep grade (12-18%)', description: 'Increased erosion and runoff concerns', score: '6' },
-                    { value: 10, label: 'Very steep grade (>18%)', description: 'High erosion potential and stability risks', score: '10' }
+                    { value: 2, label: 'Low grade (<8%)', description: 'Minimal erosion and stability risks' },
+                    { value: 4, label: 'Moderate grade (8-12%)', description: 'Some erosion potential with proper management' },
+                    { value: 6, label: 'Steep grade (12-18%)', description: 'Increased erosion and runoff concerns' },
+                    { value: 10, label: 'Very steep grade (>18%)', description: 'High erosion potential and stability risks' }
                   ].map((option) => (
                     <label key={option.value} className="rating-option">
                       <input type="radio" name="slopeGrade" value={option.value} checked={hazardFactors.slopeGrade === option.value} onChange={(e) => handleHazardFactorChange('slopeGrade', e.target.value)} />
                       <div className={`option-content score-${option.value}`}>
                         <div className="option-header">
                           <span className="option-label">{option.label}</span>
-                          <span className="score-badge">{option.score}</span>
+                          <span className="score-badge">{option.value}</span>
                         </div>
                         <span className="option-description">{option.description}</span>
                       </div>
@@ -392,24 +386,21 @@ const RoadRiskForm = () => {
 
               {/* Geology/Soil Type */}
               <div className="factor-group">
-                <h3>
-                  <span className="factor-number">3</span>
-                  Geology/Soil Type
-                </h3>
+                <h3>3. Geology/Soil Type</h3>
                 <p>Evaluate soil stability and erosion characteristics</p>
                 <div className="rating-options">
                   {[
-                    { value: 2, label: 'Cohesive, stable soils/bedrock', description: 'Well-consolidated, erosion-resistant materials', score: '2' },
-                    { value: 4, label: 'Moderately stable soils', description: 'Generally stable with some erosion potential', score: '4' },
-                    { value: 6, label: 'Loose, erodible soils', description: 'Moderate to high erosion susceptibility', score: '6' },
-                    { value: 10, label: 'Highly erodible soils/talus', description: 'Very high erosion risk, unstable materials', score: '10' }
+                    { value: 2, label: 'Cohesive, stable soils/bedrock', description: 'Well-consolidated, erosion-resistant materials' },
+                    { value: 4, label: 'Moderately stable soils', description: 'Generally stable with some erosion potential' },
+                    { value: 6, label: 'Loose, erodible soils', description: 'Moderate to high erosion susceptibility' },
+                    { value: 10, label: 'Highly erodible soils/talus', description: 'Very high erosion risk, unstable materials' }
                   ].map((option) => (
                     <label key={option.value} className="rating-option">
                       <input type="radio" name="geologySoil" value={option.value} checked={hazardFactors.geologySoil === option.value} onChange={(e) => handleHazardFactorChange('geologySoil', e.target.value)} />
                       <div className={`option-content score-${option.value}`}>
                         <div className="option-header">
                           <span className="option-label">{option.label}</span>
-                          <span className="score-badge">{option.score}</span>
+                          <span className="score-badge">{option.value}</span>
                         </div>
                         <span className="option-description">{option.description}</span>
                       </div>
@@ -420,24 +411,21 @@ const RoadRiskForm = () => {
 
               {/* Drainage Conditions */}
               <div className="factor-group">
-                <h3>
-                  <span className="factor-number">4</span>
-                  Drainage Conditions
-                </h3>
+                <h3>4. Drainage Conditions</h3>
                 <p>Assess effectiveness of water management and drainage</p>
                 <div className="rating-options">
                   {[
-                    { value: 2, label: 'Well-drained, minimal surface water', description: 'Excellent drainage with no water issues', score: '2' },
-                    { value: 4, label: 'Moderate drainage issues', description: 'Some water management concerns', score: '4' },
-                    { value: 6, label: 'Poor drainage, standing water', description: 'Significant drainage problems present', score: '6' },
-                    { value: 10, label: 'Severe drainage, seepage/springs', description: 'Critical water management issues', score: '10' }
+                    { value: 2, label: 'Well-drained, minimal surface water', description: 'Excellent drainage with no water issues' },
+                    { value: 4, label: 'Moderate drainage issues', description: 'Some water management concerns' },
+                    { value: 6, label: 'Poor drainage, standing water', description: 'Significant drainage problems present' },
+                    { value: 10, label: 'Severe drainage, seepage/springs', description: 'Critical water management issues' }
                   ].map((option) => (
                     <label key={option.value} className="rating-option">
                       <input type="radio" name="drainageConditions" value={option.value} checked={hazardFactors.drainageConditions === option.value} onChange={(e) => handleHazardFactorChange('drainageConditions', e.target.value)} />
                       <div className={`option-content score-${option.value}`}>
                         <div className="option-header">
                           <span className="option-label">{option.label}</span>
-                          <span className="score-badge">{option.score}</span>
+                          <span className="score-badge">{option.value}</span>
                         </div>
                         <span className="option-description">{option.description}</span>
                       </div>
@@ -446,26 +434,23 @@ const RoadRiskForm = () => {
                 </div>
               </div>
 
-              {/* Road/Slope Failure History - Cleaned up title with factor number */}
+              {/* Road/Slope Failure History - Clean title without any extra elements */}
               <div className="factor-group">
-                <h3>
-                  <span className="factor-number">5</span>
-                  Road/Slope Failure History
-                </h3>
+                <h3>5. Road/Slope Failure History</h3>
                 <p>Consider historical performance and failure record</p>
                 <div className="rating-options">
                   {[
-                    { value: 2, label: 'No previous failures', description: 'Excellent historical performance record', score: '2' },
-                    { value: 4, label: 'Minor historical issues', description: 'Some minor problems, mostly resolved', score: '4' },
-                    { value: 6, label: 'Moderate historical failures', description: 'Several notable failures or ongoing issues', score: '6' },
-                    { value: 10, label: 'Frequent/significant failures', description: 'History of major failures or chronic problems', score: '10' }
+                    { value: 2, label: 'No previous failures', description: 'Excellent historical performance record' },
+                    { value: 4, label: 'Minor historical issues', description: 'Some minor problems, mostly resolved' },
+                    { value: 6, label: 'Moderate historical failures', description: 'Several notable failures or ongoing issues' },
+                    { value: 10, label: 'Frequent/significant failures', description: 'History of major failures or chronic problems' }
                   ].map((option) => (
                     <label key={option.value} className="rating-option">
                       <input type="radio" name="failureHistory" value={option.value} checked={hazardFactors.failureHistory === option.value} onChange={(e) => handleHazardFactorChange('failureHistory', e.target.value)} />
                       <div className={`option-content score-${option.value}`}>
                         <div className="option-header">
                           <span className="option-label">{option.label}</span>
-                          <span className="score-badge">{option.score}</span>
+                          <span className="score-badge">{option.value}</span>
                         </div>
                         <span className="option-description">{option.description}</span>
                       </div>
@@ -496,24 +481,21 @@ const RoadRiskForm = () => {
             <div className="consequence-factors">
               {/* Proximity to Water Resources */}
               <div className="factor-group">
-                <h3>
-                  <span className="factor-number">1</span>
-                  Proximity to Water Resources
-                </h3>
+                <h3>1. Proximity to Water Resources</h3>
                 <p>Assess potential impacts to water bodies and aquatic resources</p>
                 <div className="rating-options">
                   {[
-                    { value: 2, label: 'No water resources nearby (>100m)', description: 'Minimal risk to aquatic resources', score: '2' },
-                    { value: 4, label: 'Non-fish bearing stream (30-100m)', description: 'Limited aquatic resource impacts', score: '4' },
-                    { value: 6, label: 'Fish bearing stream (10-30m)', description: 'Significant potential for aquatic impacts', score: '6' },
-                    { value: 10, label: 'Adjacent to fish stream (<10m) or drinking water', description: 'Critical aquatic resource proximity', score: '10' }
+                    { value: 2, label: 'No water resources nearby (>100m)', description: 'Minimal risk to aquatic resources' },
+                    { value: 4, label: 'Non-fish bearing stream (30-100m)', description: 'Limited aquatic resource impacts' },
+                    { value: 6, label: 'Fish bearing stream (10-30m)', description: 'Significant potential for aquatic impacts' },
+                    { value: 10, label: 'Adjacent to fish stream (<10m) or drinking water', description: 'Critical aquatic resource proximity' }
                   ].map((option) => (
                     <label key={option.value} className="rating-option">
                       <input type="radio" name="proximityToWater" value={option.value} checked={consequenceFactors.proximityToWater === option.value} onChange={(e) => handleConsequenceFactorChange('proximityToWater', e.target.value)} />
                       <div className={`option-content score-${option.value}`}>
                         <div className="option-header">
                           <span className="option-label">{option.label}</span>
-                          <span className="score-badge">{option.score}</span>
+                          <span className="score-badge">{option.value}</span>
                         </div>
                         <span className="option-description">{option.description}</span>
                       </div>
@@ -524,24 +506,21 @@ const RoadRiskForm = () => {
               
               {/* Drainage Structure Capacity */}
               <div className="factor-group">
-                <h3>
-                  <span className="factor-number">2</span>
-                  Drainage Structure Capacity
-                </h3>
+                <h3>2. Drainage Structure Capacity</h3>
                 <p>Evaluate adequacy of culverts and drainage infrastructure</p>
                 <div className="rating-options">
                   {[
-                    { value: 2, label: 'Adequate for 100+ year events', description: 'Excellent capacity for extreme events', score: '2' },
-                    { value: 4, label: 'Adequate for 50-year events', description: 'Good capacity for major storms', score: '4' },
-                    { value: 6, label: 'Adequate for 25-year events', description: 'Limited capacity, some risk in large storms', score: '6' },
-                    { value: 10, label: 'Undersized or deteriorating', description: 'Inadequate capacity, high failure risk', score: '10' }
+                    { value: 2, label: 'Adequate for 100+ year events', description: 'Excellent capacity for extreme events' },
+                    { value: 4, label: 'Adequate for 50-year events', description: 'Good capacity for major storms' },
+                    { value: 6, label: 'Adequate for 25-year events', description: 'Limited capacity, some risk in large storms' },
+                    { value: 10, label: 'Undersized or deteriorating', description: 'Inadequate capacity, high failure risk' }
                   ].map((option) => (
                     <label key={option.value} className="rating-option">
                       <input type="radio" name="drainageStructureCapacity" value={option.value} checked={consequenceFactors.drainageStructureCapacity === option.value} onChange={(e) => handleConsequenceFactorChange('drainageStructureCapacity', e.target.value)} />
                       <div className={`option-content score-${option.value}`}>
                         <div className="option-header">
                           <span className="option-label">{option.label}</span>
-                          <span className="score-badge">{option.score}</span>
+                          <span className="score-badge">{option.value}</span>
                         </div>
                         <span className="option-description">{option.description}</span>
                       </div>
@@ -552,24 +531,21 @@ const RoadRiskForm = () => {
 
               {/* Public/Industrial Use Level */}
               <div className="factor-group">
-                <h3>
-                  <span className="factor-number">3</span>
-                  Public/Industrial Use Level
-                </h3>
+                <h3>3. Public/Industrial Use Level</h3>
                 <p>Consider traffic volume and importance of road access</p>
                 <div className="rating-options">
                   {[
-                    { value: 2, label: 'Minimal use (wilderness road)', description: 'Very low traffic, limited access needs', score: '2' },
-                    { value: 4, label: 'Low volume industrial use', description: 'Occasional industrial traffic only', score: '4' },
-                    { value: 6, label: 'Moderate public/industrial use', description: 'Regular public and industrial access', score: '6' },
-                    { value: 10, label: 'High volume/mainline road', description: 'Critical access route with heavy use', score: '10' }
+                    { value: 2, label: 'Minimal use (wilderness road)', description: 'Very low traffic, limited access needs' },
+                    { value: 4, label: 'Low volume industrial use', description: 'Occasional industrial traffic only' },
+                    { value: 6, label: 'Moderate public/industrial use', description: 'Regular public and industrial access' },
+                    { value: 10, label: 'High volume/mainline road', description: 'Critical access route with heavy use' }
                   ].map((option) => (
                     <label key={option.value} className="rating-option">
                       <input type="radio" name="publicIndustrialUse" value={option.value} checked={consequenceFactors.publicIndustrialUse === option.value} onChange={(e) => handleConsequenceFactorChange('publicIndustrialUse', e.target.value)} />
                       <div className={`option-content score-${option.value}`}>
                         <div className="option-header">
                           <span className="option-label">{option.label}</span>
-                          <span className="score-badge">{option.score}</span>
+                          <span className="score-badge">{option.value}</span>
                         </div>
                         <span className="option-description">{option.description}</span>
                       </div>
@@ -580,24 +556,21 @@ const RoadRiskForm = () => {
 
               {/* Environmental/Cultural Values */}
               <div className="factor-group">
-                <h3>
-                  <span className="factor-number">4</span>
-                  Environmental/Cultural Values
-                </h3>
+                <h3>4. Environmental/Cultural Values</h3>
                 <p>Assess significance of environmental and cultural resources</p>
                 <div className="rating-options">
                   {[
-                    { value: 2, label: 'No significant values', description: 'Standard forest conditions, no special values', score: '2' },
-                    { value: 4, label: 'Standard riparian/wildlife values', description: 'Typical environmental considerations', score: '4' },
-                    { value: 6, label: 'Important habitat or cultural areas', description: 'Notable environmental or cultural significance', score: '6' },
-                    { value: 10, label: 'Critical habitat or culturally significant', description: 'Highly sensitive or protected areas', score: '10' }
+                    { value: 2, label: 'No significant values', description: 'Standard forest conditions, no special values' },
+                    { value: 4, label: 'Standard riparian/wildlife values', description: 'Typical environmental considerations' },
+                    { value: 6, label: 'Important habitat or cultural areas', description: 'Notable environmental or cultural significance' },
+                    { value: 10, label: 'Critical habitat or culturally significant', description: 'Highly sensitive or protected areas' }
                   ].map((option) => (
                     <label key={option.value} className="rating-option">
                       <input type="radio" name="environmentalCulturalValues" value={option.value} checked={consequenceFactors.environmentalCulturalValues === option.value} onChange={(e) => handleConsequenceFactorChange('environmentalCulturalValues', e.target.value)} />
                       <div className={`option-content score-${option.value}`}>
                         <div className="option-header">
                           <span className="option-label">{option.label}</span>
-                          <span className="score-badge">{option.score}</span>
+                          <span className="score-badge">{option.value}</span>
                         </div>
                         <span className="option-description">{option.description}</span>
                       </div>
