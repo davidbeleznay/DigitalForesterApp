@@ -29,10 +29,10 @@ const CulvertSizingForm = () => {
     longitude: ''
   });
   
-  // Measurements state - now for top width, bottom width, and depth
-  const [topWidthMeasurements, setTopWidthMeasurements] = useState([{ id: 1, value: '' }]);
-  const [bottomWidthMeasurements, setBottomWidthMeasurements] = useState([{ id: 1, value: '' }]);
-  const [depthMeasurements, setDepthMeasurements] = useState([{ id: 1, value: '' }]);
+  // SIMPLIFIED MEASUREMENTS - just simple strings for each measurement type
+  const [topWidthMeasurements, setTopWidthMeasurements] = useState(['']);
+  const [bottomWidthMeasurements, setBottomWidthMeasurements] = useState(['']);
+  const [depthMeasurements, setDepthMeasurements] = useState(['']);
   
   // Track if bottom width is being used
   const [useBottomWidth, setUseBottomWidth] = useState(false);
@@ -71,51 +71,44 @@ const CulvertSizingForm = () => {
     
     // If turning off bottom width, clear the measurements
     if (useBottomWidth) {
-      setBottomWidthMeasurements([{ id: 1, value: '' }]);
+      setBottomWidthMeasurements(['']);
     }
   };
   
-  // Handle adding a new measurement
-  const addMeasurement = (setMeasurements) => {
-    setMeasurements(prev => {
-      const newId = prev.length > 0 
-        ? Math.max(...prev.map(m => m.id)) + 1 
-        : 1;
-      return [...prev, { id: newId, value: '' }];
-    });
+  // SIMPLIFIED: Add measurement to array
+  const addMeasurement = (measurements, setMeasurements) => {
+    setMeasurements([...measurements, '']);
   };
   
-  // Handle removing a measurement
-  const removeMeasurement = (id, setMeasurements) => {
-    setMeasurements(prev => {
-      if (prev.length <= 1) return prev; // Keep at least one measurement
-      return prev.filter(m => m.id !== id);
-    });
+  // SIMPLIFIED: Remove measurement from array
+  const removeMeasurement = (index, measurements, setMeasurements) => {
+    if (measurements.length <= 1) return; // Keep at least one measurement
+    const newMeasurements = measurements.filter((_, i) => i !== index);
+    setMeasurements(newMeasurements);
   };
   
-  // Handle changing measurement value
-  const handleMeasurementChange = (id, value, setMeasurements) => {
-    setMeasurements(prev => 
-      prev.map(m => m.id === id ? { ...m, value } : m)
-    );
+  // SIMPLIFIED: Handle changing measurement value
+  const handleMeasurementChange = (index, value, measurements, setMeasurements) => {
+    const newMeasurements = [...measurements];
+    newMeasurements[index] = value;
+    setMeasurements(newMeasurements);
   };
   
-  // Calculate averages from measurements
+  // SIMPLIFIED: Calculate averages from measurements
   const calculateAverages = () => {
     const validTopWidths = topWidthMeasurements
-      .filter(m => m.value && !isNaN(parseFloat(m.value)))
-      .map(m => parseFloat(m.value));
+      .filter(m => m && !isNaN(parseFloat(m)))
+      .map(m => parseFloat(m));
     
-    // Only use valid bottom widths if they exist and the feature is enabled
     const validBottomWidths = useBottomWidth 
       ? bottomWidthMeasurements
-          .filter(m => m.value && !isNaN(parseFloat(m.value)))
-          .map(m => parseFloat(m.value))
+          .filter(m => m && !isNaN(parseFloat(m)))
+          .map(m => parseFloat(m))
       : [];
     
     const validDepths = depthMeasurements
-      .filter(m => m.value && !isNaN(parseFloat(m.value)))
-      .map(m => parseFloat(m.value));
+      .filter(m => m && !isNaN(parseFloat(m)))
+      .map(m => parseFloat(m));
     
     const avgTopWidth = validTopWidths.length > 0 
       ? validTopWidths.reduce((sum, val) => sum + val, 0) / validTopWidths.length 
@@ -431,7 +424,7 @@ const CulvertSizingForm = () => {
     );
   };
   
-  // Render Measurements stage
+  // SIMPLIFIED: Render Measurements stage
   const renderMeasurementsStage = () => {
     const { avgTopWidth, avgBottomWidth, avgDepth } = calculateAverages();
     
@@ -452,182 +445,228 @@ const CulvertSizingForm = () => {
             />
             {" "}Include Bottom Width Measurements
           </label>
-          <div className="helper-text">
+          <p style={{ fontSize: '14px', color: '#666', margin: '8px 0' }}>
             Enable this for incised channels where bottom width differs significantly from top width.
-          </div>
+          </p>
         </div>
         
-        <div className="measurement-section">
-          <div className="factor-group">
-            <h3>Top Width Measurements (m)</h3>
-            <p>Measure the stream width at bankfull level at multiple cross-sections</p>
-            
-            <div className="measurement-grid">
-              {topWidthMeasurements.map(measurement => (
-                <div className="measurement-item" key={measurement.id}>
-                  <div className="measurement-item-header">
-                    <span className="measurement-number">#{measurement.id}</span>
-                    <button 
-                      type="button"
-                      className="remove-button"
-                      onClick={() => removeMeasurement(measurement.id, setTopWidthMeasurements)}
-                      disabled={topWidthMeasurements.length <= 1}
-                    >
-                      ✕
-                    </button>
-                  </div>
-                  <input
-                    type="number"
-                    className="measurement-input"
-                    value={measurement.value}
-                    onChange={(e) => handleMeasurementChange(
-                      measurement.id, 
-                      e.target.value, 
-                      setTopWidthMeasurements
-                    )}
-                    placeholder="Width (m)"
-                    step="0.01"
-                    min="0"
-                  />
-                </div>
-              ))}
+        {/* SIMPLIFIED TOP WIDTH MEASUREMENTS */}
+        <div style={{ marginBottom: '32px' }}>
+          <h3>Top Width Measurements (m)</h3>
+          <p style={{ fontSize: '14px', color: '#666', margin: '8px 0 16px 0' }}>
+            Measure the stream width at bankfull level at multiple cross-sections
+          </p>
+          
+          {topWidthMeasurements.map((measurement, index) => (
+            <div key={index} style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '12px' }}>
+              <span style={{ fontSize: '14px', color: '#666', minWidth: '30px' }}>#{index + 1}</span>
+              <input
+                type="number"
+                value={measurement}
+                onChange={(e) => handleMeasurementChange(index, e.target.value, topWidthMeasurements, setTopWidthMeasurements)}
+                placeholder="Width (m)"
+                step="0.1"
+                min="0"
+                style={{
+                  padding: '12px 16px',
+                  fontSize: '16px',
+                  border: '2px solid #ddd',
+                  borderRadius: '8px',
+                  width: '150px'
+                }}
+              />
+              {topWidthMeasurements.length > 1 && (
+                <button 
+                  type="button"
+                  onClick={() => removeMeasurement(index, topWidthMeasurements, setTopWidthMeasurements)}
+                  style={{
+                    background: '#ff5722',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '4px',
+                    padding: '8px 12px',
+                    cursor: 'pointer'
+                  }}
+                >
+                  Remove
+                </button>
+              )}
             </div>
+          ))}
+          
+          <button 
+            type="button"
+            onClick={() => addMeasurement(topWidthMeasurements, setTopWidthMeasurements)}
+            style={{
+              background: '#4caf50',
+              color: 'white',
+              border: 'none',
+              borderRadius: '8px',
+              padding: '10px 16px',
+              cursor: 'pointer',
+              marginTop: '8px'
+            }}
+          >
+            + Add Measurement
+          </button>
+          
+          {errors.topWidthMeasurements && (
+            <div style={{ color: '#f44336', fontSize: '14px', marginTop: '8px' }}>
+              {errors.topWidthMeasurements}
+            </div>
+          )}
+        </div>
+        
+        {/* SIMPLIFIED BOTTOM WIDTH MEASUREMENTS */}
+        {useBottomWidth && (
+          <div style={{ marginBottom: '32px' }}>
+            <h3>Bottom Width Measurements (m)</h3>
+            <p style={{ fontSize: '14px', color: '#666', margin: '8px 0 16px 0' }}>
+              Measure the stream width at the channel bottom
+            </p>
+            
+            {bottomWidthMeasurements.map((measurement, index) => (
+              <div key={index} style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '12px' }}>
+                <span style={{ fontSize: '14px', color: '#666', minWidth: '30px' }}>#{index + 1}</span>
+                <input
+                  type="number"
+                  value={measurement}
+                  onChange={(e) => handleMeasurementChange(index, e.target.value, bottomWidthMeasurements, setBottomWidthMeasurements)}
+                  placeholder="Width (m)"
+                  step="0.1"
+                  min="0"
+                  style={{
+                    padding: '12px 16px',
+                    fontSize: '16px',
+                    border: '2px solid #ddd',
+                    borderRadius: '8px',
+                    width: '150px'
+                  }}
+                />
+                {bottomWidthMeasurements.length > 1 && (
+                  <button 
+                    type="button"
+                    onClick={() => removeMeasurement(index, bottomWidthMeasurements, setBottomWidthMeasurements)}
+                    style={{
+                      background: '#ff5722',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '4px',
+                      padding: '8px 12px',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    Remove
+                  </button>
+                )}
+              </div>
+            ))}
             
             <button 
               type="button"
-              className="gps-button" 
-              onClick={() => addMeasurement(setTopWidthMeasurements)}
-              style={{ marginTop: '12px', width: 'fit-content' }}
+              onClick={() => addMeasurement(bottomWidthMeasurements, setBottomWidthMeasurements)}
+              style={{
+                background: '#4caf50',
+                color: 'white',
+                border: 'none',
+                borderRadius: '8px',
+                padding: '10px 16px',
+                cursor: 'pointer',
+                marginTop: '8px'
+              }}
             >
               + Add Measurement
             </button>
             
-            {errors.topWidthMeasurements && (
-              <div className="status-message error">{errors.topWidthMeasurements}</div>
-            )}
-          </div>
-        </div>
-        
-        {useBottomWidth && (
-          <div className="measurement-section">
-            <div className="factor-group">
-              <h3>Bottom Width Measurements (m)</h3>
-              <p>Measure the stream width at the channel bottom</p>
-              
-              <div className="measurement-grid">
-                {bottomWidthMeasurements.map(measurement => (
-                  <div className="measurement-item" key={measurement.id}>
-                    <div className="measurement-item-header">
-                      <span className="measurement-number">#{measurement.id}</span>
-                      <button 
-                        type="button"
-                        className="remove-button"
-                        onClick={() => removeMeasurement(measurement.id, setBottomWidthMeasurements)}
-                        disabled={bottomWidthMeasurements.length <= 1}
-                      >
-                        ✕
-                      </button>
-                    </div>
-                    <input
-                      type="number"
-                      className="measurement-input"
-                      value={measurement.value}
-                      onChange={(e) => handleMeasurementChange(
-                        measurement.id, 
-                        e.target.value, 
-                        setBottomWidthMeasurements
-                      )}
-                      placeholder="Width (m)"
-                      step="0.01"
-                      min="0"
-                    />
-                  </div>
-                ))}
+            {errors.bottomWidthMeasurements && (
+              <div style={{ color: '#f44336', fontSize: '14px', marginTop: '8px' }}>
+                {errors.bottomWidthMeasurements}
               </div>
-              
-              <button 
-                type="button"
-                className="gps-button" 
-                onClick={() => addMeasurement(setBottomWidthMeasurements)}
-                style={{ marginTop: '12px', width: 'fit-content' }}
-              >
-                + Add Measurement
-              </button>
-              
-              {errors.bottomWidthMeasurements && (
-                <div className="status-message error">{errors.bottomWidthMeasurements}</div>
-              )}
-            </div>
+            )}
           </div>
         )}
         
-        <div className="measurement-section">
-          <div className="factor-group">
-            <h3>Depth Measurements (m)</h3>
-            <p>Measure the stream depth at bankfull level</p>
-            
-            <div className="measurement-grid">
-              {depthMeasurements.map(measurement => (
-                <div className="measurement-item" key={measurement.id}>
-                  <div className="measurement-item-header">
-                    <span className="measurement-number">#{measurement.id}</span>
-                    <button 
-                      type="button"
-                      className="remove-button"
-                      onClick={() => removeMeasurement(measurement.id, setDepthMeasurements)}
-                      disabled={depthMeasurements.length <= 1}
-                    >
-                      ✕
-                    </button>
-                  </div>
-                  <input
-                    type="number"
-                    className="measurement-input"
-                    value={measurement.value}
-                    onChange={(e) => handleMeasurementChange(
-                      measurement.id, 
-                      e.target.value, 
-                      setDepthMeasurements
-                    )}
-                    placeholder="Depth (m)"
-                    step="0.01"
-                    min="0"
-                  />
-                </div>
-              ))}
+        {/* SIMPLIFIED DEPTH MEASUREMENTS */}
+        <div style={{ marginBottom: '32px' }}>
+          <h3>Depth Measurements (m)</h3>
+          <p style={{ fontSize: '14px', color: '#666', margin: '8px 0 16px 0' }}>
+            Measure the stream depth at bankfull level
+          </p>
+          
+          {depthMeasurements.map((measurement, index) => (
+            <div key={index} style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '12px' }}>
+              <span style={{ fontSize: '14px', color: '#666', minWidth: '30px' }}>#{index + 1}</span>
+              <input
+                type="number"
+                value={measurement}
+                onChange={(e) => handleMeasurementChange(index, e.target.value, depthMeasurements, setDepthMeasurements)}
+                placeholder="Depth (m)"
+                step="0.1"
+                min="0"
+                style={{
+                  padding: '12px 16px',
+                  fontSize: '16px',
+                  border: '2px solid #ddd',
+                  borderRadius: '8px',
+                  width: '150px'
+                }}
+              />
+              {depthMeasurements.length > 1 && (
+                <button 
+                  type="button"
+                  onClick={() => removeMeasurement(index, depthMeasurements, setDepthMeasurements)}
+                  style={{
+                    background: '#ff5722',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '4px',
+                    padding: '8px 12px',
+                    cursor: 'pointer'
+                  }}
+                >
+                  Remove
+                </button>
+                )}
             </div>
-            
-            <button 
-              type="button"
-              className="gps-button" 
-              onClick={() => addMeasurement(setDepthMeasurements)}
-              style={{ marginTop: '12px', width: 'fit-content' }}
-            >
-              + Add Measurement
-            </button>
-            
-            {errors.depthMeasurements && (
-              <div className="status-message error">{errors.depthMeasurements}</div>
-            )}
-          </div>
+          ))}
+          
+          <button 
+            type="button"
+            onClick={() => addMeasurement(depthMeasurements, setDepthMeasurements)}
+            style={{
+              background: '#4caf50',
+              color: 'white',
+              border: 'none',
+              borderRadius: '8px',
+              padding: '10px 16px',
+              cursor: 'pointer',
+              marginTop: '8px'
+            }}
+          >
+            + Add Measurement
+          </button>
+          
+          {errors.depthMeasurements && (
+            <div style={{ color: '#f44336', fontSize: '14px', marginTop: '8px' }}>
+              {errors.depthMeasurements}
+            </div>
+          )}
         </div>
         
-        <div className="total-score-display">
-          <div className="total-score-label">Average Measurements</div>
-          <div className="form-grid" style={{ marginTop: '16px' }}>
-            <div className="form-group">
-              <label>Average Top Width</label>
-              <div className="total-score-value">{avgTopWidth.toFixed(2)} m</div>
+        {/* AVERAGES DISPLAY */}
+        <div style={{ background: '#f5f5f5', padding: '20px', borderRadius: '8px', marginTop: '32px' }}>
+          <h3>Average Measurements</h3>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px', marginTop: '16px' }}>
+            <div>
+              <strong>Average Top Width:</strong> {avgTopWidth.toFixed(1)} m
             </div>
             {useBottomWidth && (
-              <div className="form-group">
-                <label>Average Bottom Width</label>
-                <div className="total-score-value">{avgBottomWidth.toFixed(2)} m</div>
+              <div>
+                <strong>Average Bottom Width:</strong> {avgBottomWidth.toFixed(1)} m
               </div>
             )}
-            <div className="form-group">
-              <label>Average Depth</label>
-              <div className="total-score-value">{avgDepth.toFixed(2)} m</div>
+            <div>
+              <strong>Average Depth:</strong> {avgDepth.toFixed(1)} m
             </div>
           </div>
         </div>
@@ -754,16 +793,16 @@ const CulvertSizingForm = () => {
     
     // Transform measurements into the format needed by the CulvertResults component
     const formattedMeasurements = topWidthMeasurements
-      .filter(m => m.value && !isNaN(parseFloat(m.value)))
+      .filter(m => m && !isNaN(parseFloat(m)))
       .map((m, index) => {
-        const depth = depthMeasurements[index]?.value || avgDepth;
-        const bottom = useBottomWidth && bottomWidthMeasurements[index]?.value 
-          ? bottomWidthMeasurements[index].value 
+        const depth = depthMeasurements[index] || avgDepth;
+        const bottom = useBottomWidth && bottomWidthMeasurements[index] 
+          ? bottomWidthMeasurements[index] 
           : (avgBottomWidth || avgTopWidth * 0.7);
           
         return {
-          id: m.id,
-          top: parseFloat(m.value),
+          id: index + 1,
+          top: parseFloat(m),
           bottom: parseFloat(bottom),
           depth: parseFloat(depth)
         };
