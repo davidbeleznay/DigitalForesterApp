@@ -7,9 +7,8 @@ import '../styles/culvert-form.css';
 
 const CulvertSizingForm = () => {
   const navigate = useNavigate();
-  const { id } = useParams(); // For editing existing assessments
+  const { id } = useParams();
   
-  // Define form stages to match the ribbon navigation style
   const STAGES = {
     SITE_INFO: 'site_info',
     MEASUREMENTS: 'measurements',
@@ -17,7 +16,6 @@ const CulvertSizingForm = () => {
     RESULTS: 'results'
   };
   
-  // Form state
   const [activeSection, setActiveSection] = useState(STAGES.SITE_INFO);
   const [formValues, setFormValues] = useState({
     culvertId: '',
@@ -29,82 +27,45 @@ const CulvertSizingForm = () => {
     fishPassage: false,
     latitude: '',
     longitude: '',
-    sizingMethod: 'california' // DEFAULT TO CALIFORNIA METHOD
+    sizingMethod: 'california'
   });
   
-  // Optional assessment toggles
   const [optionalAssessments, setOptionalAssessments] = useState({
-    hydraulicCapacityEnabled: false, // Manning capacity test
-    climateFactorsEnabled: false,    // Climate change factors
-    debrisAssessmentEnabled: false   // Debris and sediment assessment
+    hydraulicCapacityEnabled: false,
+    climateFactorsEnabled: false,
+    debrisAssessmentEnabled: false
   });
   
-  // Climate factors state - Enhanced with BC coastal presets
   const [climateFactors, setClimateFactors] = useState({
-    planningHorizon: '2050',         // Planning year - default to mid-century
-    precipitationIncrease: '20',     // % increase in precipitation
-    temperatureIncrease: '2.0',      // °C temperature increase
-    stormIntensityFactor: '1.2',     // Storm intensity multiplier
-    selectedPreset: '2050'           // Track selected preset
+    planningHorizon: '2050',
+    precipitationIncrease: '20',
+    temperatureIncrease: '2.0',
+    stormIntensityFactor: '1.2',
+    selectedPreset: '2050'
   });
   
-  // Get climate factor presets
   const climatePresets = getClimateFactorPresets();
   
-  // NEW: Debris assessment state
   const [debrisAssessment, setDebrisAssessment] = useState({
-    steepUpslopeOrSlideScars: false,     // terrain class IV/V OR measured side-wall/head-wall slope > 60%
-    evidenceOfPastDebrisFlow: false,     // scour, boulder/wood levees, fresh deposit matrix
-    steepChannelReach: false,            // any 100m reach > 30% gradient
-    largeWoodyDebrisPresent: false,      // logs ≥ 0.5m Ø & 1.5m long, or longer than culvert width
-    gapHighRating: false,                // GAP "High" — only if Advanced tables opened
-    debrisMitigationStrategy: 'upsize'   // 'upsize' or 'cleanout' for moderate hazard
+    steepUpslopeOrSlideScars: false,
+    evidenceOfPastDebrisFlow: false,
+    steepChannelReach: false,
+    largeWoodyDebrisPresent: false,
+    gapHighRating: false,
+    debrisMitigationStrategy: 'upsize'
   });
   
-  // SIMPLIFIED MEASUREMENTS - just simple strings for each measurement type
   const [topWidthMeasurements, setTopWidthMeasurements] = useState(['']);
   const [bottomWidthMeasurements, setBottomWidthMeasurements] = useState(['']);
   const [depthMeasurements, setDepthMeasurements] = useState(['']);
-  
-  // Track if bottom width is being used
   const [useBottomWidth, setUseBottomWidth] = useState(false);
   
-  // Results state
   const [results, setResults] = useState(null);
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
   const [isGettingLocation, setIsGettingLocation] = useState(false);
   const [locationError, setLocationError] = useState('');
 
-  // Load existing assessment if editing
-  useEffect(() => {
-    if (id) {
-      // Load assessment from localStorage or API
-      const assessmentHistory = JSON.parse(localStorage.getItem('assessmentHistory') || '[]');
-      const assessment = assessmentHistory.find(a => a.id === id);
-      
-      if (assessment && assessment.type === 'culvertSizing') {
-        // Load form data from assessment
-        const data = assessment.data;
-        setFormValues(data.formValues || formValues);
-        setOptionalAssessments(data.optionalAssessments || optionalAssessments);
-        setClimateFactors(data.climateFactors || climateFactors);
-        setDebrisAssessment(data.debrisAssessment || debrisAssessment);
-        setTopWidthMeasurements(data.topWidthMeasurements || ['']);
-        setBottomWidthMeasurements(data.bottomWidthMeasurements || ['']);
-        setDepthMeasurements(data.depthMeasurements || ['']);
-        setUseBottomWidth(data.useBottomWidth || false);
-        
-        // If there are results, load them too
-        if (data.results) {
-          setResults(data.results);
-          setActiveSection(STAGES.RESULTS);
-        }
-      }
-    }
-  }, [id]);
-
-  // Handle input changes for form values
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
     setFormValues(prev => ({
@@ -112,7 +73,6 @@ const CulvertSizingForm = () => {
       [name]: type === 'checkbox' ? checked : value
     }));
     
-    // Clear error for this field when user starts typing
     if (errors[name]) {
       setErrors(prev => ({
         ...prev,
@@ -121,15 +81,6 @@ const CulvertSizingForm = () => {
     }
   };
 
-  // Handle climate factors changes - Enhanced with preset support
-  const handleClimateFactorChange = (name, value) => {
-    setClimateFactors(prev => ({
-      ...prev,
-      [name]: value
-    }));
-  };
-
-  // Handle climate preset selection - FIXED LOGIC
   const handleClimatePresetChange = (presetYear) => {
     const preset = climatePresets[presetYear];
     if (preset) {
@@ -143,7 +94,6 @@ const CulvertSizingForm = () => {
     }
   };
 
-  // NEW: Handle debris assessment changes
   const handleDebrisAssessmentChange = (name, value) => {
     setDebrisAssessment(prev => ({
       ...prev,
@@ -151,7 +101,6 @@ const CulvertSizingForm = () => {
     }));
   };
 
-  // Toggle optional assessments
   const toggleOptionalAssessment = (assessmentType) => {
     setOptionalAssessments(prev => ({
       ...prev,
@@ -159,36 +108,29 @@ const CulvertSizingForm = () => {
     }));
   };
   
-  // Toggle bottom width measurements
   const toggleBottomWidth = () => {
     setUseBottomWidth(!useBottomWidth);
-    
-    // If turning off bottom width, clear the measurements
     if (useBottomWidth) {
       setBottomWidthMeasurements(['']);
     }
   };
   
-  // SIMPLIFIED: Add measurement to array
   const addMeasurement = (measurements, setMeasurements) => {
     setMeasurements([...measurements, '']);
   };
   
-  // SIMPLIFIED: Remove measurement from array
   const removeMeasurement = (index, measurements, setMeasurements) => {
-    if (measurements.length <= 1) return; // Keep at least one measurement
+    if (measurements.length <= 1) return;
     const newMeasurements = measurements.filter((_, i) => i !== index);
     setMeasurements(newMeasurements);
   };
   
-  // SIMPLIFIED: Handle changing measurement value
   const handleMeasurementChange = (index, value, measurements, setMeasurements) => {
     const newMeasurements = [...measurements];
     newMeasurements[index] = value;
     setMeasurements(newMeasurements);
   };
   
-  // SIMPLIFIED: Calculate averages from measurements
   const calculateAverages = () => {
     const validTopWidths = topWidthMeasurements
       .filter(m => m && !isNaN(parseFloat(m)))
@@ -210,7 +152,7 @@ const CulvertSizingForm = () => {
     
     const avgBottomWidth = validBottomWidths.length > 0 
       ? validBottomWidths.reduce((sum, val) => sum + val, 0) / validBottomWidths.length 
-      : useBottomWidth ? 0 : avgTopWidth * 0.7; // Default to 70% of top width if not provided
+      : useBottomWidth ? 0 : avgTopWidth * 0.7;
     
     const avgDepth = validDepths.length > 0 
       ? validDepths.reduce((sum, val) => sum + val, 0) / validDepths.length 
@@ -219,112 +161,93 @@ const CulvertSizingForm = () => {
     return { avgTopWidth, avgBottomWidth, avgDepth };
   };
   
-  // Toggle fish passage requirement
   const toggleFishPassage = () => {
     setFormValues(prev => ({
       ...prev,
       fishPassage: !prev.fishPassage
     }));
   };
-  
-  // Get current location using GPS
-  const getCurrentLocation = () => {
-    setIsGettingLocation(true);
-    setLocationError('');
-    
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          setFormValues(prev => ({
-            ...prev,
-            latitude: position.coords.latitude.toFixed(6),
-            longitude: position.coords.longitude.toFixed(6)
-          }));
-          setIsGettingLocation(false);
-        },
-        (error) => {
-          console.error('Error getting location:', error);
-          let errorMessage = 'Unable to get current location.';
-          
-          switch(error.code) {
-            case error.PERMISSION_DENIED:
-              errorMessage = 'Location access was denied. Please check your browser settings.';
-              break;
-            case error.POSITION_UNAVAILABLE:
-              errorMessage = 'Location information is unavailable.';
-              break;
-            case error.TIMEOUT:
-              errorMessage = 'Location request timed out.';
-              break;
-            default:
-              errorMessage = 'An unknown error occurred getting location.';
-              break;
-          }
-          
-          setLocationError(errorMessage);
-          setIsGettingLocation(false);
-        },
-        { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
-      );
-    } else {
-      setLocationError('Geolocation is not supported by this browser.');
-      setIsGettingLocation(false);
-    }
-  };
 
-  // Form validation
+  // Form validation - ENHANCED WITH DEBUGGING
   const validateForm = () => {
+    console.log('🔍 Starting form validation...');
     const newErrors = {};
     const { avgTopWidth, avgBottomWidth, avgDepth } = calculateAverages();
+    
+    console.log('📏 Calculated averages:', { avgTopWidth, avgBottomWidth, avgDepth });
 
     // Basic site information validation
     if (!formValues.culvertId.trim()) {
       newErrors.culvertId = 'Culvert ID is required';
+      console.log('❌ Missing culvert ID');
     }
     if (!formValues.roadName.trim()) {
       newErrors.roadName = 'Road name is required';
+      console.log('❌ Missing road name');
     }
 
     // Measurement validation
     if (avgTopWidth <= 0) {
       newErrors.topWidthMeasurements = 'At least one valid top width measurement is required';
+      console.log('❌ Invalid top width measurements:', topWidthMeasurements);
     }
     if (avgDepth <= 0) {
       newErrors.depthMeasurements = 'At least one valid depth measurement is required';
+      console.log('❌ Invalid depth measurements:', depthMeasurements);
     }
     
     // Validate bottom width if using it
     if (useBottomWidth && avgBottomWidth <= 0) {
       newErrors.bottomWidthMeasurements = 'Valid bottom width measurements are required when enabled';
+      console.log('❌ Invalid bottom width measurements:', bottomWidthMeasurements);
     }
 
-    // Hydraulic parameters validation (only if hydraulic capacity test is enabled)
+    // Hydraulic parameters validation
     if (optionalAssessments.hydraulicCapacityEnabled || formValues.sizingMethod !== 'california') {
       if (!formValues.slopePercent || parseFloat(formValues.slopePercent) <= 0) {
         newErrors.slopePercent = 'Stream slope is required for hydraulic calculations';
+        console.log('❌ Missing slope for hydraulic calculations');
       }
       if (!formValues.streamRoughness || parseFloat(formValues.streamRoughness) <= 0) {
         newErrors.streamRoughness = 'Stream roughness coefficient is required for hydraulic calculations';
+        console.log('❌ Missing stream roughness');
       }
     }
 
+    console.log('📋 Validation results:', { 
+      errorCount: Object.keys(newErrors).length, 
+      errors: newErrors 
+    });
+    
     return newErrors;
   };
 
-  // Calculate culvert size
+  // Calculate culvert size - ENHANCED WITH DEBUGGING
   const handleCalculate = () => {
+    console.log('🚀 Calculate button clicked!');
+    console.log('📊 Current form state:', {
+      formValues,
+      topWidthMeasurements,
+      depthMeasurements,
+      optionalAssessments,
+      activeSection
+    });
+    
     const validationErrors = validateForm();
     
     if (Object.keys(validationErrors).length > 0) {
+      console.log('❌ Validation failed:', validationErrors);
       setErrors(validationErrors);
       return;
     }
 
+    console.log('✅ Validation passed, starting calculation...');
     setIsLoading(true);
     setErrors({});
 
     try {
       const { avgTopWidth, avgBottomWidth, avgDepth } = calculateAverages();
+      console.log('📏 Using averages for calculation:', { avgTopWidth, avgBottomWidth, avgDepth });
 
       const calculationParams = {
         topWidth: avgTopWidth,
@@ -343,7 +266,14 @@ const CulvertSizingForm = () => {
         debrisAssessment: optionalAssessments.debrisAssessmentEnabled ? debrisAssessment : null
       };
 
+      console.log('🔧 Calculation parameters:', calculationParams);
+      console.log('📞 Calling calculateCulvert function...');
+      
       const calculationResults = calculateCulvert(calculationParams);
+      
+      console.log('✅ Calculation completed successfully!');
+      console.log('📊 Results:', calculationResults);
+      
       setResults(calculationResults);
       setActiveSection(STAGES.RESULTS);
 
@@ -351,9 +281,11 @@ const CulvertSizingForm = () => {
       saveAssessment(calculationResults, calculationParams);
       
     } catch (error) {
-      console.error('Calculation error:', error);
-      setErrors({ calculation: 'An error occurred during calculation. Please check your inputs.' });
+      console.error('💥 Calculation error:', error);
+      console.error('Error stack:', error.stack);
+      setErrors({ calculation: `Calculation error: ${error.message}. Please check your inputs and try again.` });
     } finally {
+      console.log('🏁 Calculation process finished');
       setIsLoading(false);
     }
   };
@@ -380,24 +312,17 @@ const CulvertSizingForm = () => {
       }
     };
 
-    // Get existing history
     const existingHistory = JSON.parse(localStorage.getItem('assessmentHistory') || '[]');
-    
-    // Update existing or add new
     const existingIndex = existingHistory.findIndex(a => a.id === assessmentData.id);
     if (existingIndex >= 0) {
-      // Update existing assessment
       existingHistory[existingIndex] = assessmentData;
     } else {
-      // Add new assessment
       existingHistory.unshift(assessmentData);
     }
 
-    // Save back to localStorage
     localStorage.setItem('assessmentHistory', JSON.stringify(existingHistory));
   };
 
-  // Navigation handlers
   const navigateToSection = (sectionId) => {
     setActiveSection(sectionId);
   };
@@ -411,6 +336,7 @@ const CulvertSizingForm = () => {
         setActiveSection(STAGES.SETTINGS);
         break;
       case STAGES.SETTINGS:
+        console.log('⏭️ Next button clicked from Settings - calling handleCalculate()');
         handleCalculate();
         break;
       default:
@@ -474,53 +400,6 @@ const CulvertSizingForm = () => {
             />
             {errors.roadName && <div className="status-message error">{errors.roadName}</div>}
           </div>
-
-          <div className="form-group">
-            <label htmlFor="latitude">Latitude</label>
-            <input
-              type="number"
-              id="latitude"
-              name="latitude"
-              value={formValues.latitude}
-              onChange={handleInputChange}
-              step="0.000001"
-              placeholder="e.g., 49.123456"
-            />
-          </div>
-
-          <div className="form-group">
-            <label htmlFor="longitude">Longitude</label>
-            <input
-              type="number"
-              id="longitude"  
-              name="longitude"
-              value={formValues.longitude}
-              onChange={handleInputChange}
-              step="0.000001"
-              placeholder="e.g., -123.123456"
-            />
-          </div>
-
-          <div className="form-group full-width">
-            <div className="gps-section">
-              <button
-                type="button"
-                onClick={getCurrentLocation}
-                disabled={isGettingLocation}
-                className={`gps-button ${isGettingLocation ? 'loading' : ''}`}
-              >
-                <span className="location-icon">📍</span>
-                {isGettingLocation ? 'Getting Location...' : 'Get GPS Location'}
-              </button>
-              {locationError && <div className="status-message error">{locationError}</div>}
-              {formValues.latitude && formValues.longitude && (
-                <div className="location-display">
-                  <span className="location-icon">📍</span>
-                  <span>Location: {formValues.latitude}, {formValues.longitude}</span>
-                </div>
-              )}
-            </div>
-          </div>
         </div>
       </div>
     </div>
@@ -578,63 +457,6 @@ const CulvertSizingForm = () => {
         {errors.topWidthMeasurements && <div className="status-message error">{errors.topWidthMeasurements}</div>}
       </div>
 
-      {/* Bottom Width Toggle and Measurements */}
-      <div className="factor-group">
-        <div className="feature-toggle">
-          <input
-            type="checkbox"
-            id="useBottomWidth"
-            checked={useBottomWidth}
-            onChange={toggleBottomWidth}
-          />
-          <label htmlFor="useBottomWidth">
-            Include Bottom Width Measurements (For Incised/Trapezoidal Channels)
-          </label>
-        </div>
-
-        {useBottomWidth && (
-          <>
-            <h4>Bottom Width Measurements</h4>
-            <p className="helper-text">
-              Measure the stream bottom width (wetted width) in meters for incised channels.
-            </p>
-            
-            {bottomWidthMeasurements.map((measurement, index) => (
-              <div key={index} className="measurement-input-row">
-                <input
-                  type="number"
-                  value={measurement}
-                  onChange={(e) => handleMeasurementChange(index, e.target.value, bottomWidthMeasurements, setBottomWidthMeasurements)}
-                  placeholder="e.g., 1.8"
-                  step="0.1"
-                  min="0"
-                />
-                <span className="unit-label">meters</span>
-                {bottomWidthMeasurements.length > 1 && (
-                  <button
-                    type="button"
-                    onClick={() => removeMeasurement(index, bottomWidthMeasurements, setBottomWidthMeasurements)}
-                    className="remove-measurement-btn"
-                  >
-                    ✕
-                  </button>
-                )}
-              </div>
-            ))}
-            
-            <button
-              type="button"
-              onClick={() => addMeasurement(bottomWidthMeasurements, setBottomWidthMeasurements)}
-              className="add-measurement-btn"
-            >
-              + Add Bottom Width Measurement
-            </button>
-            
-            {errors.bottomWidthMeasurements && <div className="status-message error">{errors.bottomWidthMeasurements}</div>}
-          </>
-        )}
-      </div>
-
       {/* Depth Measurements */}
       <div className="factor-group">
         <h4>Depth Measurements (Required)</h4>
@@ -689,12 +511,6 @@ const CulvertSizingForm = () => {
                     <div className="total-score-label">Top Width</div>
                     <div className="total-score-value">{avgTopWidth.toFixed(2)} m</div>
                   </div>
-                  {useBottomWidth && (
-                    <div className="form-group">
-                      <div className="total-score-label">Bottom Width</div>
-                      <div className="total-score-value">{avgBottomWidth.toFixed(2)} m</div>
-                    </div>
-                  )}
                   <div className="form-group">
                     <div className="total-score-label">Depth</div>
                     <div className="total-score-value">{avgDepth.toFixed(2)} m</div>
@@ -713,7 +529,7 @@ const CulvertSizingForm = () => {
     </div>
   );
 
-  // Render settings section (method selection and optional assessments)
+  // Render settings section
   const renderSettingsSection = () => (
     <div className="form-section">
       <div className="section-header">
@@ -723,140 +539,6 @@ const CulvertSizingForm = () => {
           <p>Select sizing method and configure optional assessments for enhanced culvert design.</p>
         </div>
       </div>
-
-      {/* Sizing Method Selection */}
-      <div className="factor-group">
-        <h4>Sizing Method Selection</h4>
-        <div className="rating-options">
-          <label className="rating-option">
-            <input
-              type="radio"
-              name="sizingMethod"
-              value="california"
-              checked={formValues.sizingMethod === 'california'}
-              onChange={handleInputChange}
-            />
-            <div className="option-content score-2">
-              <div className="option-header">
-                <div className="option-label">California Method</div>
-                <div className="score-badge">Default</div>
-              </div>
-              <div className="option-description">
-                Industry standard using bankfull area × 3 with professional lookup table. Recommended for most applications.
-              </div>
-            </div>
-          </label>
-
-          <label className="rating-option">
-            <input
-              type="radio"
-              name="sizingMethod"
-              value="hydraulic"
-              checked={formValues.sizingMethod === 'hydraulic'}
-              onChange={handleInputChange}
-            />
-            <div className="option-content score-4">
-              <div className="option-header">
-                <div className="option-label">Alternative Hydraulic Calculation</div>
-                <div className="score-badge">Alternative</div>
-              </div>
-              <div className="option-description">
-                Alternative Manning's equation approach requiring slope and roughness parameters.
-              </div>
-            </div>
-          </label>
-
-          <label className="rating-option">
-            <input
-              type="radio"
-              name="sizingMethod"
-              value="comparison"
-              checked={formValues.sizingMethod === 'comparison'}
-              onChange={handleInputChange}
-            />
-            <div className="option-content score-6">
-              <div className="option-header">
-                <div className="option-label">Method Comparison</div>
-                <div className="score-badge">Conservative</div>
-              </div>
-              <div className="option-description">
-                Conservative approach using the larger of both California and Alternative Hydraulic methods.
-              </div>
-            </div>
-          </label>
-        </div>
-      </div>
-
-      {/* Hydraulic Parameters (shown when needed) */}
-      {(formValues.sizingMethod !== 'california' || optionalAssessments.hydraulicCapacityEnabled) && (
-        <div className="factor-group">
-          <h4>Hydraulic Parameters</h4>
-          <div className="form-grid">
-            <div className="form-group">
-              <label htmlFor="slopePercent">Stream Slope (%)</label>
-              <input
-                type="number"
-                id="slopePercent"
-                name="slopePercent"
-                value={formValues.slopePercent}
-                onChange={handleInputChange}
-                step="0.1"
-                min="0.1"
-                max="20"
-                placeholder="e.g., 2.0"
-                className={errors.slopePercent ? 'error' : ''}
-              />
-              {errors.slopePercent && <div className="status-message error">{errors.slopePercent}</div>}
-            </div>
-
-            <div className="form-group">
-              <label htmlFor="streamRoughness">Stream Roughness (n)</label>
-              <select
-                id="streamRoughness"
-                name="streamRoughness"
-                value={formValues.streamRoughness}
-                onChange={handleInputChange}
-                className={errors.streamRoughness ? 'error' : ''}
-              >
-                <option value="0.035">0.035 - Gravel bed</option>
-                <option value="0.04">0.040 - Mixed gravel/cobble</option>
-                <option value="0.045">0.045 - Cobble bed</option>
-                <option value="0.05">0.050 - Boulder/rough bed</option>
-              </select>
-              {errors.streamRoughness && <div className="status-message error">{errors.streamRoughness}</div>}
-            </div>
-
-            <div className="form-group">
-              <label htmlFor="pipeRoughness">Pipe Roughness (n)</label>
-              <select
-                id="pipeRoughness"
-                name="pipeRoughness"
-                value={formValues.pipeRoughness}
-                onChange={handleInputChange}
-              >
-                <option value="0.012">0.012 - Smooth HDPE</option>
-                <option value="0.013">0.013 - Concrete</option>
-                <option value="0.024">0.024 - Corrugated steel</option>
-              </select>
-            </div>
-
-            <div className="form-group">
-              <label htmlFor="maxHwdRatio">Max HW/D Ratio</label>
-              <input
-                type="number"
-                id="maxHwdRatio"
-                name="maxHwdRatio"
-                value={formValues.maxHwdRatio}
-                onChange={handleInputChange}
-                step="0.1"
-                min="0.5"
-                max="1.5"
-                placeholder="0.8"
-              />
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Fish Passage */}
       <div className="factor-group">
@@ -875,226 +557,6 @@ const CulvertSizingForm = () => {
           <p className="helper-text">
             Fish passage requirements will ensure minimum 1.2× stream width and 20% embedment depth.
           </p>
-        )}
-      </div>
-
-      {/* Climate Change Factors */}
-      <div className="factor-group">
-        <div className="feature-toggle">
-          <input
-            type="checkbox"
-            id="climateFactorsEnabled"
-            checked={optionalAssessments.climateFactorsEnabled}
-            onChange={() => toggleOptionalAssessment('climateFactorsEnabled')}
-          />
-          <label htmlFor="climateFactorsEnabled">
-            Apply Climate Change Factors (Coastal BC)
-          </label>
-        </div>
-
-        {optionalAssessments.climateFactorsEnabled && (
-          <div>
-            <h4>BC Coastal Climate Projections</h4>
-            <p className="helper-text">
-              Select a planning horizon based on PCIC & EGBC recommendations for coastal British Columbia.
-            </p>
-
-            <div className="rating-options">
-              {Object.entries(climatePresets).map(([year, preset]) => (
-                <label key={year} className="rating-option">
-                  <input
-                    type="radio"
-                    name="climatePreset"
-                    value={year}
-                    checked={climateFactors.selectedPreset === year}
-                    onChange={() => handleClimatePresetChange(year)}
-                  />
-                  <div className={`option-content ${climateFactors.selectedPreset === year ? 'score-2' : 'score-4'}`}>
-                    <div className="option-header">
-                      <div className="option-label">{preset.label}</div>
-                      <div className="score-badge">F_CC = {preset.factor.toFixed(2)}</div>
-                    </div>
-                    <div className="option-description">{preset.description}</div>
-                  </div>
-                </label>
-              ))}
-            </div>
-
-            <div className="scoring-explanation">
-              <h5>Climate Change Rationale</h5>
-              <p>
-                These factors are based on Pacific Climate Impacts Consortium (PCIC) and Engineers and 
-                Geoscientists BC (EGBC) recommendations for infrastructure design under changing climate conditions. 
-                The factors account for increased precipitation intensity and frequency of extreme events along 
-                the BC coast.
-              </p>
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* NEW: Debris Transport Assessment */}
-      <div className="factor-group">
-        <div className="feature-toggle">
-          <input
-            type="checkbox"
-            id="debrisAssessmentEnabled"
-            checked={optionalAssessments.debrisAssessmentEnabled}
-            onChange={() => toggleOptionalAssessment('debrisAssessmentEnabled')}
-          />
-          <label htmlFor="debrisAssessmentEnabled">
-            🪵 Enable Debris Transport Assessment
-          </label>
-        </div>
-
-        {optionalAssessments.debrisAssessmentEnabled && (
-          <div>
-            <h4>🪵 Debris Transport (tick all that apply)</h4>
-            <p className="helper-text">
-              Assess debris transport hazards that may affect culvert sizing requirements.
-            </p>
-
-            <div className="debris-checklist">
-              <label className="debris-checkbox">
-                <input
-                  type="checkbox"
-                  checked={debrisAssessment.steepUpslopeOrSlideScars}
-                  onChange={(e) => handleDebrisAssessmentChange('steepUpslopeOrSlideScars', e.target.checked)}
-                />
-                <div className="checkbox-content">
-                  <div className="checkbox-label">☐ Steep upslope or slide scars</div>
-                  <div className="checkbox-description">• terrain class IV/V OR measured side-wall or head-wall slope > 60%</div>
-                </div>
-              </label>
-
-              <label className="debris-checkbox">
-                <input
-                  type="checkbox"
-                  checked={debrisAssessment.evidenceOfPastDebrisFlow}
-                  onChange={(e) => handleDebrisAssessmentChange('evidenceOfPastDebrisFlow', e.target.checked)}
-                />
-                <div className="checkbox-content">
-                  <div className="checkbox-label">☐ Evidence of past debris flow</div>
-                  <div className="checkbox-description">• scour, boulder/wood levees, fresh deposit matrix</div>
-                </div>
-              </label>
-
-              <label className="debris-checkbox">
-                <input
-                  type="checkbox"
-                  checked={debrisAssessment.steepChannelReach}
-                  onChange={(e) => handleDebrisAssessmentChange('steepChannelReach', e.target.checked)}
-                />
-                <div className="checkbox-content">
-                  <div className="checkbox-label">☐ Steep channel reach</div>
-                  <div className="checkbox-description">• any 100 m reach > 30% gradient (use the slope you just measured)</div>
-                </div>
-              </label>
-
-              <label className="debris-checkbox">
-                <input
-                  type="checkbox"
-                  checked={debrisAssessment.largeWoodyDebrisPresent}
-                  onChange={(e) => handleDebrisAssessmentChange('largeWoodyDebrisPresent', e.target.checked)}
-                />
-                <div className="checkbox-content">
-                  <div className="checkbox-label">☐ Large Woody Debris present</div>
-                  <div className="checkbox-description">• logs ≥ 0.5 m Ø & 1.5 m long, or longer than culvert width</div>
-                </div>
-              </label>
-
-              <label className="debris-checkbox">
-                <input
-                  type="checkbox"
-                  checked={debrisAssessment.gapHighRating}
-                  onChange={(e) => handleDebrisAssessmentChange('gapHighRating', e.target.checked)}
-                />
-                <div className="checkbox-content">
-                  <div className="checkbox-label">☐ GAP "High" — only if you opened the Advanced tables</div>
-                </div>
-              </label>
-            </div>
-
-            <div className="helper-text" style={{ marginTop: '16px', fontStyle: 'italic' }}>
-              <strong>Large Woody Debris (LWD):</strong> logs ≥ 0.5 m diameter & ≥ 1.5 m long,
-              or any single piece longer than the proposed culvert width that can move during bank-full flow.
-            </div>
-
-            {/* Show debris hazard assessment result */}
-            {(() => {
-              const flags = [
-                debrisAssessment.steepUpslopeOrSlideScars,
-                debrisAssessment.evidenceOfPastDebrisFlow,
-                debrisAssessment.steepChannelReach,
-                debrisAssessment.largeWoodyDebrisPresent,
-                debrisAssessment.gapHighRating
-              ].filter(Boolean).length;
-
-              let hazardClass = 'LOW';
-              let multiplier = 1.00;
-              let message = 'Standard 3 × bank-full size OK.';
-              let requiresPE = false;
-
-              if (flags === 0) {
-                hazardClass = 'LOW';
-                multiplier = 1.00;
-                message = 'Standard 3 × bank-full size OK.';
-              } else if (flags === 1 && !debrisAssessment.gapHighRating) {
-                hazardClass = 'MODERATE';
-                multiplier = 1.20;
-                message = 'Up-size one pipe size or commit to annual debris clean-out.';
-              } else {
-                hazardClass = 'HIGH';
-                multiplier = 1.40;
-                message = 'High debris-flow hazard — up-size 40% and consider Professional Engineer review / debris rack.';
-                requiresPE = true;
-              }
-
-              if (flags > 0) {
-                return (
-                  <div className="debris-assessment-result" style={{ marginTop: '16px' }}>
-                    <div className={`hazard-level ${hazardClass.toLowerCase()}`}>
-                      <h5>Debris Hazard Assessment</h5>
-                      <div className="hazard-summary">
-                        <div><strong>Red Flags:</strong> {flags}</div>
-                        <div><strong>Hazard Class:</strong> {hazardClass}</div>
-                        <div><strong>Area Multiplier:</strong> × {multiplier.toFixed(2)}</div>
-                        {requiresPE && <div><strong>PE Review:</strong> Required</div>}
-                      </div>
-                      <div className="hazard-message">
-                        {message}
-                      </div>
-                      {hazardClass === 'MODERATE' && (
-                        <div className="mitigation-options" style={{ marginTop: '12px' }}>
-                          <label>
-                            <input
-                              type="radio"
-                              name="debrisMitigationStrategy"
-                              value="upsize"
-                              checked={debrisAssessment.debrisMitigationStrategy === 'upsize'}
-                              onChange={(e) => handleDebrisAssessmentChange('debrisMitigationStrategy', e.target.value)}
-                            />
-                            Up-size culvert (recommended)
-                          </label>
-                          <label>
-                            <input
-                              type="radio"
-                              name="debrisMitigationStrategy"
-                              value="cleanout"
-                              checked={debrisAssessment.debrisMitigationStrategy === 'cleanout'}
-                              onChange={(e) => handleDebrisAssessmentChange('debrisMitigationStrategy', e.target.value)}
-                            />
-                            Keep size + annual clean-out commitment
-                          </label>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                );
-              }
-              return null;
-            })()}
-          </div>
         )}
       </div>
     </div>
@@ -1119,23 +581,6 @@ const CulvertSizingForm = () => {
           climateFactors={climateFactors}
         />
       )}
-
-      {/* Action buttons */}
-      <div className="form-grid" style={{marginTop: '24px'}}>
-        <button 
-          onClick={() => setActiveSection(STAGES.SETTINGS)} 
-          className="gps-button"
-          style={{background: 'linear-gradient(135deg, #ff9800, #ffb74d)'}}
-        >
-          ← Modify Settings
-        </button>
-        <button 
-          onClick={() => navigate('/history')} 
-          className="gps-button"
-        >
-          View Assessment History →
-        </button>
-      </div>
     </div>
   );
 
@@ -1219,9 +664,15 @@ const CulvertSizingForm = () => {
               onClick={handleNext}
               className="gps-button"
               disabled={isLoading}
+              style={{
+                background: isLoading 
+                  ? 'linear-gradient(135deg, #999, #bbb)' 
+                  : 'linear-gradient(135deg, #4caf50, #66bb6a)',
+                cursor: isLoading ? 'not-allowed' : 'pointer'
+              }}
             >
-              {isLoading ? 'Calculating...' : 
-               activeSection === STAGES.SETTINGS ? 'Calculate Culvert Size' : 'Next →'}
+              {isLoading ? '🔄 Calculating...' : 
+               activeSection === STAGES.SETTINGS ? '🧮 Calculate Culvert Size' : 'Next →'}
             </button>
           )}
         </div>
