@@ -1,39 +1,68 @@
 import React from 'react';
 import './CulvertResults.css';
 
-const CulvertResults = ({ calculationResults }) => {
-  const {
-    recommendedSize = 2000,
-    shape = 'Circular',
-    material = 'Corrugated Metal Pipe (CMP)',
-    manningsN = 0.024,
-    hwdCriterion = 'HW/D ≤ 0.8',
-    climateChangeFactor = 1.00,
-    governingMethod = 'California Method',
-    californiaMethodSize = 1200,
-    hydraulicCalculationSize = 2000,
-    bankfullArea = 0.32,
-    endArea = 0.97,
-    designDischarge = 1.20,
-    measurements = [
-      { id: 1, top: 2, bottom: 0.99, depth: 0.2 },
-      { id: 2, top: 2.5, bottom: 0.99, depth: 0.2 }
-    ],
-    avgWidth = 1.62,
-    avgBottom = 0.99,
-    avgDepth = 0.20,
-    sizingMethod = 'california', // Default to California Method
-    climateFactorsApplied = false,
-    climateFactors = null,
-    appliedClimateFactor = 1.0,
-    californiaSize = 1200,
-    climateAdjustedCaliforniaSize = 1200
-  } = calculationResults || {};
+const CulvertResults = ({ results, formValues, optionalAssessments, climateFactors }) => {
+  // Extract data from results object - FIXED PROP NAME
+  const calculationResults = results;
+  
+  if (!calculationResults) {
+    return (
+      <div className="culvert-results-container">
+        <div className="status-message error">
+          No calculation results available. Please check your inputs and try again.
+        </div>
+      </div>
+    );
+  }
 
-  // Calculate base California Method size without climate factors
+  const {
+    finalSize = 2000,
+    selectedPipeSizeM = "2.00",
+    governingMethod = 'California Method',
+    californiaSize = 1200,
+    climateAdjustedCaliforniaSize = 1200,
+    hydraulicSize = 2000,
+    bankfullFlow = "0.00",
+    pipeCapacity = "0.00",
+    headwaterRatio = "0.00",
+    maxHwdRatio = "0.80",
+    appliedClimateFactor = 1.0,
+    topWidth = "1.62",
+    bottomWidth = "0.99", 
+    streamArea = "0.32",
+    californiaArea = "0.97",
+    requiredCulvertArea = "0.97",
+    sizingMethod = 'california',
+    climateFactorsEnabled = false,
+    fishPassage = false,
+    embedDepth = "0.00",
+    notes = "",
+    debugInfo = {}
+  } = calculationResults;
+
+  // Calculate values for display
+  const recommendedSize = finalSize;
+  const shape = 'Circular';
+  const material = 'Corrugated Metal Pipe (CMP)';
+  const manningsN = formValues?.pipeRoughness || 0.024;
+  const hwdCriterion = `HW/D ≤ ${formValues?.maxHwdRatio || '0.8'}`;
+  const climateFactor = appliedClimateFactor || 1.0;
   const baseCaliforniaSize = californiaSize;
   const withClimateSize = climateAdjustedCaliforniaSize;
-  const climateFactor = appliedClimateFactor || 1.0;
+  const climateFactorsApplied = climateFactorsEnabled && climateFactor > 1.0;
+
+  // Create measurements array from form data (simplified)
+  const avgWidth = parseFloat(topWidth) || 0;
+  const avgBottom = parseFloat(bottomWidth) || 0;
+  const avgDepth = parseFloat(streamArea) / Math.max(avgWidth, 0.1) || 0;
+  const bankfullArea = parseFloat(streamArea) || 0;
+  const endArea = parseFloat(californiaArea) || 0;
+  const designDischarge = parseFloat(bankfullFlow) || 0;
+
+  // Mock measurements for display
+  const measurements = [
+    { id: 1, top: avgWidth, bottom: avgBottom, depth: avgDepth }
+  ];
 
   return (
     <div className="culvert-results-container">
@@ -68,12 +97,10 @@ const CulvertResults = ({ calculationResults }) => {
               <td>Material:</td>
               <td className="value">{material}</td>
             </tr>
-            {manningsN && (
-              <tr>
-                <td>Manning's n:</td>
-                <td className="value">{manningsN}</td>
-              </tr>
-            )}
+            <tr>
+              <td>Manning's n:</td>
+              <td className="value">{manningsN}</td>
+            </tr>
             <tr>
               <td>Headwater Criterion:</td>
               <td className="value">{hwdCriterion}</td>
@@ -81,14 +108,20 @@ const CulvertResults = ({ calculationResults }) => {
             {climateFactorsApplied && (
               <tr>
                 <td>Climate Change Factor:</td>
-                <td className="value">{climateFactor}× ({((climateFactor - 1) * 100).toFixed(0)}% increase)</td>
+                <td className="value">{climateFactor.toFixed(2)}× ({((climateFactor - 1) * 100).toFixed(0)}% increase)</td>
+              </tr>
+            )}
+            {fishPassage && (
+              <tr>
+                <td>Fish Passage:</td>
+                <td className="value">Required (Embed: {embedDepth}m)</td>
               </tr>
             )}
           </tbody>
         </table>
       </section>
 
-      {/* Climate Factor Comparison Section - Show if climate factors are enabled */}
+      {/* Climate Factor Comparison Section */}
       {climateFactorsApplied && (
         <section className="climate-comparison-section">
           <h2 className="green-heading">Climate Change Factor Comparison</h2>
@@ -105,7 +138,7 @@ const CulvertResults = ({ calculationResults }) => {
                 Standard California Method sizing for current climate conditions.
               </p>
               <div className="climate-formula">
-                <code>d ≈ {Math.round(2 * Math.sqrt((avgWidth * avgDepth * 3) / Math.PI) * 1000)} mm → rounds to {baseCaliforniaSize} mm</code>
+                <code>Base California Method → {baseCaliforniaSize} mm</code>
               </div>
             </div>
             
@@ -114,13 +147,10 @@ const CulvertResults = ({ calculationResults }) => {
               <p className="climate-size">{withClimateSize} mm</p>
               <p className="climate-details">F<sub>CC</sub> = {climateFactor.toFixed(2)} ({((climateFactor - 1) * 100).toFixed(0)}% increase)</p>
               <p className="climate-note">
-                {climateFactor === 1.20 ? 
-                  "The +20% climate slider bumps the pipe one commercial size with zero extra math for the user." :
-                  `Climate-adjusted sizing increases required area by ${((climateFactor - 1) * 100).toFixed(0)}%.`
-                }
+                Climate-adjusted sizing increases required capacity by {((climateFactor - 1) * 100).toFixed(0)}%.
               </p>
               <div className="climate-formula">
-                <code>A = {(avgWidth * avgDepth * 3 * climateFactor).toFixed(2)} m² → d ≈ {Math.round(2 * Math.sqrt((avgWidth * avgDepth * 3 * climateFactor) / Math.PI) * 1000)} mm → rounds to {withClimateSize} mm</code>
+                <code>Climate-adjusted → {withClimateSize} mm</code>
               </div>
               <div className="method-status selected">✓ CLIMATE-ADJUSTED</div>
             </div>
@@ -136,7 +166,7 @@ const CulvertResults = ({ calculationResults }) => {
                 <strong>Mid-century (2050):</strong> F<sub>CC</sub> = 1.20 (Rule-of-thumb used by EGBC when local data are sparse)
               </div>
               <div className="preset-item">
-                <strong>Late-century (2080+):</strong> F<sub>CC</sub> = 1.30 coast / 1.25 interior (Consistent with hydrologic projections showing 20–30% rises in Q100 for small BC basins)
+                <strong>Late-century (2080+):</strong> F<sub>CC</sub> = 1.30 coast / 1.25 interior (Consistent with hydrologic projections)
               </div>
             </div>
           </div>
@@ -170,24 +200,27 @@ const CulvertResults = ({ calculationResults }) => {
                 "Standard California Method calculation for comparison."
               }
             </p>
-            {sizingMethod === 'california' && (
+            {(sizingMethod === 'california' || governingMethod.includes('California')) && (
               <div className="method-status selected">✓ SELECTED METHOD</div>
             )}
           </div>
           
-          <div className={`method-box ${sizingMethod === 'hydraulic' || (governingMethod.includes('Hydraulic') && sizingMethod !== 'california') ? 'highlight' : ''}`}>
+          <div className={`method-box ${sizingMethod === 'hydraulic' || governingMethod.includes('Hydraulic') ? 'highlight' : ''}`}>
             <h3>Hydraulic Calculation</h3>
-            <p className="method-size">{hydraulicCalculationSize} mm</p>
-            <p className="method-details">Design Discharge: {designDischarge} m³/s</p>
+            <p className="method-size">{hydraulicSize} mm</p>
+            <p className="method-details">
+              {designDischarge > 0 ? `Design Discharge: ${designDischarge} m³/s` : 'Hydraulic parameters not provided'}
+            </p>
             <p className="method-note">
               {sizingMethod === 'hydraulic' ? 
                 "Manning's equation with slope and roughness parameters." : 
-                hydraulicCalculationSize > 2000 ? 
-                  "Warning: Even the largest standard size (2000mm) may not meet criteria. Consider multiple culverts or alternative designs." :
-                  "Hydraulic check using Manning's equation."
+                "Hydraulic check using Manning's equation."
               }
+              {parseFloat(pipeCapacity) > 0 && (
+                <> Pipe capacity: {pipeCapacity} m³/s</>
+              )}
             </p>
-            {sizingMethod === 'hydraulic' && (
+            {(sizingMethod === 'hydraulic' || governingMethod.includes('Hydraulic')) && (
               <div className="method-status selected">✓ SELECTED METHOD</div>
             )}
           </div>
@@ -196,10 +229,10 @@ const CulvertResults = ({ calculationResults }) => {
             <div className="method-box highlight comparison-box">
               <h3>Method Comparison Result</h3>
               <p className="method-size">
-                {Math.max(climateFactorsApplied ? withClimateSize : baseCaliforniaSize, hydraulicCalculationSize)} mm
+                {Math.max(climateFactorsApplied ? withClimateSize : baseCaliforniaSize, hydraulicSize)} mm
               </p>
               <p className="method-details">
-                Larger of: California ({climateFactorsApplied ? withClimateSize : baseCaliforniaSize}mm) vs Hydraulic ({hydraulicCalculationSize}mm)
+                Larger of: California ({climateFactorsApplied ? withClimateSize : baseCaliforniaSize}mm) vs Hydraulic ({hydraulicSize}mm)
               </p>
               <p className="method-note">
                 Using the larger of both methods for conservative design.
@@ -226,7 +259,7 @@ const CulvertResults = ({ calculationResults }) => {
           <tbody>
             <tr className={sizingMethod === 'california' ? 'selected-row' : ''}>
               <td>California Table</td>
-              <td>Width: {avgWidth} m, Depth: {avgDepth} m</td>
+              <td>Width: {avgWidth.toFixed(2)} m, Depth: {avgDepth.toFixed(2)} m</td>
               <td>{baseCaliforniaSize} mm</td>
               <td>{sizingMethod === 'california' && !climateFactorsApplied ? '✓ Selected' : 'Base Calculation'}</td>
             </tr>
@@ -240,63 +273,69 @@ const CulvertResults = ({ calculationResults }) => {
             )}
             <tr>
               <td>Cross-Section</td>
-              <td>Area: {bankfullArea} m² × 3 = {endArea} m²</td>
+              <td>Area: {bankfullArea.toFixed(2)} m² × 3 = {endArea} m²</td>
               <td>{baseCaliforniaSize} mm</td>
               <td>California Method</td>
             </tr>
             {(sizingMethod === 'hydraulic' || sizingMethod === 'comparison') && (
               <tr className={sizingMethod === 'hydraulic' ? 'selected-row' : ''}>
                 <td>Hydraulic</td>
-                <td>Discharge: {designDischarge} m³/s, HW/D ≤ {hwdCriterion.split('≤')[1]?.trim() || '0.8'}</td>
-                <td>{hydraulicCalculationSize} mm</td>
+                <td>
+                  {designDischarge > 0 ? 
+                    `Discharge: ${designDischarge} m³/s, HW/D ≤ ${formValues?.maxHwdRatio || '0.8'}` :
+                    'Hydraulic parameters not provided'
+                  }
+                </td>
+                <td>{hydraulicSize} mm</td>
                 <td>{sizingMethod === 'hydraulic' ? '✓ Selected' : 'Comparison'}</td>
               </tr>
             )}
           </tbody>
         </table>
+
+        {/* Debug Information */}
+        {debugInfo && Object.keys(debugInfo).length > 0 && (
+          <div className="debug-section">
+            <h4>Debug Information</h4>
+            <div className="debug-info">
+              {debugInfo.needsHydraulicCalc !== undefined && (
+                <div>Hydraulic calculations needed: {debugInfo.needsHydraulicCalc ? 'Yes' : 'No'}</div>
+              )}
+              {debugInfo.streamFlowRate && debugInfo.streamFlowRate !== 'N/A' && (
+                <div>Stream flow rate: {debugInfo.streamFlowRate} m³/s</div>
+              )}
+              {debugInfo.streamVelocity && debugInfo.streamVelocity !== 'N/A' && (
+                <div>Stream velocity: {debugInfo.streamVelocity} m/s</div>
+              )}
+              {debugInfo.hydraulicRadius && (
+                <div>Hydraulic radius: {debugInfo.hydraulicRadius} m</div>
+              )}
+              {debugInfo.californiaTableLookup && (
+                <div>Table lookup: {debugInfo.californiaTableLookup}</div>
+              )}
+            </div>
+          </div>
+        )}
       </section>
 
       <section className="measurements-section">
         <h2 className="green-heading">Stream Measurements</h2>
         
-        <table className="measurements-table">
-          <thead>
-            <tr>
-              <th>#</th>
-              <th>Top (m)</th>
-              <th>Bottom (m)</th>
-              <th>Depth (m)</th>
-            </tr>
-          </thead>
-          <tbody>
-            {measurements.map(measurement => (
-              <tr key={measurement.id}>
-                <td>{measurement.id}</td>
-                <td>{measurement.top}</td>
-                <td>{measurement.bottom}</td>
-                <td>{measurement.depth}</td>
-              </tr>
-            ))}
-            <tr className="average-row">
-              <td>Avg</td>
-              <td>{avgWidth}</td>
-              <td>{avgBottom}</td>
-              <td>{avgDepth}</td>
-            </tr>
-          </tbody>
-        </table>
-
         <div className="measurements-summary">
           <div className="measurement-item">
-            <span className="label">Average Width:</span>
-            <span className="value">{avgWidth} m</span>
+            <span className="label">Average Top Width:</span>
+            <span className="value">{avgWidth.toFixed(2)} m</span>
           </div>
           <div className="measurement-item">
-            <span className="label">Bankfull Area:</span>
-            <span className="value">{bankfullArea} m²</span>
+            <span className="label">Average Bottom Width:</span>
+            <span className="value">{avgBottom.toFixed(2)} m</span>
           </div>
           <div className="measurement-item">
-            <span className="label">End Area (3×):</span>
+            <span className="label">Stream Area:</span>
+            <span className="value">{bankfullArea.toFixed(2)} m²</span>
+          </div>
+          <div className="measurement-item">
+            <span className="label">Required Area (3×):</span>
             <span className="value">{endArea} m²</span>
           </div>
           {climateFactorsApplied && (
@@ -318,19 +357,18 @@ const CulvertResults = ({ calculationResults }) => {
         {sizingMethod === 'california' && (
           <>
             <p>
-              The California Method (End Area Design Aid) uses the average stream width and depth to determine the appropriate culvert size based on area. This method uses average width × average depth × 3 to result in the end opening area of the culvert.
-              {climateFactorsApplied && ` Climate change factors are applied by multiplying the required area by ${climateFactor.toFixed(2)} to account for increased precipitation intensity and flow in ${climateFactors?.planningHorizon || '2050'}.`}
+              The California Method uses stream width and depth measurements to determine appropriate culvert size through professional lookup tables. 
+              This method is the industry standard for most culvert sizing applications.
+              {climateFactorsApplied && ` Climate change factors are applied by increasing the required area by ${((climateFactor - 1) * 100).toFixed(0)}% to account for increased precipitation intensity in ${climateFactors?.planningHorizon || '2050'}.`}
             </p>
 
             <div className="formula-box">
               <p className="formula">
-                {climateFactorsApplied ? 
-                  `Climate-Adjusted Area = ((W₁ + W₂) ÷ 2) × D × 3 × F_CC` :
-                  `End Area = ((W₁ + W₂) ÷ 2) × D × 3`
-                }
+                Required Area = ((Top Width + Bottom Width) ÷ 2) × Depth × 3
+                {climateFactorsApplied && ` × F_CC`}
               </p>
               <p className="formula-legend">
-                W₁ = Average Top Width, W₂ = Average Bottom Width, D = Average Depth
+                Then look up appropriate pipe size from California Method table
                 {climateFactorsApplied && `, F_CC = Climate Change Factor (${climateFactor.toFixed(2)})`}
               </p>
             </div>
@@ -344,47 +382,49 @@ const CulvertResults = ({ calculationResults }) => {
                 </p>
               </div>
             )}
-
-            <p className="diagram-caption">Cross-Sectional Area Diagram {climateFactorsApplied ? '(Climate-Adjusted)' : ''}</p>
           </>
         )}
 
         {sizingMethod === 'hydraulic' && (
           <>
             <p>
-              The Hydraulic Method uses Manning's equation to calculate the required culvert size based on flow capacity, channel slope, and roughness coefficients. This method ensures the culvert can handle the design discharge while maintaining acceptable headwater levels.
-              {climateFactorsApplied && ` Climate change factors increase the design discharge by ${((climateFactor - 1) * 100).toFixed(0)}% to account for future storm intensification.`}
+              The Hydraulic Method uses Manning's equation to calculate the required culvert size based on flow capacity, channel slope, and roughness coefficients. 
+              This method ensures the culvert can handle the design discharge while maintaining acceptable headwater levels.
+              {climateFactorsApplied && ` Climate change factors increase the design discharge to account for future storm intensification.`}
             </p>
 
             <div className="formula-box">
               <p className="formula">Q = (1/n) × A × R^(2/3) × S^(1/2)</p>
-              <p className="formula-legend">Q = Flow, n = Manning's roughness, A = Area, R = Hydraulic radius, S = Slope</p>
-              {climateFactorsApplied && (
-                <p className="formula-legend">Climate-adjusted Q = Base Q × {climateFactor.toFixed(2)}</p>
-              )}
+              <p className="formula-legend">
+                Q = Flow, n = Manning's roughness, A = Area, R = Hydraulic radius, S = Slope
+                {climateFactorsApplied && ` (Climate factor applied to flow)`}
+              </p>
             </div>
-
-            <p className="diagram-caption">Manning's Equation Application {climateFactorsApplied ? '(Climate-Adjusted Flow)' : ''}</p>
           </>
         )}
 
         {sizingMethod === 'comparison' && (
           <>
             <p>
-              The Method Comparison approach calculates culvert sizes using both the California Method and Hydraulic calculations, then recommends the larger of the two sizes to ensure adequate capacity under all conditions.
-              {climateFactorsApplied && ` Climate change factors of ${climateFactor.toFixed(2)} are applied to both methods for conservative future design.`}
+              The Method Comparison approach calculates culvert sizes using both the California Method and Hydraulic calculations, 
+              then recommends the larger of the two sizes to ensure adequate capacity under all conditions.
+              {climateFactorsApplied && ` Climate change factors are applied to provide conservative future design.`}
             </p>
 
             <div className="formula-box">
               <p className="formula">
                 Final Size = MAX(California Method Size, Hydraulic Method Size)
-                {climateFactorsApplied && ` × Climate Factor`}
               </p>
               <p className="formula-legend">Conservative approach using the most restrictive requirement</p>
             </div>
-
-            <p className="diagram-caption">Comparative Sizing Analysis {climateFactorsApplied ? '(Climate-Adjusted)' : ''}</p>
           </>
+        )}
+
+        {notes && (
+          <div className="notes-section">
+            <h4>Additional Notes</h4>
+            <p>{notes}</p>
+          </div>
         )}
       </section>
     </div>
