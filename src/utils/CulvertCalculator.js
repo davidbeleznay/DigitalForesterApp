@@ -82,18 +82,24 @@ export const calculateCulvert = (params) => {
                                    STANDARD_PIPE_SIZES[STANDARD_PIPE_SIZES.length - 1];
   }
   
-  // Step 4: Hydraulic calculation (if required)
+  // Step 4: Hydraulic calculation - FIXED TO RUN WHEN NEEDED
   let hydraulicSize = californiaSize;
   let bankfullFlow = 0;
   let finalCapacity = 0;
   let finalHeadwaterRatio = 0;
   
-  if (hydraulicCapacityTest && slopePercent) {
-    // Calculate bankfull flow using Manning's equation
+  // Run hydraulic calculations if:
+  // 1. Method is hydraulic or comparison
+  // 2. Hydraulic capacity test is enabled 
+  // 3. We have slope data
+  const needsHydraulicCalc = (sizingMethod === 'hydraulic' || sizingMethod === 'comparison' || hydraulicCapacityTest) && slopePercent > 0;
+  
+  if (needsHydraulicCalc) {
+    // Calculate bankfull flow using Manning's equation for trapezoidal channel
     const wettedPerimeter = bottomWidth + 2 * avgStreamDepth * Math.sqrt(1 + Math.pow((topWidth - bottomWidth) / (2 * avgStreamDepth), 2));
     const hydraulicRadius = streamArea / wettedPerimeter;
     
-    // Calculate base flow
+    // Calculate base flow using Manning's equation: Q = (1/n) * A * R^(2/3) * S^(1/2)
     const baseFlow = (1 / streamRoughness) * 
                      streamArea * 
                      Math.pow(hydraulicRadius, 2/3) * 
@@ -102,25 +108,30 @@ export const calculateCulvert = (params) => {
     // Apply climate change factor to flow if enabled
     bankfullFlow = climateFactorsEnabled ? baseFlow * climateChangeFactor : baseFlow;
     
-    // Find appropriate hydraulic size
+    // Find appropriate hydraulic size - IMPROVED LOGIC
     for (const pipeSize of STANDARD_PIPE_SIZES) {
       const pipeDiameter = pipeSize / 1000; // Convert to meters
-      const area = Math.PI * Math.pow(pipeDiameter, 2) / 4;
-      const hydraulicRadius = pipeDiameter / 4;
+      const pipeArea = Math.PI * Math.pow(pipeDiameter, 2) / 4;
+      const pipeHydraulicRadius = pipeDiameter / 4; // For circular pipe flowing full
       
-      // Calculate capacity with Manning's equation
-      const capacity = (1 / pipeRoughness) * 
-                       area * 
-                       Math.pow(hydraulicRadius, 2/3) * 
-                       Math.pow(slope, 0.5);
+      // Calculate pipe capacity with Manning's equation
+      const pipeCapacity = (1 / pipeRoughness) * 
+                          pipeArea * 
+                          Math.pow(pipeHydraulicRadius, 2/3) * 
+                          Math.pow(slope, 0.5);
       
-      // Calculate headwater ratio (simplified approximation)
-      const hw_ratio = 0.9 * Math.pow(bankfullFlow / (Math.PI * Math.pow(pipeDiameter/2, 2) * Math.sqrt(2 * 9.81 * pipeDiameter)), 0.7);
+      // SIMPLIFIED headwater calculation - using orifice flow approximation
+      // HW/D = C * (Q / (A * sqrt(2*g*D)))^n where C and n are empirical constants
+      const velocity = bankfullFlow / pipeArea;
+      const velocityHead = Math.pow(velocity, 2) / (2 * 9.81);
+      const headwaterDepth = pipeDiameter * 0.5 + velocityHead; // Simplified approach
+      const hw_ratio = headwaterDepth / pipeDiameter;
       
       // Check if this pipe size meets both capacity and headwater criteria
-      if (capacity >= bankfullFlow && hw_ratio <= maxHwdRatio) {
+      // Use safety factor of 1.25 for capacity
+      if (pipeCapacity >= bankfullFlow * 1.25 && hw_ratio <= maxHwdRatio) {
         hydraulicSize = pipeSize;
-        finalCapacity = capacity;
+        finalCapacity = pipeCapacity;
         finalHeadwaterRatio = hw_ratio;
         break;
       }
@@ -128,7 +139,7 @@ export const calculateCulvert = (params) => {
       // If we've reached the largest pipe size, use it even if it doesn't meet criteria
       if (pipeSize === STANDARD_PIPE_SIZES[STANDARD_PIPE_SIZES.length - 1]) {
         hydraulicSize = pipeSize;
-        finalCapacity = capacity;
+        finalCapacity = pipeCapacity;
         finalHeadwaterRatio = hw_ratio;
       }
     }
@@ -177,12 +188,12 @@ export const calculateCulvert = (params) => {
   // Step 7: Check if professional review is required
   const requiresProfessional = finalSize >= 2000 || bankfullFlow > 6.0;
   
-  // Step 8: Calculate final pipe characteristics
+  // Step 8: Calculate final pipe characteristics for display
   const finalPipeDiameter = finalSize / 1000;
   const finalArea = Math.PI * Math.pow(finalPipeDiameter, 2) / 4;
   
-  if (!hydraulicCapacityTest && slopePercent) {
-    // Calculate capacity for display even if not used for sizing
+  // Always calculate capacity for display
+  if (slopePercent > 0) {
     const finalHydraulicRadius = finalPipeDiameter / 4;
     finalCapacity = (1 / pipeRoughness) * 
                     finalArea * 
@@ -231,6 +242,14 @@ export const calculateCulvert = (params) => {
     
     // Embed depth for fish passage
     embedDepth: fishPassage ? (0.2 * (finalSize / 1000)).toFixed(2) : "0.00",
+    
+    // Debug information for hydraulic calculations
+    debugInfo: {
+      needsHydraulicCalc,
+      streamFlowRate: bankfullFlow.toFixed(3),
+      streamVelocity: streamArea > 0 ? (bankfullFlow / streamArea).toFixed(2) : "0.00",
+      hydraulicRadius: streamArea > 0 ? (streamArea / (bottomWidth + 2 * avgStreamDepth * Math.sqrt(1 + Math.pow((topWidth - bottomWidth) / (2 * avgStreamDepth), 2)))).toFixed(3) : "0.000"
+    },
     
     // Notes
     notes: climateFactorsEnabled ? 
