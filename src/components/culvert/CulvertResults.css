@@ -1,76 +1,90 @@
-/* CulvertResults.css - Enhanced styling for method selection and climate factors */
+/* CulvertResults.css - Enhanced styling for results display */
 
 .culvert-results-container {
-  padding: 24px;
   max-width: 1200px;
   margin: 0 auto;
+  padding: 20px;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
 }
 
 .green-heading {
-  color: #4caf50;
-  margin-bottom: 16px;
+  color: #2e7d32;
   font-size: 24px;
-  font-weight: 600;
+  font-weight: 700;
+  margin-bottom: 16px;
+  border-bottom: 3px solid #4caf50;
+  padding-bottom: 8px;
 }
 
+.section-description {
+  color: #666;
+  font-size: 14px;
+  margin-bottom: 20px;
+  font-style: italic;
+}
+
+/* Recommended Size Section */
 .recommended-size-section {
-  background: white;
+  text-align: center;
+  margin-bottom: 40px;
+  padding: 30px;
+  background: linear-gradient(135deg, #e8f5e8, #f1f8e9);
   border-radius: 12px;
-  padding: 24px;
-  margin-bottom: 24px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-  border-left: 4px solid #4caf50;
+  border: 2px solid #4caf50;
 }
 
 .size-circle {
-  text-align: center;
-  background: linear-gradient(135deg, #4caf50, #81c784);
-  color: white;
-  border-radius: 50%;
+  display: inline-block;
   width: 200px;
   height: 200px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #4caf50, #66bb6a);
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  margin: 24px auto;
-  box-shadow: 0 4px 16px rgba(76, 175, 80, 0.3);
+  margin: 20px 0;
+  box-shadow: 0 6px 20px rgba(76, 175, 80, 0.3);
 }
 
 .size-value {
-  font-size: 32px;
-  font-weight: bold;
-  line-height: 1;
+  font-size: 36px;
+  font-weight: 700;
+  color: white;
+  margin-bottom: 8px;
 }
 
 .size-shape {
   font-size: 14px;
-  margin-top: 8px;
-  opacity: 0.9;
+  color: rgba(255, 255, 255, 0.9);
+  font-weight: 500;
 }
 
 .recommendation-text {
-  text-align: center;
   font-size: 18px;
-  color: #333;
-  margin: 16px 0;
+  color: #2e7d32;
+  font-weight: 600;
+  margin: 20px 0;
 }
 
 .specs-table {
   width: 100%;
   border-collapse: collapse;
-  margin-top: 16px;
+  margin-top: 20px;
 }
 
 .specs-table td {
-  padding: 12px 16px;
-  border-bottom: 1px solid #eee;
+  padding: 12px;
+  border-bottom: 1px solid #e0e0e0;
+  font-size: 14px;
 }
 
 .specs-table td:first-child {
   font-weight: 600;
-  color: #666;
-  width: 200px;
+  color: #2e7d32;
+  width: 40%;
 }
 
 .specs-table .value {
@@ -78,403 +92,518 @@
   font-weight: 500;
 }
 
-/* Climate Factor Comparison Section */
-.climate-comparison-section {
-  background: white;
-  border-radius: 12px;
+/* NEW: Debris Assessment Results Section */
+.debris-assessment-section {
+  margin-bottom: 40px;
   padding: 24px;
-  margin-bottom: 24px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-  border-left: 4px solid #ff9800;
+  background: linear-gradient(135deg, #fff8e1, #fff3c4);
+  border-radius: 12px;
+  border: 2px solid #ffa726;
 }
 
-.section-description {
-  color: #666;
-  font-size: 16px;
+.debris-hazard-result {
+  padding: 20px;
+  border-radius: 8px;
   margin-bottom: 20px;
-  line-height: 1.5;
+}
+
+.debris-hazard-result.low {
+  background: linear-gradient(135deg, #e8f5e8, #f1f8e9);
+  border: 2px solid #4caf50;
+}
+
+.debris-hazard-result.moderate {
+  background: linear-gradient(135deg, #fff3e0, #ffe0b2);
+  border: 2px solid #ff9800;
+}
+
+.debris-hazard-result.high {
+  background: linear-gradient(135deg, #ffebee, #ffcdd2);
+  border: 2px solid #f44336;
+}
+
+.hazard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.hazard-header h3 {
+  margin: 0;
+  color: #2e7d32;
+  font-size: 20px;
+  font-weight: 600;
+}
+
+.hazard-badges {
+  display: flex;
+  gap: 8px;
+}
+
+.red-flags-badge, .multiplier-badge {
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  color: white;
+}
+
+.red-flags-badge {
+  background: #f44336;
+}
+
+.multiplier-badge {
+  background: #2196f3;
+}
+
+.hazard-message {
+  background: rgba(255, 255, 255, 0.8);
+  padding: 16px;
+  border-radius: 8px;
+  font-weight: 500;
+  color: #2e7d32;
+  margin-bottom: 12px;
+  border-left: 4px solid #4caf50;
+}
+
+.pe-review-notice {
+  background: #ffebee;
+  border: 2px solid #f44336;
+  padding: 12px 16px;
+  border-radius: 8px;
+  color: #c62828;
+  font-weight: 600;
+  margin-bottom: 12px;
+}
+
+.mitigation-strategy {
+  background: rgba(255, 255, 255, 0.8);
+  padding: 12px 16px;
+  border-radius: 8px;
+  font-size: 14px;
+  color: #2e7d32;
+}
+
+.debris-calculation-flow {
+  background: white;
+  padding: 20px;
+  border-radius: 8px;
+  border: 1px solid #e0e0e0;
+}
+
+.debris-calculation-flow h4 {
+  margin: 0 0 16px 0;
+  color: #2e7d32;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.calculation-steps {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: center;
+}
+
+.calc-step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 12px 16px;
+  background: #f5f5f5;
+  border-radius: 8px;
+  border: 2px solid #e0e0e0;
+  min-width: 120px;
+}
+
+.calc-step.final {
+  background: linear-gradient(135deg, #e8f5e8, #f1f8e9);
+  border-color: #4caf50;
+}
+
+.step-label {
+  font-size: 12px;
+  color: #666;
+  font-weight: 500;
+  margin-bottom: 4px;
+}
+
+.step-value {
+  font-size: 16px;
+  font-weight: 700;
+  color: #2e7d32;
+}
+
+.arrow {
+  font-size: 18px;
+  color: #4caf50;
+  font-weight: bold;
+}
+
+/* Climate Comparison Section */
+.climate-comparison-section {
+  margin-bottom: 40px;
+  padding: 24px;
+  background: linear-gradient(135deg, #e3f2fd, #bbdefb);
+  border-radius: 12px;
+  border: 2px solid #2196f3;
 }
 
 .climate-comparison {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-  gap: 24px;
-  margin: 24px 0;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  margin-bottom: 24px;
 }
 
 .climate-box {
+  padding: 20px;
+  border-radius: 8px;
+  background: white;
   border: 2px solid #e0e0e0;
-  border-radius: 12px;
-  padding: 24px;
-  background: #f9f9f9;
-  transition: all 0.3s ease;
-  position: relative;
-}
-
-.climate-box.base-scenario {
-  border-color: #2196f3;
-  background: #f0f8ff;
-}
-
-.climate-box.adjusted-scenario {
-  border-color: #ff9800;
-  background: #fff8f0;
 }
 
 .climate-box.highlight {
-  box-shadow: 0 6px 20px rgba(255, 152, 0, 0.2);
-  transform: translateY(-2px);
+  border-color: #2196f3;
+  box-shadow: 0 4px 12px rgba(33, 150, 243, 0.2);
 }
 
 .climate-box h3 {
-  color: #333;
-  margin: 0 0 16px 0;
-  font-size: 18px;
+  margin: 0 0 12px 0;
+  color: #2e7d32;
+  font-size: 16px;
   font-weight: 600;
 }
 
 .climate-size {
-  font-size: 28px;
-  font-weight: bold;
-  color: #ff9800;
-  margin: 12px 0;
+  font-size: 24px;
+  font-weight: 700;
+  color: #2196f3;
+  margin-bottom: 8px;
 }
 
 .climate-details {
   color: #666;
-  margin: 12px 0;
-  font-size: 15px;
-  font-weight: 500;
+  font-size: 14px;
+  margin-bottom: 12px;
 }
 
 .climate-note {
-  color: #555;
-  font-size: 14px;
-  line-height: 1.5;
-  margin: 16px 0;
-  background: rgba(255, 152, 0, 0.1);
-  padding: 12px;
-  border-radius: 6px;
+  color: #333;
+  font-size: 13px;
+  line-height: 1.4;
+  margin-bottom: 12px;
 }
 
 .climate-formula {
-  font-family: 'Courier New', monospace;
-  font-size: 12px;
-  color: #333;
-  background: rgba(255, 255, 255, 0.8);
+  background: #f5f5f5;
   padding: 8px 12px;
   border-radius: 4px;
-  margin-top: 12px;
-  border-left: 3px solid #ff9800;
+  font-family: monospace;
+  font-size: 12px;
+  color: #2e7d32;
 }
 
-.climate-badge {
-  background: #ff9800;
-  color: white;
+.method-status {
+  display: inline-block;
+  padding: 4px 8px;
+  border-radius: 12px;
   font-size: 11px;
-  font-weight: bold;
-  padding: 2px 6px;
-  border-radius: 10px;
-  margin-left: 8px;
+  font-weight: 600;
+  color: white;
+  background: #4caf50;
+  margin-top: 8px;
 }
 
 .climate-explanation {
-  margin-top: 24px;
+  background: white;
   padding: 20px;
-  background: #f8f9fa;
   border-radius: 8px;
-  border-left: 4px solid #ff9800;
+  border: 1px solid #e0e0e0;
 }
 
 .climate-explanation h4 {
-  color: #ff9800;
-  margin-bottom: 16px;
+  margin: 0 0 16px 0;
+  color: #2e7d32;
   font-size: 16px;
+  font-weight: 600;
 }
 
 .climate-presets {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 8px;
 }
 
 .preset-item {
-  padding: 10px 16px;
-  background: white;
-  border-radius: 6px;
-  border-left: 3px solid #ff9800;
-  font-size: 14px;
-  line-height: 1.4;
-}
-
-.preset-item strong {
-  color: #ff9800;
+  padding: 8px 12px;
+  background: #f5f5f5;
+  border-radius: 4px;
+  font-size: 13px;
+  color: #333;
 }
 
 /* Method Comparison Section */
 .sizing-method-section {
-  background: white;
-  border-radius: 12px;
-  padding: 24px;
-  margin-bottom: 24px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  margin-bottom: 40px;
 }
 
 .method-comparison {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
   gap: 20px;
-  margin-top: 20px;
+  margin-bottom: 24px;
 }
 
 .method-box {
-  border: 2px solid #e0e0e0;
-  border-radius: 12px;
   padding: 20px;
-  background: #f9f9f9;
-  transition: all 0.3s ease;
-  position: relative;
+  border-radius: 8px;
+  background: white;
+  border: 2px solid #e0e0e0;
+  transition: all 0.2s ease;
 }
 
 .method-box.highlight {
   border-color: #4caf50;
-  background: #f8fff8;
   box-shadow: 0 4px 12px rgba(76, 175, 80, 0.2);
+  background: linear-gradient(135deg, #f8fff8, #f1f8f1);
 }
 
 .method-box h3 {
-  color: #333;
   margin: 0 0 12px 0;
+  color: #2e7d32;
   font-size: 18px;
+  font-weight: 600;
 }
 
 .method-size {
   font-size: 24px;
-  font-weight: bold;
+  font-weight: 700;
   color: #4caf50;
-  margin: 8px 0;
+  margin-bottom: 8px;
   display: flex;
   align-items: center;
   gap: 8px;
 }
 
+.climate-badge, .debris-badge {
+  font-size: 11px;
+  padding: 2px 6px;
+  border-radius: 8px;
+  color: white;
+  font-weight: 600;
+}
+
+.climate-badge {
+  background: #2196f3;
+}
+
+.debris-badge {
+  background: #ff9800;
+}
+
 .method-details {
   color: #666;
-  margin: 8px 0;
   font-size: 14px;
+  margin-bottom: 12px;
 }
 
 .method-note {
-  color: #555;
-  font-size: 14px;
+  color: #333;
+  font-size: 13px;
   line-height: 1.4;
-  margin-top: 12px;
-}
-
-.method-note.warning {
-  color: #f44336;
-  background: #fff3e0;
-  padding: 8px 12px;
-  border-radius: 6px;
-  border-left: 3px solid #ff9800;
-}
-
-.method-status {
-  position: absolute;
-  top: 12px;
-  right: 12px;
-  background: #4caf50;
-  color: white;
-  font-size: 11px;
-  font-weight: bold;
-  padding: 4px 8px;
-  border-radius: 12px;
-  text-transform: uppercase;
+  margin-bottom: 12px;
 }
 
 .method-status.selected {
   background: #4caf50;
 }
 
-.comparison-box {
-  border-color: #9c27b0;
-  background: #f3e5f5;
-}
-
-.comparison-box .method-status {
-  background: #9c27b0;
-}
-
 /* Calculation Details Section */
 .calculation-details-section {
-  background: white;
-  border-radius: 12px;
-  padding: 24px;
-  margin-bottom: 24px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  margin-bottom: 40px;
 }
 
 .calculation-table {
   width: 100%;
   border-collapse: collapse;
-  margin-top: 16px;
-}
-
-.calculation-table th,
-.calculation-table td {
-  padding: 12px 16px;
-  text-align: left;
-  border-bottom: 1px solid #eee;
+  background: white;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .calculation-table th {
-  background: #f5f5f5;
+  background: #4caf50;
+  color: white;
+  padding: 16px 12px;
   font-weight: 600;
-  color: #333;
+  text-align: left;
+}
+
+.calculation-table td {
+  padding: 12px;
+  border-bottom: 1px solid #e0e0e0;
+  font-size: 14px;
 }
 
 .calculation-table .selected-row {
-  background: #f8fff8;
-  border-left: 3px solid #4caf50;
+  background: linear-gradient(135deg, #e8f5e8, #f1f8e9);
+  border-left: 4px solid #4caf50;
 }
 
 .calculation-table .climate-adjusted {
-  background: #fff8f0;
-  border-left: 3px solid #ff9800;
+  background: linear-gradient(135deg, #e3f2fd, #bbdefb);
+  border-left: 4px solid #2196f3;
 }
 
-.calculation-table .selected-row td,
-.calculation-table .climate-adjusted td {
-  font-weight: 500;
+.calculation-table .debris-adjusted {
+  background: linear-gradient(135deg, #fff3e0, #ffe0b2);
+  border-left: 4px solid #ff9800;
+}
+
+/* Debug Section */
+.debug-section {
+  background: #f5f5f5;
+  padding: 16px;
+  border-radius: 8px;
+  margin-top: 20px;
+  border: 1px solid #e0e0e0;
+}
+
+.debug-section h4 {
+  margin: 0 0 12px 0;
+  color: #2e7d32;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.debug-info {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.debug-info > div {
+  font-size: 13px;
+  color: #666;
+  font-family: monospace;
+  background: white;
+  padding: 6px 10px;
+  border-radius: 4px;
 }
 
 /* Measurements Section */
 .measurements-section {
-  background: white;
-  border-radius: 12px;
-  padding: 24px;
-  margin-bottom: 24px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-}
-
-.measurements-table {
-  width: 100%;
-  border-collapse: collapse;
-  margin-bottom: 20px;
-}
-
-.measurements-table th,
-.measurements-table td {
-  padding: 12px 16px;
-  text-align: center;
-  border-bottom: 1px solid #eee;
-}
-
-.measurements-table th {
-  background: #f5f5f5;
-  font-weight: 600;
-  color: #333;
-}
-
-.measurements-table .average-row {
-  background: #f0f8ff;
-  font-weight: 600;
-  border-top: 2px solid #2196f3;
+  margin-bottom: 40px;
 }
 
 .measurements-summary {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: 16px;
-  margin-top: 20px;
+  background: white;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .measurement-item {
   display: flex;
   justify-content: space-between;
-  padding: 12px 16px;
-  background: #f5f5f5;
-  border-radius: 8px;
+  align-items: center;
+  padding: 12px;
+  background: #f8f9fa;
+  border-radius: 6px;
+  border-left: 4px solid #4caf50;
 }
 
 .measurement-item.climate-adjusted {
-  background: #fff8f0;
-  border-left: 3px solid #ff9800;
+  border-left-color: #2196f3;
+  background: linear-gradient(135deg, #e3f2fd, #bbdefb);
+}
+
+.measurement-item.debris-adjusted {
+  border-left-color: #ff9800;
+  background: linear-gradient(135deg, #fff3e0, #ffe0b2);
 }
 
 .measurement-item .label {
-  font-weight: 600;
+  font-size: 13px;
   color: #666;
+  font-weight: 500;
 }
 
 .measurement-item .value {
-  font-weight: 500;
-  color: #333;
+  font-size: 16px;
+  font-weight: 700;
+  color: #2e7d32;
 }
 
 /* Method Explanation Section */
 .method-explanation-section {
-  background: white;
-  border-radius: 12px;
-  padding: 24px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-}
-
-.method-explanation-section p {
-  color: #555;
-  line-height: 1.6;
-  margin-bottom: 16px;
+  margin-bottom: 40px;
 }
 
 .formula-box {
-  background: #f0f8ff;
-  border: 1px solid #2196f3;
-  border-radius: 8px;
+  background: #f5f5f5;
   padding: 16px;
+  border-radius: 8px;
+  border-left: 4px solid #4caf50;
   margin: 16px 0;
-  text-align: center;
 }
 
 .formula {
-  font-family: 'Courier New', monospace;
+  font-family: monospace;
   font-size: 16px;
-  font-weight: bold;
-  color: #1976d2;
-  margin: 0 0 8px 0;
+  font-weight: 600;
+  color: #2e7d32;
+  margin-bottom: 8px;
 }
 
 .formula-legend {
-  font-size: 14px;
+  font-size: 13px;
   color: #666;
-  margin: 0;
   font-style: italic;
 }
 
-.climate-note-box {
-  background: #fff8f0;
-  border: 1px solid #ff9800;
-  border-radius: 8px;
+.climate-note-box, .debris-note-box {
+  background: linear-gradient(135deg, #e8f5e8, #f1f8e9);
+  border: 2px solid #4caf50;
   padding: 16px;
+  border-radius: 8px;
   margin: 16px 0;
 }
 
-.climate-note-box h4 {
-  color: #ff9800;
+.debris-note-box {
+  background: linear-gradient(135deg, #fff3e0, #ffe0b2);
+  border-color: #ff9800;
+}
+
+.climate-note-box h4, .debris-note-box h4 {
   margin: 0 0 12px 0;
+  color: #2e7d32;
   font-size: 16px;
+  font-weight: 600;
 }
 
-.climate-note-box p {
-  color: #555;
-  margin: 0;
-  line-height: 1.5;
+.notes-section {
+  background: #f8f9fa;
+  padding: 16px;
+  border-radius: 8px;
+  border-left: 4px solid #4caf50;
+  margin-top: 20px;
 }
 
-.diagram-caption {
-  text-align: center;
-  font-style: italic;
-  color: #666;
-  margin-top: 16px;
+.notes-section h4 {
+  margin: 0 0 12px 0;
+  color: #2e7d32;
+  font-size: 16px;
+  font-weight: 600;
 }
 
 /* Responsive Design */
@@ -483,11 +612,20 @@
     padding: 16px;
   }
   
-  .method-comparison {
-    grid-template-columns: 1fr;
+  .size-circle {
+    width: 150px;
+    height: 150px;
+  }
+  
+  .size-value {
+    font-size: 28px;
   }
   
   .climate-comparison {
+    grid-template-columns: 1fr;
+  }
+  
+  .method-comparison {
     grid-template-columns: 1fr;
   }
   
@@ -495,16 +633,47 @@
     grid-template-columns: 1fr;
   }
   
-  .size-circle {
-    width: 150px;
-    height: 150px;
+  .calculation-steps {
+    flex-direction: column;
   }
   
-  .size-value {
-    font-size: 24px;
+  .arrow {
+    transform: rotate(90deg);
   }
   
-  .climate-size {
-    font-size: 24px;
+  .hazard-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .specs-table {
+    font-size: 13px;
+  }
+  
+  .specs-table td {
+    padding: 8px;
+  }
+}
+
+@media (max-width: 480px) {
+  .green-heading {
+    font-size: 20px;
+  }
+  
+  .recommendation-text {
+    font-size: 16px;
+  }
+  
+  .method-size {
+    font-size: 20px;
+  }
+  
+  .calc-step {
+    min-width: 100px;
+    padding: 8px 12px;
+  }
+  
+  .step-value {
+    font-size: 14px;
   }
 }
