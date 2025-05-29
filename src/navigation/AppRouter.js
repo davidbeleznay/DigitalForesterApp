@@ -13,7 +13,9 @@ const AppRouter = () => {
         <Route path="/" element={<HomeScreen />} />
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/road-risk" element={<RoadRiskForm />} />
+        <Route path="/road-risk/edit/:id" element={<RoadRiskForm />} />
         <Route path="/culvert" element={<CulvertSizingForm />} />
+        <Route path="/culvert/edit/:id" element={<CulvertSizingForm />} />
         <Route path="/history" element={<HistoryPage />} />
       </Routes>
     </Router>
