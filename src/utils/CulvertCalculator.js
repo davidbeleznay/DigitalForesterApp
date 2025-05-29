@@ -24,6 +24,68 @@ export const getClimateChangeFactor = (planningHorizon) => {
 };
 
 /**
+ * Calculate debris transport hazard and area multiplier
+ * @param {Object} debrisAssessment - Debris assessment parameters
+ * @returns {Object} Debris hazard classification and multiplier
+ */
+export const calculateDebrisHazard = (debrisAssessment) => {
+  if (!debrisAssessment) {
+    return {
+      hazardClass: 'LOW',
+      debrisMultiplier: 1.00,
+      redFlags: 0,
+      message: 'Standard 3 × bank-full size OK.',
+      requiresProfessional: false
+    };
+  }
+
+  // Count red flags (number of TRUE boxes)
+  const redFlags = [
+    debrisAssessment.steepUpslopeOrSlideScars,
+    debrisAssessment.evidenceOfPastDebrisFlow,
+    debrisAssessment.steepChannelReach,
+    debrisAssessment.largeWoodyDebrisPresent,
+    debrisAssessment.gapHighRating
+  ].filter(Boolean).length;
+
+  const gapHigh = debrisAssessment.gapHighRating;
+
+  // Apply debris hazard classification logic
+  if (redFlags === 0) {
+    return {
+      hazardClass: 'LOW',
+      debrisMultiplier: 1.00,
+      redFlags: redFlags,
+      message: 'Standard 3 × bank-full size OK.',
+      requiresProfessional: false
+    };
+  } else if (redFlags === 1 && !gapHigh) {
+    // For moderate hazard, check mitigation strategy
+    const multiplier = debrisAssessment.debrisMitigationStrategy === 'cleanout' ? 1.00 : 1.20;
+    const strategy = debrisAssessment.debrisMitigationStrategy === 'cleanout' ? 
+      'keeping size with annual clean-out commitment' : 'up-sizing culvert';
+    
+    return {
+      hazardClass: 'MODERATE',
+      debrisMultiplier: multiplier,
+      redFlags: redFlags,
+      message: `Up-size one pipe size or commit to annual debris clean-out. Currently ${strategy}.`,
+      requiresProfessional: false,
+      mitigationStrategy: debrisAssessment.debrisMitigationStrategy
+    };
+  } else {
+    // High hazard (≥2 flags or GAP = High)
+    return {
+      hazardClass: 'HIGH',
+      debrisMultiplier: 1.40,
+      redFlags: redFlags,
+      message: 'High debris-flow hazard — up-size 40% and consider Professional Engineer review / debris rack.',
+      requiresProfessional: true
+    };
+  }
+};
+
+/**
  * Calculate culvert size based on the California Method using average stream width, depth, and slope
  * Enhanced with proper method selection and climate change factors
  * @param {Object} params - Calculation parameters
@@ -36,6 +98,8 @@ export const getClimateChangeFactor = (planningHorizon) => {
  * @param {string} params.sizingMethod - Sizing method: 'california', 'hydraulic', or 'comparison'
  * @param {boolean} params.climateFactorsEnabled - Whether to apply climate factors
  * @param {Object} params.climateFactors - Climate change parameters
+ * @param {boolean} params.debrisAssessmentEnabled - Whether to apply debris assessment
+ * @param {Object} params.debrisAssessment - Debris assessment parameters
  * @returns {Object} Calculation results including recommended pipe size
  */
 export const calculateCulvert = (params) => {
@@ -81,7 +145,25 @@ export const calculateCulvert = (params) => {
                                    STANDARD_PIPE_SIZES[STANDARD_PIPE_SIZES.length - 1];
   }
   
-  // Step 4: Hydraulic calculation - FIXED TO RUN WHEN NEEDED
+  // Step 4: NEW - Apply debris transport assessment
+  let debrisHazardInfo = { hazardClass: 'LOW', debrisMultiplier: 1.00, redFlags: 0, message: '', requiresProfessional: false };
+  let debrisAdjustedCaliforniaSize = climateFactorsEnabled ? climateAdjustedCaliforniaSize : californiaSize;
+  
+  if (debrisAssessmentEnabled && debrisAssessment) {
+    debrisHazardInfo = calculateDebrisHazard(debrisAssessment);
+    
+    // Apply debris multiplier to the required area
+    const currentSize = climateFactorsEnabled ? climateAdjustedCaliforniaSize : californiaSize;
+    const currentArea = (currentSize / 1000) ** 2 * Math.PI / 4;
+    const debrisAdjustedArea = currentArea * debrisHazardInfo.debrisMultiplier;
+    const debrisAdjustedDiameter = 2 * Math.sqrt(debrisAdjustedArea / Math.PI) * 1000;
+    
+    // Find the next larger standard size
+    debrisAdjustedCaliforniaSize = STANDARD_PIPE_SIZES.find(size => size >= debrisAdjustedDiameter) || 
+                                  STANDARD_PIPE_SIZES[STANDARD_PIPE_SIZES.length - 1];
+  }
+  
+  // Step 5: Hydraulic calculation - FIXED TO RUN WHEN NEEDED
   let hydraulicSize = californiaSize;
   let bankfullFlow = 0;
   let finalCapacity = 0;
@@ -148,16 +230,20 @@ export const calculateCulvert = (params) => {
     }
   }
   
-  // Step 5: Determine final size based on method selection
+  // Step 6: Determine final size based on method selection
   let finalSize = californiaSize;
   let governingMethod = "California Method";
   
   switch (sizingMethod) {
     case 'california':
-      finalSize = climateFactorsEnabled ? climateAdjustedCaliforniaSize : californiaSize;
-      governingMethod = climateFactorsEnabled ? 
-        `California Method with ${(climateChangeFactor * 100 - 100).toFixed(0)}% Climate Factor` : 
-        "California Method";
+      finalSize = debrisAdjustedCaliforniaSize; // Use debris-adjusted size (includes climate if enabled)
+      governingMethod = "California Method";
+      if (climateFactorsEnabled) {
+        governingMethod += ` with ${(climateChangeFactor * 100 - 100).toFixed(0)}% Climate Factor`;
+      }
+      if (debrisAssessmentEnabled && debrisHazardInfo.debrisMultiplier > 1.0) {
+        governingMethod += ` and ${debrisHazardInfo.hazardClass} Debris Hazard (×${debrisHazardInfo.debrisMultiplier.toFixed(2)})`;
+      }
       break;
       
     case 'hydraulic':
@@ -168,7 +254,7 @@ export const calculateCulvert = (params) => {
       break;
       
     case 'comparison':
-      const californiaFinal = climateFactorsEnabled ? climateAdjustedCaliforniaSize : californiaSize;
+      const californiaFinal = debrisAdjustedCaliforniaSize;
       finalSize = Math.max(californiaFinal, hydraulicSize);
       governingMethod = finalSize === hydraulicSize ? 
         "Hydraulic Calculation (Conservative)" : 
@@ -176,10 +262,13 @@ export const calculateCulvert = (params) => {
       if (climateFactorsEnabled) {
         governingMethod += ` with ${(climateChangeFactor * 100 - 100).toFixed(0)}% Climate Factor`;
       }
+      if (debrisAssessmentEnabled && debrisHazardInfo.debrisMultiplier > 1.0) {
+        governingMethod += ` and ${debrisHazardInfo.hazardClass} Debris Hazard`;
+      }
       break;
   }
   
-  // Step 6: Apply fish passage adjustments
+  // Step 7: Apply fish passage adjustments
   if (fishPassage) {
     const fishPassageSize = Math.max(finalSize, topWidth * 1200); // 1.2x width converted to mm
     if (fishPassageSize > finalSize) {
@@ -188,10 +277,10 @@ export const calculateCulvert = (params) => {
     }
   }
   
-  // Step 7: Check if professional review is required
-  const requiresProfessional = finalSize >= 2000 || bankfullFlow > 6.0;
+  // Step 8: Check if professional review is required
+  const requiresProfessional = finalSize >= 2000 || bankfullFlow > 6.0 || debrisHazardInfo.requiresProfessional;
   
-  // Step 8: Calculate final pipe characteristics for display
+  // Step 9: Calculate final pipe characteristics for display
   const finalPipeDiameter = finalSize / 1000;
   const finalArea = Math.PI * Math.pow(finalPipeDiameter, 2) / 4;
   
@@ -219,6 +308,10 @@ export const calculateCulvert = (params) => {
     climateAdjustedCaliforniaSize: climateFactorsEnabled ? climateAdjustedCaliforniaSize : californiaSize,
     climateChangeFactor: climateChangeFactor.toFixed(2),
     
+    // NEW: Debris assessment results
+    debrisAdjustedCaliforniaSize: debrisAdjustedCaliforniaSize,
+    debrisHazardInfo: debrisHazardInfo,
+    
     // Hydraulic results
     hydraulicSize: hydraulicSize,
     bankfullFlow: needsHydraulicCalc ? bankfullFlow.toFixed(2) : "0.00",
@@ -239,9 +332,10 @@ export const calculateCulvert = (params) => {
     sizingMethod,
     climateFactorsEnabled,
     appliedClimateFactor: climateChangeFactor,
+    debrisAssessmentEnabled,
     
     // Required culvert area for display
-    requiredCulvertArea: (climateFactorsEnabled ? californiaArea * climateChangeFactor : californiaArea).toFixed(2),
+    requiredCulvertArea: (debrisAdjustedCaliforniaSize / 1000) ** 2 * Math.PI / 4,
     
     // Embed depth for fish passage
     embedDepth: fishPassage ? (0.2 * (finalSize / 1000)).toFixed(2) : "0.00",
@@ -252,15 +346,27 @@ export const calculateCulvert = (params) => {
       streamFlowRate: needsHydraulicCalc ? bankfullFlow.toFixed(3) : "N/A",
       streamVelocity: streamArea > 0 && needsHydraulicCalc ? (bankfullFlow / streamArea).toFixed(2) : "N/A",
       hydraulicRadius: streamArea > 0 ? (streamArea / (bottomWidth + 2 * avgStreamDepth * Math.sqrt(1 + Math.pow((topWidth - bottomWidth) / (2 * avgStreamDepth), 2)))).toFixed(3) : "0.000",
-      californiaTableLookup: `Width: ${topWidth}m → Depth: ${avgStreamDepth}m → Size: ${californiaSize}mm`
+      californiaTableLookup: `Width: ${topWidth}m → Depth: ${avgStreamDepth}m → Size: ${californiaSize}mm`,
+      debrisHazard: debrisAssessmentEnabled ? `${debrisHazardInfo.hazardClass} (${debrisHazardInfo.redFlags} flags, ×${debrisHazardInfo.debrisMultiplier.toFixed(2)})` : "Not assessed"
     },
     
     // Notes
-    notes: climateFactorsEnabled ? 
-      `California Method with ${climateFactors?.planningHorizon || '2050'} climate projections (${(climateChangeFactor * 100 - 100).toFixed(0)}% increase)` :
-      fishPassage ? 
-        "Fish passage requirements applied with 20% embedded culvert." : 
-        "California Method table lookup with trapezoidal channel geometry."
+    notes: (() => {
+      let notes = [];
+      if (climateFactorsEnabled) {
+        notes.push(`California Method with ${climateFactors?.planningHorizon || '2050'} climate projections (${(climateChangeFactor * 100 - 100).toFixed(0)}% increase)`);
+      }
+      if (debrisAssessmentEnabled) {
+        notes.push(`Debris transport assessment: ${debrisHazardInfo.hazardClass} hazard with ${debrisHazardInfo.redFlags} red flags`);
+      }
+      if (fishPassage) {
+        notes.push("Fish passage requirements applied with 20% embedded culvert");
+      }
+      if (notes.length === 0) {
+        notes.push("California Method table lookup with trapezoidal channel geometry");
+      }
+      return notes.join('. ');
+    })()
   };
 };
 
