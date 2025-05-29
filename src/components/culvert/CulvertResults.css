@@ -25,7 +25,7 @@
   font-style: italic;
 }
 
-/* Recommended Size Section */
+/* Recommended Size Section - FIXED CENTERING */
 .recommended-size-section {
   text-align: center;
   margin-bottom: 40px;
@@ -36,16 +36,16 @@
 }
 
 .size-circle {
-  display: inline-block;
+  /* REMOVED: display: inline-block; - This was conflicting with flexbox centering */
   width: 200px;
   height: 200px;
   border-radius: 50%;
   background: linear-gradient(135deg, #4caf50, #66bb6a);
-  display: flex;
+  display: flex; /* Keep flexbox for internal centering */
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  margin: 20px 0;
+  margin: 20px auto; /* CHANGED: Added 'auto' for horizontal centering */
   box-shadow: 0 6px 20px rgba(76, 175, 80, 0.3);
 }
 
