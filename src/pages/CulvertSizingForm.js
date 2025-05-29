@@ -258,16 +258,16 @@ const CulvertSizingForm = () => {
     }
     
     if (activeSection === STAGES.SETTINGS) {
-      // Only validate hydraulic capacity fields if that assessment is enabled
-      if (optionalAssessments.hydraulicCapacityEnabled) {
+      // Only validate hydraulic capacity fields if hydraulic or comparison methods are selected
+      if (formValues.sizingMethod === 'hydraulic' || formValues.sizingMethod === 'comparison') {
         if (!formValues.slopePercent) {
-          newErrors.slopePercent = 'Channel slope is required for hydraulic capacity test';
+          newErrors.slopePercent = 'Channel slope is required for hydraulic calculations';
         } else if (isNaN(formValues.slopePercent) || parseFloat(formValues.slopePercent) <= 0) {
           newErrors.slopePercent = 'Must be a positive number';
         }
         
         if (!formValues.maxHwdRatio) {
-          newErrors.maxHwdRatio = 'Headwater ratio is required for hydraulic capacity test';
+          newErrors.maxHwdRatio = 'Headwater ratio is required for hydraulic calculations';
         } else if (isNaN(formValues.maxHwdRatio) || parseFloat(formValues.maxHwdRatio) <= 0 || parseFloat(formValues.maxHwdRatio) > 1.5) {
           newErrors.maxHwdRatio = 'Must be a positive number between 0 and 1.5';
         }
@@ -284,35 +284,47 @@ const CulvertSizingForm = () => {
     
     setIsLoading(true);
     
-    const { avgTopWidth, avgBottomWidth, avgDepth } = calculateAverages();
-    
-    const params = {
-      topWidth: avgTopWidth,
-      bottomWidth: useBottomWidth ? avgBottomWidth : undefined,
-      avgStreamDepth: avgDepth,
-      fishPassage: formValues.fishPassage,
-      sizingMethod: formValues.sizingMethod, // Pass the selected method
-      // Hydraulic capacity parameters (only if enabled)
-      hydraulicCapacityTest: optionalAssessments.hydraulicCapacityEnabled,
-      slopePercent: optionalAssessments.hydraulicCapacityEnabled ? parseFloat(formValues.slopePercent) : null,
-      streamRoughness: optionalAssessments.hydraulicCapacityEnabled ? parseFloat(formValues.streamRoughness) : null,
-      pipeRoughness: optionalAssessments.hydraulicCapacityEnabled ? parseFloat(formValues.pipeRoughness) : null,
-      maxHwdRatio: optionalAssessments.hydraulicCapacityEnabled ? parseFloat(formValues.maxHwdRatio) : null,
-      // Climate factors (only if enabled)
-      climateFactorsEnabled: optionalAssessments.climateFactorsEnabled,
-      climateFactors: optionalAssessments.climateFactorsEnabled ? climateFactors : null,
-      // Debris assessment (only if enabled)
-      debrisAssessmentEnabled: optionalAssessments.debrisAssessmentEnabled,
-      debrisAssessment: optionalAssessments.debrisAssessmentEnabled ? debrisAssessment : null
-    };
-    
-    // Small delay to allow loading state to be visible
-    setTimeout(() => {
-      const calculationResults = calculateCulvert(params);
-      setResults(calculationResults);
-      setActiveSection(STAGES.RESULTS);
+    try {
+      const { avgTopWidth, avgBottomWidth, avgDepth } = calculateAverages();
+      
+      const params = {
+        topWidth: avgTopWidth,
+        bottomWidth: useBottomWidth ? avgBottomWidth : undefined,
+        avgStreamDepth: avgDepth,
+        fishPassage: formValues.fishPassage,
+        sizingMethod: formValues.sizingMethod, // Pass the selected method
+        // Hydraulic capacity parameters (only if hydraulic methods are selected)
+        hydraulicCapacityTest: (formValues.sizingMethod === 'hydraulic' || formValues.sizingMethod === 'comparison'),
+        slopePercent: (formValues.sizingMethod === 'hydraulic' || formValues.sizingMethod === 'comparison') ? parseFloat(formValues.slopePercent) || 0 : null,
+        streamRoughness: (formValues.sizingMethod === 'hydraulic' || formValues.sizingMethod === 'comparison') ? parseFloat(formValues.streamRoughness) || 0.04 : null,
+        pipeRoughness: (formValues.sizingMethod === 'hydraulic' || formValues.sizingMethod === 'comparison') ? parseFloat(formValues.pipeRoughness) || 0.024 : null,
+        maxHwdRatio: (formValues.sizingMethod === 'hydraulic' || formValues.sizingMethod === 'comparison') ? parseFloat(formValues.maxHwdRatio) || 0.8 : null,
+        // Climate factors (only if enabled)
+        climateFactorsEnabled: optionalAssessments.climateFactorsEnabled,
+        climateFactors: optionalAssessments.climateFactorsEnabled ? climateFactors : null,
+        // Debris assessment (only if enabled)
+        debrisAssessmentEnabled: optionalAssessments.debrisAssessmentEnabled,
+        debrisAssessment: optionalAssessments.debrisAssessmentEnabled ? debrisAssessment : null
+      };
+      
+      // Small delay to allow loading state to be visible
+      setTimeout(() => {
+        try {
+          const calculationResults = calculateCulvert(params);
+          setResults(calculationResults);
+          setActiveSection(STAGES.RESULTS);
+          setIsLoading(false);
+        } catch (error) {
+          console.error('Calculation error:', error);
+          setIsLoading(false);
+          alert('Error calculating culvert size. Please check your inputs and try again.');
+        }
+      }, 500);
+    } catch (error) {
+      console.error('Calculation setup error:', error);
       setIsLoading(false);
-    }, 500);
+      alert('Error setting up calculation. Please check your inputs and try again.');
+    }
   };
   
   // Navigation functions for ribbon
@@ -342,37 +354,42 @@ const CulvertSizingForm = () => {
   const saveDraft = () => {
     if (!results) return;
     
-    // Get existing drafts or create empty array
-    const existingDrafts = JSON.parse(localStorage.getItem('culvertDrafts') || '[]');
-    
-    // Create new draft with calculation results
-    const newDraft = {
-      id: Date.now(),
-      date: new Date().toISOString(),
-      type: 'culvert',
-      culvertId: formValues.culvertId,
-      roadName: formValues.roadName,
-      location: {
-        latitude: formValues.latitude,
-        longitude: formValues.longitude
-      },
-      formValues,
-      optionalAssessments,
-      climateFactors,
-      debrisAssessment,
-      topWidthMeasurements,
-      bottomWidthMeasurements,
-      depthMeasurements,
-      useBottomWidth,
-      results
-    };
-    
-    // Add to drafts and save to localStorage
-    existingDrafts.push(newDraft);
-    localStorage.setItem('culvertDrafts', JSON.stringify(existingDrafts));
-    
-    // Show success message
-    alert('Draft saved successfully!');
+    try {
+      // Get existing drafts or create empty array
+      const existingDrafts = JSON.parse(localStorage.getItem('culvertDrafts') || '[]');
+      
+      // Create new draft with calculation results
+      const newDraft = {
+        id: Date.now(),
+        date: new Date().toISOString(),
+        type: 'culvert',
+        culvertId: formValues.culvertId,
+        roadName: formValues.roadName,
+        location: {
+          latitude: formValues.latitude,
+          longitude: formValues.longitude
+        },
+        formValues,
+        optionalAssessments,
+        climateFactors,
+        debrisAssessment,
+        topWidthMeasurements,
+        bottomWidthMeasurements,
+        depthMeasurements,
+        useBottomWidth,
+        results
+      };
+      
+      // Add to drafts and save to localStorage
+      existingDrafts.push(newDraft);
+      localStorage.setItem('culvertDrafts', JSON.stringify(existingDrafts));
+      
+      // Show success message
+      alert('Draft saved successfully!');
+    } catch (error) {
+      console.error('Error saving draft:', error);
+      alert('Error saving draft. Please try again.');
+    }
   };
   
   // Export results as PDF
@@ -830,8 +847,8 @@ const CulvertSizingForm = () => {
                 />
                 <div className="option-content score-4">
                   <div className="option-header">
-                    <span className="option-label">Hydraulic Calculation</span>
-                    <span className="score-badge">ADVANCED</span>
+                    <span className="option-label">Hydraulic Calculation (Alternative)</span>
+                    <span className="score-badge">ALTERNATIVE</span>
                   </div>
                   <span className="option-description">Uses Manning's equation with slope and roughness for detailed hydraulic analysis</span>
                 </div>
@@ -1148,26 +1165,26 @@ const CulvertSizingForm = () => {
         };
       });
     
-    // Create enhanced calculationResults object
+    // Create enhanced calculationResults object with error handling
     const calculationResults = {
       // finalSize is the overall recommended pipe size from the calculator
-      recommendedSize: results.finalSize,
+      recommendedSize: results.finalSize || 600,
       shape: "Circular",
       material: (formValues.sizingMethod === 'hydraulic' || formValues.sizingMethod === 'comparison') ? 
                (formValues.pipeRoughness === "0.024" ? "Corrugated Metal Pipe (CMP)" : 
                 formValues.pipeRoughness === "0.012" ? "Smooth HDPE" : "Concrete") : 
                "California Method (material not specified)",
-      manningsN: (formValues.sizingMethod === 'hydraulic' || formValues.sizingMethod === 'comparison') ? parseFloat(formValues.pipeRoughness) : null,
+      manningsN: (formValues.sizingMethod === 'hydraulic' || formValues.sizingMethod === 'comparison') ? parseFloat(formValues.pipeRoughness) || 0.024 : null,
       hwdCriterion: (formValues.sizingMethod === 'hydraulic' || formValues.sizingMethod === 'comparison') ? `HW/D ≤ ${formValues.maxHwdRatio}` : "Not applied (California Method only)",
       hydraulicCapacityTest: (formValues.sizingMethod === 'hydraulic' || formValues.sizingMethod === 'comparison'),
       climateFactorsApplied: optionalAssessments.climateFactorsEnabled,
       debrisAssessmentApplied: optionalAssessments.debrisAssessmentEnabled,
-      governingMethod: results.governingMethod,
-      californiaMethodSize: results.californiaSize,
-      hydraulicCalculationSize: results.hydraulicSize,
-      bankfullArea: parseFloat(results.streamArea),
-      endArea: parseFloat(results.requiredCulvertArea),
-      designDischarge: parseFloat(results.bankfullFlow),
+      governingMethod: results.governingMethod || 'California Method',
+      californiaMethodSize: results.californiaSize || 600,
+      hydraulicCalculationSize: results.hydraulicSize || 600,
+      bankfullArea: parseFloat(results.streamArea) || 0,
+      endArea: parseFloat(results.requiredCulvertArea) || 0,
+      designDischarge: parseFloat(results.bankfullFlow) || 0,
       measurements: formattedMeasurements,
       avgWidth: avgTopWidth,
       avgBottom: avgBottomWidth,
