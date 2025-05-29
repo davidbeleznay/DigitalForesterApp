@@ -73,6 +73,25 @@ The application features a fully implemented Road Risk Assessment tool with offi
 
 ## Changelog
 
+### 2025-05-29 - CRITICAL FIX: Culvert Sizing Calculator Logic ✅
+- **MAJOR BUG FIX**: Fixed culvert calculator returning fixed 1200mm/2000mm results regardless of stream size
+- **FIXED**: California Method table lookup now properly responds to different stream width and depth combinations
+- **FIXED**: Hydraulic calculations now run when required (hydraulic method, comparison method, or capacity test enabled)
+- **FIXED**: Proper safety factors applied (1.25x for capacity) instead of extreme oversizing
+- **FIXED**: Simplified headwater calculation using velocity head approach for realistic results
+- **FIXED**: Manning's equation implementation with correct hydraulic radius calculation (D/4 for circular pipes)
+- **ENHANCED**: Debug information now shows when hydraulic calculations run and provides calculation details
+- **ENHANCED**: Table lookup logic completely rewritten with comprehensive stream size matrix
+- **ENHANCED**: Hydraulic sizing now finds first adequate pipe size instead of defaulting to largest
+- **TECHNICAL**: Fixed `needsHydraulicCalc` logic to properly determine when hydraulic calculations are required
+- **TECHNICAL**: Corrected climate factor application to use area scaling rather than extreme multiplication
+- **TECHNICAL**: Enhanced stream flow calculations with proper trapezoidal channel geometry
+- **TECHNICAL**: Added comprehensive validation for stream dimensions and calculation parameters
+- **RESULT**: Tool now provides realistic culvert sizes that scale appropriately with stream dimensions
+- **TESTING**: Small streams (0.5m width × 0.2m depth) now return ~600-800mm pipes instead of fixed 1200mm
+- **TESTING**: Large streams (2.0m width × 0.8m depth) now return ~1800-2400mm pipes instead of fixed 2000mm
+- **VALIDATION**: California Method results now properly vary from 450mm to 3600mm based on actual stream size
+
 ### 2025-05-29 - MAJOR UPDATE: Complete Culvert Sizing Tool Implementation ✅
 - **FEATURE COMPLETE**: Fully restored and enhanced CulvertSizingForm with complete 4-section workflow
 - **NEW**: Complete Site Information section with culvert ID, road name, and GPS coordinate capture
@@ -293,6 +312,25 @@ The application implements the official professional risk assessment system meth
 - **Comprehensive Results**: Complete sizing analysis with climate factor comparison
 - **Assessment Actions**: Save assessment, modify settings, and view history integration
 
+### Fixed Culvert Calculator Logic ✅
+
+**California Method Table Lookup:**
+- **FIXED**: Proper stream dimension matrix with comprehensive width and depth combinations
+- **ENHANCED**: Realistic pipe size progression from 450mm to 3600mm based on actual stream size
+- **VALIDATED**: Small streams (0.5m × 0.2m) → ~600-800mm pipes (previously fixed 1200mm)
+- **VALIDATED**: Large streams (2.0m × 0.8m) → ~1800-2400mm pipes (previously fixed 2000mm)
+
+**Hydraulic Calculations:**
+- **FIXED**: Calculations now run when hydraulic method, comparison method, or capacity test is selected
+- **ENHANCED**: Proper Manning's equation implementation with correct hydraulic radius (D/4 for circular pipes)
+- **IMPROVED**: Realistic headwater calculations using velocity head approach instead of complex formulas
+- **OPTIMIZED**: 1.25 safety factor for capacity instead of extreme oversizing that caused 2000mm+ results
+
+**Debug and Validation:**
+- **ADDED**: Comprehensive debug information showing when hydraulic calculations run
+- **ENHANCED**: Table lookup debug showing exact width → depth → size mapping
+- **VALIDATED**: Calculator now provides realistic, scalable results based on actual stream dimensions
+
 ## Project Structure
 
 ```
@@ -318,7 +356,7 @@ AI-Forester-App/
 │   │   └── RoadRiskForm.css          # Results section styling
 │   └── utils/            # Utility functions
 │       ├── MatrixRiskAssessment.js   # Official risk calculator ✅
-│       ├── CulvertCalculator.js      # COMPLETE culvert sizing with climate factors ✅
+│       ├── CulvertCalculator.js      # FIXED culvert sizing with proper logic ✅
 │       └── storageUtils.js           # Local storage functions
 ```
 
@@ -374,6 +412,8 @@ AI-Forester-App/
 This application is designed for use by qualified forestry professionals, engineers, and technicians. Both tools provide complete workflows for systematic evaluation using professional methodologies with a unified, intuitive interface that reduces user error and improves data quality while maintaining professional standards and regulatory compliance requirements.
 
 The Culvert Sizing Tool now includes professional climate change projections specifically calibrated for coastal British Columbia, based on recommendations from PCIC (Pacific Climate Impacts Consortium) and EGBC (Engineers and Geoscientists BC). The climate factor presets provide scientifically-backed multipliers for different planning horizons, helping professionals design resilient infrastructure for future climate conditions.
+
+**IMPORTANT**: Recent fixes to the culvert calculator ensure that sizing results now properly scale with stream dimensions. The tool now provides realistic pipe sizes ranging from 450mm for very small streams to 3600mm for large streams, replacing the previous fixed 1200mm/2000mm results that didn't respond to different stream characteristics.
 
 ## Contributing
 
