@@ -1,4 +1,4 @@
-/* CulvertResults.css - Enhanced styling for method selection */
+/* CulvertResults.css - Enhanced styling for method selection and climate factors */
 
 .culvert-results-container {
   padding: 24px;
@@ -78,6 +78,139 @@
   font-weight: 500;
 }
 
+/* Climate Factor Comparison Section */
+.climate-comparison-section {
+  background: white;
+  border-radius: 12px;
+  padding: 24px;
+  margin-bottom: 24px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  border-left: 4px solid #ff9800;
+}
+
+.section-description {
+  color: #666;
+  font-size: 16px;
+  margin-bottom: 20px;
+  line-height: 1.5;
+}
+
+.climate-comparison {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+  gap: 24px;
+  margin: 24px 0;
+}
+
+.climate-box {
+  border: 2px solid #e0e0e0;
+  border-radius: 12px;
+  padding: 24px;
+  background: #f9f9f9;
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+.climate-box.base-scenario {
+  border-color: #2196f3;
+  background: #f0f8ff;
+}
+
+.climate-box.adjusted-scenario {
+  border-color: #ff9800;
+  background: #fff8f0;
+}
+
+.climate-box.highlight {
+  box-shadow: 0 6px 20px rgba(255, 152, 0, 0.2);
+  transform: translateY(-2px);
+}
+
+.climate-box h3 {
+  color: #333;
+  margin: 0 0 16px 0;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.climate-size {
+  font-size: 28px;
+  font-weight: bold;
+  color: #ff9800;
+  margin: 12px 0;
+}
+
+.climate-details {
+  color: #666;
+  margin: 12px 0;
+  font-size: 15px;
+  font-weight: 500;
+}
+
+.climate-note {
+  color: #555;
+  font-size: 14px;
+  line-height: 1.5;
+  margin: 16px 0;
+  background: rgba(255, 152, 0, 0.1);
+  padding: 12px;
+  border-radius: 6px;
+}
+
+.climate-formula {
+  font-family: 'Courier New', monospace;
+  font-size: 12px;
+  color: #333;
+  background: rgba(255, 255, 255, 0.8);
+  padding: 8px 12px;
+  border-radius: 4px;
+  margin-top: 12px;
+  border-left: 3px solid #ff9800;
+}
+
+.climate-badge {
+  background: #ff9800;
+  color: white;
+  font-size: 11px;
+  font-weight: bold;
+  padding: 2px 6px;
+  border-radius: 10px;
+  margin-left: 8px;
+}
+
+.climate-explanation {
+  margin-top: 24px;
+  padding: 20px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  border-left: 4px solid #ff9800;
+}
+
+.climate-explanation h4 {
+  color: #ff9800;
+  margin-bottom: 16px;
+  font-size: 16px;
+}
+
+.climate-presets {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.preset-item {
+  padding: 10px 16px;
+  background: white;
+  border-radius: 6px;
+  border-left: 3px solid #ff9800;
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.preset-item strong {
+  color: #ff9800;
+}
+
 /* Method Comparison Section */
 .sizing-method-section {
   background: white;
@@ -120,6 +253,9 @@
   font-weight: bold;
   color: #4caf50;
   margin: 8px 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .method-details {
@@ -202,7 +338,13 @@
   border-left: 3px solid #4caf50;
 }
 
-.calculation-table .selected-row td {
+.calculation-table .climate-adjusted {
+  background: #fff8f0;
+  border-left: 3px solid #ff9800;
+}
+
+.calculation-table .selected-row td,
+.calculation-table .climate-adjusted td {
   font-weight: 500;
 }
 
@@ -255,6 +397,11 @@
   border-radius: 8px;
 }
 
+.measurement-item.climate-adjusted {
+  background: #fff8f0;
+  border-left: 3px solid #ff9800;
+}
+
 .measurement-item .label {
   font-weight: 600;
   color: #666;
@@ -303,6 +450,26 @@
   font-style: italic;
 }
 
+.climate-note-box {
+  background: #fff8f0;
+  border: 1px solid #ff9800;
+  border-radius: 8px;
+  padding: 16px;
+  margin: 16px 0;
+}
+
+.climate-note-box h4 {
+  color: #ff9800;
+  margin: 0 0 12px 0;
+  font-size: 16px;
+}
+
+.climate-note-box p {
+  color: #555;
+  margin: 0;
+  line-height: 1.5;
+}
+
 .diagram-caption {
   text-align: center;
   font-style: italic;
@@ -320,6 +487,10 @@
     grid-template-columns: 1fr;
   }
   
+  .climate-comparison {
+    grid-template-columns: 1fr;
+  }
+  
   .measurements-summary {
     grid-template-columns: 1fr;
   }
@@ -330,6 +501,10 @@
   }
   
   .size-value {
+    font-size: 24px;
+  }
+  
+  .climate-size {
     font-size: 24px;
   }
 }
