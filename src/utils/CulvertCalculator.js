@@ -1,14 +1,31 @@
 /**
  * CulvertCalculator.js
  * Utility for calculating culvert dimensions based on watershed characteristics
- * and fish passage requirements using the California Method.
+ * and fish passage requirements using the California Method with climate change considerations.
  */
 
 // Standard pipe sizes in mm
 const STANDARD_PIPE_SIZES = [450, 600, 700, 750, 800, 900, 1000, 1200, 1400, 1500, 1600, 1800, 2100, 2400, 3000, 3600];
 
 /**
+ * Get climate change factor based on planning horizon for coastal BC
+ * @param {string} planningHorizon - Planning year (2030, 2050, 2080, 2100)
+ * @returns {number} Climate change multiplication factor
+ */
+export const getClimateChangeFactor = (planningHorizon) => {
+  const factors = {
+    '2030': 1.10, // Present-2030: +10% (PCIC & EGBC suggest for short-term upgrades)
+    '2050': 1.20, // Mid-century: +20% (Rule-of-thumb used by EGBC when local data are sparse)
+    '2080': 1.30, // Late-century: +30% coast / +25% interior (consistent with hydrologic projections)
+    '2100': 1.30  // End-of-century: +30% coast / +25% interior
+  };
+  
+  return factors[planningHorizon] || 1.20; // Default to mid-century if not specified
+};
+
+/**
  * Calculate culvert size based on the California Method using average stream width, depth, and slope
+ * Enhanced with proper method selection and climate change factors
  * @param {Object} params - Calculation parameters
  * @param {number} params.topWidth - Top width at high water mark in meters
  * @param {number} params.bottomWidth - Bottom width of stream in meters (optional)
@@ -16,7 +33,9 @@ const STANDARD_PIPE_SIZES = [450, 600, 700, 750, 800, 900, 1000, 1200, 1400, 150
  * @param {number} params.slopePercent - Channel slope in percent
  * @param {number} params.maxHwdRatio - Maximum headwater-to-diameter ratio (default 0.8)
  * @param {boolean} params.fishPassage - Whether fish passage is required
- * @param {number} params.climateChangeFactor - Climate change multiplication factor (default 1.2)
+ * @param {string} params.sizingMethod - Sizing method: 'california', 'hydraulic', or 'comparison'
+ * @param {boolean} params.climateFactorsEnabled - Whether to apply climate factors
+ * @param {Object} params.climateFactors - Climate change parameters
  * @returns {Object} Calculation results including recommended pipe size
  */
 export const calculateCulvert = (params) => {
@@ -24,171 +43,201 @@ export const calculateCulvert = (params) => {
     topWidth,
     bottomWidth = topWidth * 0.7, // Default to 70% of top width if not provided
     avgStreamDepth,
-    slopePercent,
+    slopePercent = 2.0,
     streamRoughness = 0.04,
     pipeRoughness = 0.024,
     maxHwdRatio = 0.8, // Conservative HW/D ratio (default 0.8)
     fishPassage = false,
-    climateChangeFactor = 1.2 // Default climate change factor (20% increase)
+    sizingMethod = 'california', // Default to California Method
+    hydraulicCapacityTest = false,
+    climateFactorsEnabled = false,
+    climateFactors = null,
+    debrisAssessmentEnabled = false,
+    debrisAssessment = null
   } = params;
 
   // Convert slope percent to decimal
-  const slope = slopePercent / 100;
+  const slope = slopePercent ? slopePercent / 100 : 0.02; // Default 2% slope
   
-  // Step 1: Look up recommended culvert size from California Method table
-  // This is now the primary sizing method
-  const recommendedSizeMm = lookupCulvertSizeFromTable(topWidth, avgStreamDepth);
-  
-  // Step 2: Calculate area based on trapezoidal shape as a reference
-  // Area = (topWidth + bottomWidth) * depth / 2
+  // Step 1: Calculate base stream characteristics
   const streamArea = ((topWidth + bottomWidth) * avgStreamDepth) / 2;
   
-  // Step 3: Calculate required culvert area using California Method formula for comparison
-  // area = width x depth x 3
+  // Step 2: California Method sizing
   const californiaArea = topWidth * avgStreamDepth * 3;
+  const californiaSize = lookupCulvertSizeFromTable(topWidth, avgStreamDepth);
   
-  // Step 4: Calculate required diameter based on the area (A = πr²)
-  const requiredDiameterM = 2 * Math.sqrt(californiaArea / Math.PI);
-  const requiredDiameterMm = requiredDiameterM * 1000;
+  // Step 3: Apply climate change factors if enabled
+  let climateChangeFactor = 1.0;
+  let climateAdjustedCaliforniaSize = californiaSize;
   
-  // Step 5: Alternative sizing based on bankfull width (1.2 x width)
-  const altSpanRequired = 1.2 * topWidth;
-  const altSpanRequiredMm = altSpanRequired * 1000;
+  if (climateFactorsEnabled && climateFactors) {
+    climateChangeFactor = getClimateChangeFactor(climateFactors.planningHorizon);
+    
+    // Apply climate factor to the required area
+    const climateAdjustedArea = californiaArea * climateChangeFactor;
+    const climateAdjustedDiameter = 2 * Math.sqrt(climateAdjustedArea / Math.PI) * 1000;
+    
+    // Find the next larger standard size
+    climateAdjustedCaliforniaSize = STANDARD_PIPE_SIZES.find(size => size >= climateAdjustedDiameter) || 
+                                   STANDARD_PIPE_SIZES[STANDARD_PIPE_SIZES.length - 1];
+  }
   
-  // Step 6: Select the appropriate pipe size from the lookup table
-  let californiaRecommendedSize = recommendedSizeMm;
+  // Step 4: Hydraulic calculation (if required)
+  let hydraulicSize = californiaSize;
+  let bankfullFlow = 0;
+  let finalCapacity = 0;
+  let finalHeadwaterRatio = 0;
   
-  // Step 7: If fish passage is required, check if we need to increase size
-  if (fishPassage) {
-    // For fish passage, larger pipes may be needed
-    if (topWidth < 1.0) {
-      const fishPassageDiameterMm = topWidth * 1500; // 1.5x converted to mm
-      if (fishPassageDiameterMm > californiaRecommendedSize) {
-        const largerSize = STANDARD_PIPE_SIZES.find(size => size >= fishPassageDiameterMm);
-        if (largerSize) californiaRecommendedSize = largerSize;
+  if (hydraulicCapacityTest && slopePercent) {
+    // Calculate bankfull flow using Manning's equation
+    const wettedPerimeter = bottomWidth + 2 * avgStreamDepth * Math.sqrt(1 + Math.pow((topWidth - bottomWidth) / (2 * avgStreamDepth), 2));
+    const hydraulicRadius = streamArea / wettedPerimeter;
+    
+    // Calculate base flow
+    const baseFlow = (1 / streamRoughness) * 
+                     streamArea * 
+                     Math.pow(hydraulicRadius, 2/3) * 
+                     Math.pow(slope, 0.5);
+    
+    // Apply climate change factor to flow if enabled
+    bankfullFlow = climateFactorsEnabled ? baseFlow * climateChangeFactor : baseFlow;
+    
+    // Find appropriate hydraulic size
+    for (const pipeSize of STANDARD_PIPE_SIZES) {
+      const pipeDiameter = pipeSize / 1000; // Convert to meters
+      const area = Math.PI * Math.pow(pipeDiameter, 2) / 4;
+      const hydraulicRadius = pipeDiameter / 4;
+      
+      // Calculate capacity with Manning's equation
+      const capacity = (1 / pipeRoughness) * 
+                       area * 
+                       Math.pow(hydraulicRadius, 2/3) * 
+                       Math.pow(slope, 0.5);
+      
+      // Calculate headwater ratio (simplified approximation)
+      const hw_ratio = 0.9 * Math.pow(bankfullFlow / (Math.PI * Math.pow(pipeDiameter/2, 2) * Math.sqrt(2 * 9.81 * pipeDiameter)), 0.7);
+      
+      // Check if this pipe size meets both capacity and headwater criteria
+      if (capacity >= bankfullFlow && hw_ratio <= maxHwdRatio) {
+        hydraulicSize = pipeSize;
+        finalCapacity = capacity;
+        finalHeadwaterRatio = hw_ratio;
+        break;
+      }
+      
+      // If we've reached the largest pipe size, use it even if it doesn't meet criteria
+      if (pipeSize === STANDARD_PIPE_SIZES[STANDARD_PIPE_SIZES.length - 1]) {
+        hydraulicSize = pipeSize;
+        finalCapacity = capacity;
+        finalHeadwaterRatio = hw_ratio;
       }
     }
   }
   
-  // Step 8: Calculate embedding depth (20% of pipe diameter if fish passage is required)
-  const embedDepth = fishPassage ? 0.2 * (californiaRecommendedSize / 1000) : 0;
+  // Step 5: Determine final size based on method selection
+  let finalSize = californiaSize;
+  let governingMethod = "California Method";
   
-  // Step 9: Calculate bankfull flow using Manning's equation
-  // For trapezoidal channels
-  const wettedPerimeter = bottomWidth + 2 * avgStreamDepth * Math.sqrt(1 + Math.pow((topWidth - bottomWidth) / (2 * avgStreamDepth), 2));
-  const hydraulicRadius = streamArea / wettedPerimeter;
-  
-  // Calculate base flow
-  const baseFlow = (1 / streamRoughness) * 
-                   streamArea * 
-                   Math.pow(hydraulicRadius, 2/3) * 
-                   Math.pow(slope, 0.5);
-  
-  // Apply climate change factor to flow
-  const bankfullFlow = baseFlow * climateChangeFactor;
-  
-  // Step 10: Calculate hydraulic sizing using Manning's equation
-  // Find the smallest pipe that can handle the design flow with the specified HW/D ratio
-  let hydraulicSize = 0;
-  let pipeCapacity = 0;
-  let headwaterRatio = 0;
-  
-  // Try each standard pipe size, starting from the smallest
-  for (const pipeSize of STANDARD_PIPE_SIZES) {
-    const pipeDiameter = pipeSize / 1000; // Convert to meters
-    const area = Math.PI * Math.pow(pipeDiameter, 2) / 4;
-    const hydraulicRadius = pipeDiameter / 4;
-    
-    // Calculate capacity with Manning's equation
-    const capacity = (1 / pipeRoughness) * 
-                     area * 
-                     Math.pow(hydraulicRadius, 2/3) * 
-                     Math.pow(slope, 0.5);
-    
-    // Calculate headwater ratio (simplified approximation)
-    const hw_ratio = 0.9 * Math.pow(bankfullFlow / (Math.PI * Math.pow(pipeDiameter/2, 2) * Math.sqrt(2 * 9.81 * pipeDiameter)), 0.7);
-    
-    // Check if this pipe size meets both capacity and headwater criteria
-    if (capacity >= bankfullFlow && hw_ratio <= maxHwdRatio) {
-      hydraulicSize = pipeSize;
-      pipeCapacity = capacity;
-      headwaterRatio = hw_ratio;
+  switch (sizingMethod) {
+    case 'california':
+      finalSize = climateFactorsEnabled ? climateAdjustedCaliforniaSize : californiaSize;
+      governingMethod = climateFactorsEnabled ? 
+        `California Method with ${(climateChangeFactor * 100 - 100).toFixed(0)}% Climate Factor` : 
+        "California Method";
       break;
-    }
-    
-    // If we've reached the largest pipe size, use it even if it doesn't meet criteria
-    if (pipeSize === STANDARD_PIPE_SIZES[STANDARD_PIPE_SIZES.length - 1]) {
-      hydraulicSize = pipeSize;
-      pipeCapacity = capacity;
-      headwaterRatio = hw_ratio;
+      
+    case 'hydraulic':
+      finalSize = hydraulicSize;
+      governingMethod = climateFactorsEnabled ? 
+        `Hydraulic Calculation with ${(climateChangeFactor * 100 - 100).toFixed(0)}% Climate Factor` : 
+        "Hydraulic Calculation";
+      break;
+      
+    case 'comparison':
+      const californiaFinal = climateFactorsEnabled ? climateAdjustedCaliforniaSize : californiaSize;
+      finalSize = Math.max(californiaFinal, hydraulicSize);
+      governingMethod = finalSize === hydraulicSize ? 
+        "Hydraulic Calculation (Conservative)" : 
+        "California Method (Conservative)";
+      if (climateFactorsEnabled) {
+        governingMethod += ` with ${(climateChangeFactor * 100 - 100).toFixed(0)}% Climate Factor`;
+      }
+      break;
+  }
+  
+  // Step 6: Apply fish passage adjustments
+  if (fishPassage) {
+    const fishPassageSize = Math.max(finalSize, topWidth * 1200); // 1.2x width converted to mm
+    if (fishPassageSize > finalSize) {
+      finalSize = STANDARD_PIPE_SIZES.find(size => size >= fishPassageSize) || finalSize;
+      governingMethod += " (Fish Passage Required)";
     }
   }
   
-  // Step 11: Determine final size and governing method
-  const finalSize = Math.max(californiaRecommendedSize, hydraulicSize);
-  const governingMethod = finalSize === hydraulicSize && hydraulicSize > californiaRecommendedSize ? 
-    "Hydraulic Calculation (Manning's)" : "California Method";
+  // Step 7: Check if professional review is required
+  const requiresProfessional = finalSize >= 2000 || bankfullFlow > 6.0;
   
-  // Step 12: Check capacity and headwater ratio for the final selected size
-  const finalPipeDiameter = finalSize / 1000; // Convert to meters
+  // Step 8: Calculate final pipe characteristics
+  const finalPipeDiameter = finalSize / 1000;
   const finalArea = Math.PI * Math.pow(finalPipeDiameter, 2) / 4;
-  const finalHydraulicRadius = finalPipeDiameter / 4;
   
-  const finalCapacity = (1 / pipeRoughness) * 
-                        finalArea * 
-                        Math.pow(finalHydraulicRadius, 2/3) * 
-                        Math.pow(slope, 0.5);
-  
-  const finalHeadwaterRatio = 0.9 * Math.pow(bankfullFlow / (Math.PI * Math.pow(finalPipeDiameter/2, 2) * Math.sqrt(2 * 9.81 * finalPipeDiameter)), 0.7);
-  
-  const capacityCheck = finalCapacity >= bankfullFlow;
-  const headwaterCheck = finalHeadwaterRatio <= maxHwdRatio;
-  
-  // Step 13: Compare the California Method result with hydraulic check
-  let sizingComparison = "";
-  
-  if (hydraulicSize > californiaRecommendedSize) {
-    sizingComparison = "The hydraulic check suggests a larger pipe size than the California Method table.";
-  } else if (requiredDiameterMm > recommendedSizeMm) {
-    sizingComparison = "The California Method formula suggests a larger size than the table lookup.";
-  } else if (altSpanRequiredMm > recommendedSizeMm) {
-    sizingComparison = "The width-based sizing suggests a larger size than the table lookup.";
-  } else {
-    sizingComparison = "All sizing methods confirm the selected pipe size is appropriate.";
+  if (!hydraulicCapacityTest && slopePercent) {
+    // Calculate capacity for display even if not used for sizing
+    const finalHydraulicRadius = finalPipeDiameter / 4;
+    finalCapacity = (1 / pipeRoughness) * 
+                    finalArea * 
+                    Math.pow(finalHydraulicRadius, 2/3) * 
+                    Math.pow(slope, 0.5);
   }
 
   return {
+    // Basic measurements
     topWidth: topWidth.toFixed(2),
     bottomWidth: bottomWidth.toFixed(2),
     streamArea: streamArea.toFixed(2),
     streamShape: Math.abs(topWidth - bottomWidth) < 0.1 ? "Rectangular" : "Trapezoidal",
-    incisionRatio: (topWidth / bottomWidth).toFixed(2),
-    tableRecommendedSize: recommendedSizeMm,
-    californiaSize: californiaRecommendedSize,
-    requiredCulvertArea: californiaArea.toFixed(2),
-    requiredDiameterM: requiredDiameterM.toFixed(2),
-    requiredDiameterMm: Math.round(requiredDiameterMm),
-    altSpanRequiredM: altSpanRequired.toFixed(2),
-    altSpanRequiredMm: Math.round(altSpanRequiredMm),
+    
+    // California Method results
+    californiaSize: californiaSize,
+    californiaArea: californiaArea.toFixed(2),
+    
+    // Climate-adjusted California Method results
+    climateAdjustedCaliforniaSize: climateFactorsEnabled ? climateAdjustedCaliforniaSize : californiaSize,
+    climateChangeFactor: climateChangeFactor.toFixed(2),
+    
+    // Hydraulic results
     hydraulicSize: hydraulicSize,
+    bankfullFlow: bankfullFlow.toFixed(2),
+    
+    // Final results
     finalSize: finalSize,
     selectedPipeSizeM: (finalSize / 1000).toFixed(2),
-    embedDepth: embedDepth.toFixed(2),
-    baseFlow: baseFlow.toFixed(2),
-    bankfullFlow: bankfullFlow.toFixed(2),
-    climateChangeFactor: climateChangeFactor.toFixed(2),
+    governingMethod,
+    requiresProfessional,
+    
+    // Additional parameters
     pipeCapacity: finalCapacity.toFixed(2),
-    hydraulicCheck: capacityCheck && headwaterCheck,
-    capacityCheck,
-    headwaterCheck,
     headwaterRatio: finalHeadwaterRatio.toFixed(2),
     maxHwdRatio: maxHwdRatio.toFixed(2),
     fishPassage,
-    governingMethod,
-    sizingComparison,
-    notes: fishPassage ? 
-      "Fish passage requirements applied with 20% embedded culvert." : 
-      "California Method table lookup with trapezoidal channel geometry."
+    
+    // Method and climate information
+    sizingMethod,
+    climateFactorsEnabled,
+    appliedClimateFactor: climateChangeFactor,
+    
+    // Required culvert area for display
+    requiredCulvertArea: (climateFactorsEnabled ? californiaArea * climateChangeFactor : californiaArea).toFixed(2),
+    
+    // Embed depth for fish passage
+    embedDepth: fishPassage ? (0.2 * (finalSize / 1000)).toFixed(2) : "0.00",
+    
+    // Notes
+    notes: climateFactorsEnabled ? 
+      `California Method with ${climateFactors?.planningHorizon || '2050'} climate projections (${(climateChangeFactor * 100 - 100).toFixed(0)}% increase)` :
+      fishPassage ? 
+        "Fish passage requirements applied with 20% embedded culvert." : 
+        "California Method table lookup with trapezoidal channel geometry."
   };
 };
 
@@ -276,8 +325,7 @@ export const lookupCulvertSizeFromTable = (width, depth) => {
       widthKey = widthThresholds[i];
       break;
     }
-  }
-  
+  }\n  
   // If no suitable width threshold found, use the largest
   if (!widthKey) {
     widthKey = widthThresholds[widthThresholds.length - 1];
@@ -307,6 +355,35 @@ export const lookupCulvertSizeFromTable = (width, depth) => {
 
   // Return the recommended culvert size
   return sizingTable[widthKey][depthKey];
+};
+
+/**
+ * Get practical climate change slider values for coastal BC
+ * @returns {Object} Climate change factors with descriptions
+ */
+export const getClimateFactorPresets = () => {
+  return {
+    '2030': {
+      factor: 1.10,
+      description: 'Present–2030: +10% (PCIC & EGBC suggest for short-term upgrades)',
+      label: 'Short-term (2030)'
+    },
+    '2050': {
+      factor: 1.20,
+      description: 'Mid-century: +20% (Rule-of-thumb used by EGBC when local data are sparse)',
+      label: 'Mid-century (2050)'
+    },
+    '2080': {
+      factor: 1.30,
+      description: 'Late-century: +30% coast / +25% interior (Consistent with hydrologic projections)',
+      label: 'Late-century (2080)'
+    },
+    '2100': {
+      factor: 1.30,
+      description: 'End-of-century: +30% coast / +25% interior',
+      label: 'End-of-century (2100)'
+    }
+  };
 };
 
 /**
