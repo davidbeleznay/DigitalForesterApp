@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { calculateCulvert, getClimateFactorPresets } from '../utils/CulvertCalculator';
 import CulvertResults from '../components/culvert/CulvertResults';
 import '../styles/enhanced-form.css';
+import '../styles/culvert-form.css';
 
 const CulvertSizingForm = () => {
   const navigate = useNavigate();
@@ -127,7 +128,7 @@ const CulvertSizingForm = () => {
     }));
   };
 
-  // Handle climate preset selection
+  // Handle climate preset selection - FIXED LOGIC
   const handleClimatePresetChange = (presetYear) => {
     const preset = climatePresets[presetYear];
     if (preset) {
@@ -436,12 +437,15 @@ const CulvertSizingForm = () => {
   const renderSiteInfoSection = () => (
     <div className="form-section">
       <div className="section-header">
-        <h3>📋 Site Information</h3>
-        <p>Enter basic identification and location details for this culvert assessment.</p>
+        <span className="nav-icon">📋</span>
+        <div>
+          <h3>Site Information</h3>
+          <p>Enter basic identification and location details for this culvert assessment.</p>
+        </div>
       </div>
 
       <div className="factor-group">
-        <div className="form-row">
+        <div className="form-grid">
           <div className="form-group">
             <label htmlFor="culvertId">Culvert ID *</label>
             <input
@@ -453,7 +457,7 @@ const CulvertSizingForm = () => {
               placeholder="e.g., CUL-001, Site-A"
               className={errors.culvertId ? 'error' : ''}
             />
-            {errors.culvertId && <div className="error-message">{errors.culvertId}</div>}
+            {errors.culvertId && <div className="status-message error">{errors.culvertId}</div>}
           </div>
 
           <div className="form-group">
@@ -467,11 +471,9 @@ const CulvertSizingForm = () => {
               placeholder="e.g., Forest Service Road 100"
               className={errors.roadName ? 'error' : ''}
             />
-            {errors.roadName && <div className="error-message">{errors.roadName}</div>}
+            {errors.roadName && <div className="status-message error">{errors.roadName}</div>}
           </div>
-        </div>
 
-        <div className="form-row">
           <div className="form-group">
             <label htmlFor="latitude">Latitude</label>
             <input
@@ -498,16 +500,25 @@ const CulvertSizingForm = () => {
             />
           </div>
 
-          <div className="form-group">
-            <button
-              type="button"
-              onClick={getCurrentLocation}
-              disabled={isGettingLocation}
-              className="secondary-button"
-            >
-              {isGettingLocation ? 'Getting Location...' : '📍 Get GPS Location'}
-            </button>
-            {locationError && <div className="error-message">{locationError}</div>}
+          <div className="form-group full-width">
+            <div className="gps-section">
+              <button
+                type="button"
+                onClick={getCurrentLocation}
+                disabled={isGettingLocation}
+                className={`gps-button ${isGettingLocation ? 'loading' : ''}`}
+              >
+                <span className="location-icon">📍</span>
+                {isGettingLocation ? 'Getting Location...' : 'Get GPS Location'}
+              </button>
+              {locationError && <div className="status-message error">{locationError}</div>}
+              {formValues.latitude && formValues.longitude && (
+                <div className="location-display">
+                  <span className="location-icon">📍</span>
+                  <span>Location: {formValues.latitude}, {formValues.longitude}</span>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div>
@@ -518,61 +529,72 @@ const CulvertSizingForm = () => {
   const renderMeasurementsSection = () => (
     <div className="form-section">
       <div className="section-header">
-        <h3>📏 Stream Measurements</h3>
-        <p>Enter field measurements for bankfull stream dimensions. Multiple measurements will be averaged.</p>
+        <span className="nav-icon">📏</span>
+        <div>
+          <h3>Stream Measurements</h3>
+          <p>Enter field measurements for bankfull stream dimensions. Multiple measurements will be averaged.</p>
+        </div>
       </div>
 
       {/* Top Width Measurements */}
       <div className="factor-group">
         <h4>Top Width Measurements (Required)</h4>
-        <p className="factor-description">
+        <p className="helper-text">
           Measure the stream width at bankfull stage (high water mark) in meters.
         </p>
         
-        {topWidthMeasurements.map((measurement, index) => (
-          <div key={index} className="measurement-input-row">
-            <input
-              type="number"
-              value={measurement}
-              onChange={(e) => handleMeasurementChange(index, e.target.value, topWidthMeasurements, setTopWidthMeasurements)}
-              placeholder="e.g., 2.5"
-              step="0.1"
-              min="0"
-            />
-            <span className="unit-label">meters</span>
-            {topWidthMeasurements.length > 1 && (
-              <button
-                type="button"
-                onClick={() => removeMeasurement(index, topWidthMeasurements, setTopWidthMeasurements)}
-                className="remove-measurement-btn"
-              >
-                ✕
-              </button>
-            )}
-          </div>
-        ))}
+        <div className="measurement-grid">
+          {topWidthMeasurements.map((measurement, index) => (
+            <div key={index} className="measurement-item">
+              <div className="measurement-item-header">
+                <div className="measurement-number">#{index + 1}</div>
+                {topWidthMeasurements.length > 1 && (
+                  <button
+                    type="button"
+                    onClick={() => removeMeasurement(index, topWidthMeasurements, setTopWidthMeasurements)}
+                    className="remove-button"
+                    disabled={topWidthMeasurements.length <= 1}
+                  >
+                    ✕
+                  </button>
+                )}
+              </div>
+              <input
+                type="number"
+                value={measurement}
+                onChange={(e) => handleMeasurementChange(index, e.target.value, topWidthMeasurements, setTopWidthMeasurements)}
+                placeholder="e.g., 2.5"
+                step="0.1"
+                min="0"
+                className="measurement-input"
+              />
+              <div className="helper-text">meters</div>
+            </div>
+          ))}
+        </div>
         
         <button
           type="button"
           onClick={() => addMeasurement(topWidthMeasurements, setTopWidthMeasurements)}
-          className="add-measurement-btn"
+          className="gps-button"
+          style={{marginTop: '16px'}}
         >
           + Add Top Width Measurement
         </button>
         
-        {errors.topWidthMeasurements && <div className="error-message">{errors.topWidthMeasurements}</div>}
+        {errors.topWidthMeasurements && <div className="status-message error">{errors.topWidthMeasurements}</div>}
       </div>
 
       {/* Bottom Width Toggle and Measurements */}
       <div className="factor-group">
-        <div className="toggle-option">
-          <label className="toggle-label">
-            <input
-              type="checkbox"
-              checked={useBottomWidth}
-              onChange={toggleBottomWidth}
-            />
-            <span className="toggle-indicator"></span>
+        <div className="feature-toggle">
+          <input
+            type="checkbox"
+            id="useBottomWidth"
+            checked={useBottomWidth}
+            onChange={toggleBottomWidth}
+          />
+          <label htmlFor="useBottomWidth">
             Include Bottom Width Measurements (For Incised/Trapezoidal Channels)
           </label>
         </div>
@@ -580,42 +602,50 @@ const CulvertSizingForm = () => {
         {useBottomWidth && (
           <>
             <h4>Bottom Width Measurements</h4>
-            <p className="factor-description">
+            <p className="helper-text">
               Measure the stream bottom width (wetted width) in meters for incised channels.
             </p>
             
-            {bottomWidthMeasurements.map((measurement, index) => (
-              <div key={index} className="measurement-input-row">
-                <input
-                  type="number"
-                  value={measurement}
-                  onChange={(e) => handleMeasurementChange(index, e.target.value, bottomWidthMeasurements, setBottomWidthMeasurements)}
-                  placeholder="e.g., 1.8"
-                  step="0.1"
-                  min="0"
-                />
-                <span className="unit-label">meters</span>
-                {bottomWidthMeasurements.length > 1 && (
-                  <button
-                    type="button"
-                    onClick={() => removeMeasurement(index, bottomWidthMeasurements, setBottomWidthMeasurements)}
-                    className="remove-measurement-btn"
-                  >
-                    ✕
-                  </button>
-                )}
-              </div>
-            ))}
+            <div className="measurement-grid">
+              {bottomWidthMeasurements.map((measurement, index) => (
+                <div key={index} className="measurement-item">
+                  <div className="measurement-item-header">
+                    <div className="measurement-number">#{index + 1}</div>
+                    {bottomWidthMeasurements.length > 1 && (
+                      <button
+                        type="button"
+                        onClick={() => removeMeasurement(index, bottomWidthMeasurements, setBottomWidthMeasurements)}
+                        className="remove-button"
+                        disabled={bottomWidthMeasurements.length <= 1}
+                      >
+                        ✕
+                      </button>
+                    )}
+                  </div>
+                  <input
+                    type="number"
+                    value={measurement}
+                    onChange={(e) => handleMeasurementChange(index, e.target.value, bottomWidthMeasurements, setBottomWidthMeasurements)}
+                    placeholder="e.g., 1.8"
+                    step="0.1"
+                    min="0"
+                    className="measurement-input"
+                  />
+                  <div className="helper-text">meters</div>
+                </div>
+              ))}
+            </div>
             
             <button
               type="button"
               onClick={() => addMeasurement(bottomWidthMeasurements, setBottomWidthMeasurements)}
-              className="add-measurement-btn"
+              className="gps-button"
+              style={{marginTop: '16px'}}
             >
               + Add Bottom Width Measurement
             </button>
             
-            {errors.bottomWidthMeasurements && <div className="error-message">{errors.bottomWidthMeasurements}</div>}
+            {errors.bottomWidthMeasurements && <div className="status-message error">{errors.bottomWidthMeasurements}</div>}
           </>
         )}
       </div>
@@ -623,42 +653,50 @@ const CulvertSizingForm = () => {
       {/* Depth Measurements */}
       <div className="factor-group">
         <h4>Depth Measurements (Required)</h4>
-        <p className="factor-description">
+        <p className="helper-text">
           Measure the bankfull depth (vertical distance from water surface to stream bottom) in meters.
         </p>
         
-        {depthMeasurements.map((measurement, index) => (
-          <div key={index} className="measurement-input-row">
-            <input
-              type="number"
-              value={measurement}
-              onChange={(e) => handleMeasurementChange(index, e.target.value, depthMeasurements, setDepthMeasurements)}
-              placeholder="e.g., 0.8"
-              step="0.1"
-              min="0"
-            />
-            <span className="unit-label">meters</span>
-            {depthMeasurements.length > 1 && (
-              <button
-                type="button"
-                onClick={() => removeMeasurement(index, depthMeasurements, setDepthMeasurements)}
-                className="remove-measurement-btn"
-              >
-                ✕
-              </button>
-            )}
-          </div>
-        ))}
+        <div className="measurement-grid">
+          {depthMeasurements.map((measurement, index) => (
+            <div key={index} className="measurement-item">
+              <div className="measurement-item-header">
+                <div className="measurement-number">#{index + 1}</div>
+                {depthMeasurements.length > 1 && (
+                  <button
+                    type="button"
+                    onClick={() => removeMeasurement(index, depthMeasurements, setDepthMeasurements)}
+                    className="remove-button"
+                    disabled={depthMeasurements.length <= 1}
+                  >
+                    ✕
+                  </button>
+                )}
+              </div>
+              <input
+                type="number"
+                value={measurement}
+                onChange={(e) => handleMeasurementChange(index, e.target.value, depthMeasurements, setDepthMeasurements)}
+                placeholder="e.g., 0.8"
+                step="0.1"
+                min="0"
+                className="measurement-input"
+              />
+              <div className="helper-text">meters</div>
+            </div>
+          ))}
+        </div>
         
         <button
           type="button"
           onClick={() => addMeasurement(depthMeasurements, setDepthMeasurements)}
-          className="add-measurement-btn"
+          className="gps-button"
+          style={{marginTop: '16px'}}
         >
           + Add Depth Measurement
         </button>
         
-        {errors.depthMeasurements && <div className="error-message">{errors.depthMeasurements}</div>}
+        {errors.depthMeasurements && <div className="status-message error">{errors.depthMeasurements}</div>}
       </div>
 
       {/* Show measurement averages */}
@@ -666,13 +704,29 @@ const CulvertSizingForm = () => {
         const { avgTopWidth, avgBottomWidth, avgDepth } = calculateAverages();
         if (avgTopWidth > 0 || avgDepth > 0) {
           return (
-            <div className="measurement-averages">
+            <div className="factor-group">
               <h4>Calculated Averages</h4>
-              <div className="average-display">
-                <div>Top Width: <strong>{avgTopWidth.toFixed(2)} m</strong></div>
-                {useBottomWidth && <div>Bottom Width: <strong>{avgBottomWidth.toFixed(2)} m</strong></div>}
-                <div>Depth: <strong>{avgDepth.toFixed(2)} m</strong></div>
-                <div>Stream Area: <strong>{(((avgTopWidth + avgBottomWidth) * avgDepth) / 2).toFixed(2)} m²</strong></div>
+              <div className="total-score-display">
+                <div className="form-grid">
+                  <div className="form-group">
+                    <div className="total-score-label">Top Width</div>
+                    <div className="total-score-value">{avgTopWidth.toFixed(2)} m</div>
+                  </div>
+                  {useBottomWidth && (
+                    <div className="form-group">
+                      <div className="total-score-label">Bottom Width</div>
+                      <div className="total-score-value">{avgBottomWidth.toFixed(2)} m</div>
+                    </div>
+                  )}
+                  <div className="form-group">
+                    <div className="total-score-label">Depth</div>
+                    <div className="total-score-value">{avgDepth.toFixed(2)} m</div>
+                  </div>
+                  <div className="form-group">
+                    <div className="total-score-label">Stream Area</div>
+                    <div className="total-score-value">{(((avgTopWidth + avgBottomWidth) * avgDepth) / 2).toFixed(2)} m²</div>
+                  </div>
+                </div>
               </div>
             </div>
           );
@@ -686,67 +740,73 @@ const CulvertSizingForm = () => {
   const renderSettingsSection = () => (
     <div className="form-section">
       <div className="section-header">
-        <h3>⚙️ Sizing Method & Options</h3>
-        <p>Select sizing method and configure optional assessments for enhanced culvert design.</p>
+        <span className="nav-icon">⚙️</span>
+        <div>
+          <h3>Sizing Method & Options</h3>
+          <p>Select sizing method and configure optional assessments for enhanced culvert design.</p>
+        </div>
       </div>
 
       {/* Sizing Method Selection */}
       <div className="factor-group">
         <h4>Sizing Method Selection</h4>
-        <div className="method-selection">
-          <div className={`method-option ${formValues.sizingMethod === 'california' ? 'selected' : ''}`}>
-            <label>
-              <input
-                type="radio"
-                name="sizingMethod"
-                value="california"
-                checked={formValues.sizingMethod === 'california'}
-                onChange={handleInputChange}
-              />
-              <div className="method-content">
-                <div className="method-title">California Method <span className="recommended-badge">Default</span></div>
-                <div className="method-description">
-                  Industry standard using bankfull area × 3 with professional lookup table. Recommended for most applications.
-                </div>
+        <div className="rating-options">
+          <label className="rating-option">
+            <input
+              type="radio"
+              name="sizingMethod"
+              value="california"
+              checked={formValues.sizingMethod === 'california'}
+              onChange={handleInputChange}
+            />
+            <div className="option-content score-2">
+              <div className="option-header">
+                <div className="option-label">California Method</div>
+                <div className="score-badge">Default</div>
               </div>
-            </label>
-          </div>
+              <div className="option-description">
+                Industry standard using bankfull area × 3 with professional lookup table. Recommended for most applications.
+              </div>
+            </div>
+          </label>
 
-          <div className={`method-option ${formValues.sizingMethod === 'hydraulic' ? 'selected' : ''}`}>
-            <label>
-              <input
-                type="radio"
-                name="sizingMethod"
-                value="hydraulic"
-                checked={formValues.sizingMethod === 'hydraulic'}
-                onChange={handleInputChange}
-              />
-              <div className="method-content">
-                <div className="method-title">Hydraulic Calculation</div>
-                <div className="method-description">
-                  Advanced Manning's equation approach requiring slope and roughness parameters.
-                </div>
+          <label className="rating-option">
+            <input
+              type="radio"
+              name="sizingMethod"
+              value="hydraulic"
+              checked={formValues.sizingMethod === 'hydraulic'}
+              onChange={handleInputChange}
+            />
+            <div className="option-content score-4">
+              <div className="option-header">
+                <div className="option-label">Hydraulic Calculation</div>
+                <div className="score-badge">Advanced</div>
               </div>
-            </label>
-          </div>
+              <div className="option-description">
+                Advanced Manning's equation approach requiring slope and roughness parameters.
+              </div>
+            </div>
+          </label>
 
-          <div className={`method-option ${formValues.sizingMethod === 'comparison' ? 'selected' : ''}`}>
-            <label>
-              <input
-                type="radio"
-                name="sizingMethod"
-                value="comparison"
-                checked={formValues.sizingMethod === 'comparison'}
-                onChange={handleInputChange}
-              />
-              <div className="method-content">
-                <div className="method-title">Method Comparison</div>
-                <div className="method-description">
-                  Conservative approach using the larger of both California and Hydraulic methods.
-                </div>
+          <label className="rating-option">
+            <input
+              type="radio"
+              name="sizingMethod"
+              value="comparison"
+              checked={formValues.sizingMethod === 'comparison'}
+              onChange={handleInputChange}
+            />
+            <div className="option-content score-6">
+              <div className="option-header">
+                <div className="option-label">Method Comparison</div>
+                <div className="score-badge">Conservative</div>
               </div>
-            </label>
-          </div>
+              <div className="option-description">
+                Conservative approach using the larger of both California and Hydraulic methods.
+              </div>
+            </div>
+          </label>
         </div>
       </div>
 
@@ -754,7 +814,7 @@ const CulvertSizingForm = () => {
       {(formValues.sizingMethod !== 'california' || optionalAssessments.hydraulicCapacityEnabled) && (
         <div className="factor-group">
           <h4>Hydraulic Parameters</h4>
-          <div className="form-row">
+          <div className="form-grid">
             <div className="form-group">
               <label htmlFor="slopePercent">Stream Slope (%)</label>
               <input
@@ -769,7 +829,7 @@ const CulvertSizingForm = () => {
                 placeholder="e.g., 2.0"
                 className={errors.slopePercent ? 'error' : ''}
               />
-              {errors.slopePercent && <div className="error-message">{errors.slopePercent}</div>}
+              {errors.slopePercent && <div className="status-message error">{errors.slopePercent}</div>}
             </div>
 
             <div className="form-group">
@@ -786,11 +846,9 @@ const CulvertSizingForm = () => {
                 <option value="0.045">0.045 - Cobble bed</option>
                 <option value="0.05">0.050 - Boulder/rough bed</option>
               </select>
-              {errors.streamRoughness && <div className="error-message">{errors.streamRoughness}</div>}
+              {errors.streamRoughness && <div className="status-message error">{errors.streamRoughness}</div>}
             </div>
-          </div>
 
-          <div className="form-row">
             <div className="form-group">
               <label htmlFor="pipeRoughness">Pipe Roughness (n)</label>
               <select
@@ -825,19 +883,19 @@ const CulvertSizingForm = () => {
 
       {/* Fish Passage */}
       <div className="factor-group">
-        <div className="toggle-option">
-          <label className="toggle-label">
-            <input
-              type="checkbox"
-              checked={formValues.fishPassage}
-              onChange={toggleFishPassage}
-            />
-            <span className="toggle-indicator"></span>
+        <div className="feature-toggle">
+          <input
+            type="checkbox"
+            id="fishPassage"
+            checked={formValues.fishPassage}
+            onChange={toggleFishPassage}
+          />
+          <label htmlFor="fishPassage">
             Fish Passage Required
           </label>
         </div>
         {formValues.fishPassage && (
-          <p className="factor-description">
+          <p className="helper-text">
             Fish passage requirements will ensure minimum 1.2× stream width and 20% embedment depth.
           </p>
         )}
@@ -845,42 +903,47 @@ const CulvertSizingForm = () => {
 
       {/* Climate Change Factors */}
       <div className="factor-group">
-        <div className="toggle-option">
-          <label className="toggle-label">
-            <input
-              type="checkbox"
-              checked={optionalAssessments.climateFactorsEnabled}
-              onChange={() => toggleOptionalAssessment('climateFactorsEnabled')}
-            />
-            <span className="toggle-indicator"></span>
+        <div className="feature-toggle">
+          <input
+            type="checkbox"
+            id="climateFactorsEnabled"
+            checked={optionalAssessments.climateFactorsEnabled}
+            onChange={() => toggleOptionalAssessment('climateFactorsEnabled')}
+          />
+          <label htmlFor="climateFactorsEnabled">
             Apply Climate Change Factors (Coastal BC)
           </label>
         </div>
 
         {optionalAssessments.climateFactorsEnabled && (
-          <div className="climate-factors-section">
+          <div>
             <h4>BC Coastal Climate Projections</h4>
-            <p className="factor-description">
+            <p className="helper-text">
               Select a planning horizon based on PCIC & EGBC recommendations for coastal British Columbia.
             </p>
 
-            <div className="climate-presets">
+            <div className="rating-options">
               {Object.entries(climatePresets).map(([year, preset]) => (
-                <div
-                  key={year}
-                  className={`climate-preset ${climateFactors.selectedPreset === year ? 'selected' : ''}`}
-                  onClick={() => handleClimatePresetChange(year)}
-                >
-                  <div className="preset-header">
-                    <div className="preset-title">{preset.label}</div>
-                    <div className="preset-factor">F_CC = {preset.factor.toFixed(2)}</div>
+                <label key={year} className="rating-option">
+                  <input
+                    type="radio"
+                    name="climatePreset"
+                    value={year}
+                    checked={climateFactors.selectedPreset === year}
+                    onChange={() => handleClimatePresetChange(year)}
+                  />
+                  <div className={`option-content ${climateFactors.selectedPreset === year ? 'score-2' : 'score-4'}`}>
+                    <div className="option-header">
+                      <div className="option-label">{preset.label}</div>
+                      <div className="score-badge">F_CC = {preset.factor.toFixed(2)}</div>
+                    </div>
+                    <div className="option-description">{preset.description}</div>
                   </div>
-                  <div className="preset-description">{preset.description}</div>
-                </div>
+                </label>
               ))}
             </div>
 
-            <div className="climate-explanation">
+            <div className="scoring-explanation">
               <h5>Climate Change Rationale</h5>
               <p>
                 These factors are based on Pacific Climate Impacts Consortium (PCIC) and Engineers and 
@@ -895,19 +958,19 @@ const CulvertSizingForm = () => {
 
       {/* Optional Assessments Toggle */}
       <div className="factor-group">
-        <div className="toggle-option">
-          <label className="toggle-label">
-            <input
-              type="checkbox"
-              checked={optionalAssessments.hydraulicCapacityEnabled}
-              onChange={() => toggleOptionalAssessment('hydraulicCapacityEnabled')}
-            />
-            <span className="toggle-indicator"></span>
+        <div className="feature-toggle">
+          <input
+            type="checkbox"
+            id="hydraulicCapacityEnabled"
+            checked={optionalAssessments.hydraulicCapacityEnabled}
+            onChange={() => toggleOptionalAssessment('hydraulicCapacityEnabled')}
+          />
+          <label htmlFor="hydraulicCapacityEnabled">
             Enable Hydraulic Capacity Verification
           </label>
         </div>
         {optionalAssessments.hydraulicCapacityEnabled && (
-          <p className="factor-description">
+          <p className="helper-text">
             Verify the selected culvert size meets hydraulic capacity requirements using Manning's equation.
           </p>
         )}
@@ -919,8 +982,11 @@ const CulvertSizingForm = () => {
   const renderResultsSection = () => (
     <div className="form-section">
       <div className="section-header">
-        <h3>📊 Calculation Results</h3>
-        <p>Culvert sizing results with method comparison and climate factor analysis.</p>
+        <span className="nav-icon">📊</span>
+        <div>
+          <h3>Calculation Results</h3>
+          <p>Culvert sizing results with method comparison and climate factor analysis.</p>
+        </div>
       </div>
 
       {results && (
@@ -933,18 +999,19 @@ const CulvertSizingForm = () => {
       )}
 
       {/* Action buttons */}
-      <div className="results-actions">
+      <div className="form-grid" style={{marginTop: '24px'}}>
         <button 
           onClick={() => setActiveSection(STAGES.SETTINGS)} 
-          className="secondary-button"
+          className="gps-button"
+          style={{background: 'linear-gradient(135deg, #ff9800, #ffb74d)'}}
         >
           ← Modify Settings
         </button>
         <button 
           onClick={() => navigate('/history')} 
-          className="primary-button"
+          className="gps-button"
         >
-          View Assessment History
+          View Assessment History →
         </button>
       </div>
     </div>
@@ -952,44 +1019,49 @@ const CulvertSizingForm = () => {
 
   return (
     <div className="road-risk-form">
-      <div className="form-header">
-        <h1>🌊 Culvert Sizing Tool</h1>
-        <p>Professional culvert sizing using stream measurements with BC coastal climate projections</p>
-        <button onClick={() => navigate('/')} className="back-button">
-          ← Back to Home
-        </button>
+      <div className="form-section">
+        <div className="section-header">
+          <span className="nav-icon">🌊</span>
+          <div>
+            <h1>Culvert Sizing Tool</h1>
+            <p>Professional culvert sizing using stream measurements with BC coastal climate projections</p>
+          </div>
+          <button onClick={() => navigate('/')} className="gps-button" style={{marginLeft: 'auto'}}>
+            ← Back to Home
+          </button>
+        </div>
       </div>
 
       {/* Ribbon Navigation */}
       <div className="section-navigation">
         <button
-          className={`nav-section ${activeSection === STAGES.SITE_INFO ? 'active' : ''}`}
+          className={`nav-button ${activeSection === STAGES.SITE_INFO ? 'active' : ''}`}
           onClick={() => navigateToSection(STAGES.SITE_INFO)}
         >
           <span className="nav-icon">📋</span>
-          <span className="nav-text">Site Info</span>
+          <span className="nav-title">Site Info</span>
         </button>
         <button
-          className={`nav-section ${activeSection === STAGES.MEASUREMENTS ? 'active' : ''}`}
+          className={`nav-button ${activeSection === STAGES.MEASUREMENTS ? 'active' : ''}`}
           onClick={() => navigateToSection(STAGES.MEASUREMENTS)}
         >
           <span className="nav-icon">📏</span>
-          <span className="nav-text">Measurements</span>
+          <span className="nav-title">Measurements</span>
         </button>
         <button
-          className={`nav-section ${activeSection === STAGES.SETTINGS ? 'active' : ''}`}
+          className={`nav-button ${activeSection === STAGES.SETTINGS ? 'active' : ''}`}
           onClick={() => navigateToSection(STAGES.SETTINGS)}
         >
           <span className="nav-icon">⚙️</span>
-          <span className="nav-text">Settings</span>
+          <span className="nav-title">Settings</span>
         </button>
         <button
-          className={`nav-section ${activeSection === STAGES.RESULTS ? 'active' : (results ? 'completed' : '')}`}
+          className={`nav-button ${activeSection === STAGES.RESULTS ? 'active' : (results ? 'completed' : '')}`}
           onClick={() => results && navigateToSection(STAGES.RESULTS)}
           disabled={!results}
         >
           <span className="nav-icon">📊</span>
-          <span className="nav-text">Results</span>
+          <span className="nav-title">Results</span>
         </button>
       </div>
 
@@ -1002,17 +1074,18 @@ const CulvertSizingForm = () => {
 
         {/* Error display */}
         {errors.calculation && (
-          <div className="error-message global-error">
+          <div className="status-message error" style={{marginTop: '20px'}}>
             {errors.calculation}
           </div>
         )}
 
         {/* Navigation buttons */}
-        <div className="form-navigation">
+        <div className="form-grid" style={{marginTop: '32px', gap: '16px'}}>
           {activeSection !== STAGES.SITE_INFO && (
             <button 
               onClick={handlePrevious} 
-              className="secondary-button"
+              className="gps-button"
+              style={{background: 'linear-gradient(135deg, #607d8b, #78909c)'}}
               disabled={isLoading}
             >
               ← Previous
@@ -1022,7 +1095,7 @@ const CulvertSizingForm = () => {
           {activeSection !== STAGES.RESULTS && (
             <button 
               onClick={handleNext}
-              className="primary-button"
+              className="gps-button"
               disabled={isLoading}
             >
               {isLoading ? 'Calculating...' : 
