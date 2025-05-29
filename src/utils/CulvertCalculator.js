@@ -325,7 +325,8 @@ export const lookupCulvertSizeFromTable = (width, depth) => {
       widthKey = widthThresholds[i];
       break;
     }
-  }\n  
+  }
+  
   // If no suitable width threshold found, use the largest
   if (!widthKey) {
     widthKey = widthThresholds[widthThresholds.length - 1];
