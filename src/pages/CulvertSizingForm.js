@@ -51,13 +51,14 @@ const CulvertSizingForm = () => {
   // Get climate factor presets
   const climatePresets = getClimateFactorPresets();
   
-  // Debris assessment state
+  // NEW: Debris assessment state
   const [debrisAssessment, setDebrisAssessment] = useState({
-    debrisRisk: 'moderate',          // low, moderate, high
-    largeWoodPresence: false,        // Large wood upstream
-    sedimentLoad: 'normal',          // low, normal, high
-    maintenanceAccess: 'good',       // poor, fair, good
-    blockageFactor: '1.0'            // Multiplier for debris blockage
+    steepUpslopeOrSlideScars: false,     // terrain class IV/V OR measured side-wall/head-wall slope > 60%
+    evidenceOfPastDebrisFlow: false,     // scour, boulder/wood levees, fresh deposit matrix
+    steepChannelReach: false,            // any 100m reach > 30% gradient
+    largeWoodyDebrisPresent: false,      // logs ≥ 0.5m Ø & 1.5m long, or longer than culvert width
+    gapHighRating: false,                // GAP "High" — only if Advanced tables opened
+    debrisMitigationStrategy: 'upsize'   // 'upsize' or 'cleanout' for moderate hazard
   });
   
   // SIMPLIFIED MEASUREMENTS - just simple strings for each measurement type
@@ -142,7 +143,7 @@ const CulvertSizingForm = () => {
     }
   };
 
-  // Handle debris assessment changes
+  // NEW: Handle debris assessment changes
   const handleDebrisAssessmentChange = (name, value) => {
     setDebrisAssessment(prev => ({
       ...prev,
@@ -928,6 +929,171 @@ const CulvertSizingForm = () => {
                 the BC coast.
               </p>
             </div>
+          </div>
+        )}
+      </div>
+
+      {/* NEW: Debris Transport Assessment */}
+      <div className="factor-group">
+        <div className="feature-toggle">
+          <input
+            type="checkbox"
+            id="debrisAssessmentEnabled"
+            checked={optionalAssessments.debrisAssessmentEnabled}
+            onChange={() => toggleOptionalAssessment('debrisAssessmentEnabled')}
+          />
+          <label htmlFor="debrisAssessmentEnabled">
+            🪵 Enable Debris Transport Assessment
+          </label>
+        </div>
+
+        {optionalAssessments.debrisAssessmentEnabled && (
+          <div>
+            <h4>🪵 Debris Transport (tick all that apply)</h4>
+            <p className="helper-text">
+              Assess debris transport hazards that may affect culvert sizing requirements.
+            </p>
+
+            <div className="debris-checklist">
+              <label className="debris-checkbox">
+                <input
+                  type="checkbox"
+                  checked={debrisAssessment.steepUpslopeOrSlideScars}
+                  onChange={(e) => handleDebrisAssessmentChange('steepUpslopeOrSlideScars', e.target.checked)}
+                />
+                <div className="checkbox-content">
+                  <div className="checkbox-label">☐ Steep upslope or slide scars</div>
+                  <div className="checkbox-description">• terrain class IV/V OR measured side-wall or head-wall slope > 60%</div>
+                </div>
+              </label>
+
+              <label className="debris-checkbox">
+                <input
+                  type="checkbox"
+                  checked={debrisAssessment.evidenceOfPastDebrisFlow}
+                  onChange={(e) => handleDebrisAssessmentChange('evidenceOfPastDebrisFlow', e.target.checked)}
+                />
+                <div className="checkbox-content">
+                  <div className="checkbox-label">☐ Evidence of past debris flow</div>
+                  <div className="checkbox-description">• scour, boulder/wood levees, fresh deposit matrix</div>
+                </div>
+              </label>
+
+              <label className="debris-checkbox">
+                <input
+                  type="checkbox"
+                  checked={debrisAssessment.steepChannelReach}
+                  onChange={(e) => handleDebrisAssessmentChange('steepChannelReach', e.target.checked)}
+                />
+                <div className="checkbox-content">
+                  <div className="checkbox-label">☐ Steep channel reach</div>
+                  <div className="checkbox-description">• any 100 m reach > 30% gradient (use the slope you just measured)</div>
+                </div>
+              </label>
+
+              <label className="debris-checkbox">
+                <input
+                  type="checkbox"
+                  checked={debrisAssessment.largeWoodyDebrisPresent}
+                  onChange={(e) => handleDebrisAssessmentChange('largeWoodyDebrisPresent', e.target.checked)}
+                />
+                <div className="checkbox-content">
+                  <div className="checkbox-label">☐ Large Woody Debris present</div>
+                  <div className="checkbox-description">• logs ≥ 0.5 m Ø & 1.5 m long, or longer than culvert width</div>
+                </div>
+              </label>
+
+              <label className="debris-checkbox">
+                <input
+                  type="checkbox"
+                  checked={debrisAssessment.gapHighRating}
+                  onChange={(e) => handleDebrisAssessmentChange('gapHighRating', e.target.checked)}
+                />
+                <div className="checkbox-content">
+                  <div className="checkbox-label">☐ GAP "High" — only if you opened the Advanced tables</div>
+                </div>
+              </label>
+            </div>
+
+            <div className="helper-text" style={{ marginTop: '16px', fontStyle: 'italic' }}>
+              <strong>Large Woody Debris (LWD):</strong> logs ≥ 0.5 m diameter & ≥ 1.5 m long,
+              or any single piece longer than the proposed culvert width that can move during bank-full flow.
+            </div>
+
+            {/* Show debris hazard assessment result */}
+            {(() => {
+              const flags = [
+                debrisAssessment.steepUpslopeOrSlideScars,
+                debrisAssessment.evidenceOfPastDebrisFlow,
+                debrisAssessment.steepChannelReach,
+                debrisAssessment.largeWoodyDebrisPresent,
+                debrisAssessment.gapHighRating
+              ].filter(Boolean).length;
+
+              let hazardClass = 'LOW';
+              let multiplier = 1.00;
+              let message = 'Standard 3 × bank-full size OK.';
+              let requiresPE = false;
+
+              if (flags === 0) {
+                hazardClass = 'LOW';
+                multiplier = 1.00;
+                message = 'Standard 3 × bank-full size OK.';
+              } else if (flags === 1 && !debrisAssessment.gapHighRating) {
+                hazardClass = 'MODERATE';
+                multiplier = 1.20;
+                message = 'Up-size one pipe size or commit to annual debris clean-out.';
+              } else {
+                hazardClass = 'HIGH';
+                multiplier = 1.40;
+                message = 'High debris-flow hazard — up-size 40% and consider Professional Engineer review / debris rack.';
+                requiresPE = true;
+              }
+
+              if (flags > 0) {
+                return (
+                  <div className="debris-assessment-result" style={{ marginTop: '16px' }}>
+                    <div className={`hazard-level ${hazardClass.toLowerCase()}`}>
+                      <h5>Debris Hazard Assessment</h5>
+                      <div className="hazard-summary">
+                        <div><strong>Red Flags:</strong> {flags}</div>
+                        <div><strong>Hazard Class:</strong> {hazardClass}</div>
+                        <div><strong>Area Multiplier:</strong> × {multiplier.toFixed(2)}</div>
+                        {requiresPE && <div><strong>PE Review:</strong> Required</div>}
+                      </div>
+                      <div className="hazard-message">
+                        {message}
+                      </div>
+                      {hazardClass === 'MODERATE' && (
+                        <div className="mitigation-options" style={{ marginTop: '12px' }}>
+                          <label>
+                            <input
+                              type="radio"
+                              name="debrisMitigationStrategy"
+                              value="upsize"
+                              checked={debrisAssessment.debrisMitigationStrategy === 'upsize'}
+                              onChange={(e) => handleDebrisAssessmentChange('debrisMitigationStrategy', e.target.value)}
+                            />
+                            Up-size culvert (recommended)
+                          </label>
+                          <label>
+                            <input
+                              type="radio"
+                              name="debrisMitigationStrategy"
+                              value="cleanout"
+                              checked={debrisAssessment.debrisMitigationStrategy === 'cleanout'}
+                              onChange={(e) => handleDebrisAssessmentChange('debrisMitigationStrategy', e.target.value)}
+                            />
+                            Keep size + annual clean-out commitment
+                          </label>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                );
+              }
+              return null;
+            })()}
           </div>
         )}
       </div>
