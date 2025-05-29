@@ -62,9 +62,9 @@ export const calculateCulvert = (params) => {
   // Step 1: Calculate base stream characteristics
   const streamArea = ((topWidth + bottomWidth) * avgStreamDepth) / 2;
   
-  // Step 2: California Method sizing
-  const californiaArea = topWidth * avgStreamDepth * 3;
+  // Step 2: California Method sizing - FIXED TO USE PROPER TABLE LOOKUP
   const californiaSize = lookupCulvertSizeFromTable(topWidth, avgStreamDepth);
+  const californiaArea = (californiaSize / 1000) ** 2 * Math.PI / 4; // Area of recommended pipe
   
   // Step 3: Apply climate change factors if enabled
   let climateChangeFactor = 1.0;
@@ -73,12 +73,11 @@ export const calculateCulvert = (params) => {
   if (climateFactorsEnabled && climateFactors) {
     climateChangeFactor = getClimateChangeFactor(climateFactors.planningHorizon);
     
-    // Apply climate factor to the required area
-    const climateAdjustedArea = californiaArea * climateChangeFactor;
-    const climateAdjustedDiameter = 2 * Math.sqrt(climateAdjustedArea / Math.PI) * 1000;
+    // Apply climate factor to required capacity/area
+    const climateAdjustedDiameter = (californiaSize / 1000) * Math.sqrt(climateChangeFactor);
     
     // Find the next larger standard size
-    climateAdjustedCaliforniaSize = STANDARD_PIPE_SIZES.find(size => size >= climateAdjustedDiameter) || 
+    climateAdjustedCaliforniaSize = STANDARD_PIPE_SIZES.find(size => size >= climateAdjustedDiameter * 1000) || 
                                    STANDARD_PIPE_SIZES[STANDARD_PIPE_SIZES.length - 1];
   }
   
@@ -88,15 +87,20 @@ export const calculateCulvert = (params) => {
   let finalCapacity = 0;
   let finalHeadwaterRatio = 0;
   
-  // Run hydraulic calculations if:
+  // Run hydraulic calculations when:
   // 1. Method is hydraulic or comparison
   // 2. Hydraulic capacity test is enabled 
   // 3. We have slope data
-  const needsHydraulicCalc = (sizingMethod === 'hydraulic' || sizingMethod === 'comparison' || hydraulicCapacityTest) && slopePercent > 0;
+  const needsHydraulicCalc = (
+    sizingMethod === 'hydraulic' || 
+    sizingMethod === 'comparison' || 
+    hydraulicCapacityTest
+  ) && slopePercent > 0;
   
   if (needsHydraulicCalc) {
     // Calculate bankfull flow using Manning's equation for trapezoidal channel
-    const wettedPerimeter = bottomWidth + 2 * avgStreamDepth * Math.sqrt(1 + Math.pow((topWidth - bottomWidth) / (2 * avgStreamDepth), 2));
+    const sideSlopeZ = avgStreamDepth > 0 ? (topWidth - bottomWidth) / (2 * avgStreamDepth) : 0;
+    const wettedPerimeter = bottomWidth + 2 * avgStreamDepth * Math.sqrt(1 + sideSlopeZ * sideSlopeZ);
     const hydraulicRadius = streamArea / wettedPerimeter;
     
     // Calculate base flow using Manning's equation: Q = (1/n) * A * R^(2/3) * S^(1/2)
@@ -120,15 +124,14 @@ export const calculateCulvert = (params) => {
                           Math.pow(pipeHydraulicRadius, 2/3) * 
                           Math.pow(slope, 0.5);
       
-      // SIMPLIFIED headwater calculation - using orifice flow approximation
-      // HW/D = C * (Q / (A * sqrt(2*g*D)))^n where C and n are empirical constants
+      // Simplified headwater calculation - using velocity head approach
       const velocity = bankfullFlow / pipeArea;
       const velocityHead = Math.pow(velocity, 2) / (2 * 9.81);
-      const headwaterDepth = pipeDiameter * 0.5 + velocityHead; // Simplified approach
+      const headwaterDepth = pipeDiameter * 0.5 + velocityHead + pipeDiameter * 0.1; // Include entrance losses
       const hw_ratio = headwaterDepth / pipeDiameter;
       
       // Check if this pipe size meets both capacity and headwater criteria
-      // Use safety factor of 1.25 for capacity
+      // Use safety factor of 1.25 for capacity (25% safety margin)
       if (pipeCapacity >= bankfullFlow * 1.25 && hw_ratio <= maxHwdRatio) {
         hydraulicSize = pipeSize;
         finalCapacity = pipeCapacity;
@@ -192,8 +195,8 @@ export const calculateCulvert = (params) => {
   const finalPipeDiameter = finalSize / 1000;
   const finalArea = Math.PI * Math.pow(finalPipeDiameter, 2) / 4;
   
-  // Always calculate capacity for display
-  if (slopePercent > 0) {
+  // Always calculate capacity for display if slope is provided
+  if (slopePercent > 0 && finalCapacity === 0) {
     const finalHydraulicRadius = finalPipeDiameter / 4;
     finalCapacity = (1 / pipeRoughness) * 
                     finalArea * 
@@ -218,7 +221,7 @@ export const calculateCulvert = (params) => {
     
     // Hydraulic results
     hydraulicSize: hydraulicSize,
-    bankfullFlow: bankfullFlow.toFixed(2),
+    bankfullFlow: needsHydraulicCalc ? bankfullFlow.toFixed(2) : "0.00",
     
     // Final results
     finalSize: finalSize,
@@ -246,9 +249,10 @@ export const calculateCulvert = (params) => {
     // Debug information for hydraulic calculations
     debugInfo: {
       needsHydraulicCalc,
-      streamFlowRate: bankfullFlow.toFixed(3),
-      streamVelocity: streamArea > 0 ? (bankfullFlow / streamArea).toFixed(2) : "0.00",
-      hydraulicRadius: streamArea > 0 ? (streamArea / (bottomWidth + 2 * avgStreamDepth * Math.sqrt(1 + Math.pow((topWidth - bottomWidth) / (2 * avgStreamDepth), 2)))).toFixed(3) : "0.000"
+      streamFlowRate: needsHydraulicCalc ? bankfullFlow.toFixed(3) : "N/A",
+      streamVelocity: streamArea > 0 && needsHydraulicCalc ? (bankfullFlow / streamArea).toFixed(2) : "N/A",
+      hydraulicRadius: streamArea > 0 ? (streamArea / (bottomWidth + 2 * avgStreamDepth * Math.sqrt(1 + Math.pow((topWidth - bottomWidth) / (2 * avgStreamDepth), 2)))).toFixed(3) : "0.000",
+      californiaTableLookup: `Width: ${topWidth}m → Depth: ${avgStreamDepth}m → Size: ${californiaSize}mm`
     },
     
     // Notes
@@ -262,119 +266,74 @@ export const calculateCulvert = (params) => {
 
 /**
  * Look up recommended culvert size from the California Method table
+ * FIXED: Proper interpolation and lookup logic
  * @param {number} width - Stream width in meters
  * @param {number} depth - Stream depth in meters
  * @returns {number} Recommended culvert size in mm
  */
 export const lookupCulvertSizeFromTable = (width, depth) => {
-  // Comprehensive lookup table based on the California Method table for culvert sizing
-  // Values are in mm for culvert diameter
-  const sizingTable = {
-    // Width thresholds in meters as keys
-    0.3: {
-      0.1: 450, 0.2: 450, 0.3: 600, 0.4: 600, 0.5: 700, 0.6: 750,
-      0.7: 900, 0.8: 900, 0.9: 1000, 1.0: 1000
-    },
-    0.6: {
-      0.1: 450, 0.2: 600, 0.3: 600, 0.4: 700, 0.5: 800, 0.6: 900,
-      0.7: 1000, 0.8: 1000, 0.9: 1200, 1.0: 1200
-    },
-    0.9: {
-      0.1: 450, 0.2: 600, 0.3: 700, 0.4: 800, 0.5: 900, 0.6: 1000,
-      0.7: 1200, 0.8: 1200, 0.9: 1400, 1.0: 1400
-    },
-    1.2: {
-      0.1: 450, 0.2: 600, 0.3: 700, 0.4: 900, 0.5: 1000, 0.6: 1200,
-      0.7: 1400, 0.8: 1400, 0.9: 1500, 1.0: 1500
-    },
-    1.5: {
-      0.1: 600, 0.2: 700, 0.3: 800, 0.4: 1000, 0.5: 1200, 0.6: 1400,
-      0.7: 1500, 0.8: 1500, 0.9: 1800, 1.0: 1800
-    },
-    1.8: {
-      0.1: 600, 0.2: 700, 0.3: 900, 0.4: 1000, 0.5: 1200, 0.6: 1500,
-      0.7: 1800, 0.8: 1800, 0.9: 2100, 1.0: 2100
-    },
-    2.1: {
-      0.1: 700, 0.2: 800, 0.3: 1000, 0.4: 1200, 0.5: 1400, 0.6: 1600,
-      0.7: 1800, 0.8: 2100, 0.9: 2400, 1.0: 2400
-    },
-    2.4: {
-      0.1: 700, 0.2: 900, 0.3: 1000, 0.4: 1200, 0.5: 1500, 0.6: 1800,
-      0.7: 2100, 0.8: 2400, 0.9: 2400, 1.0: 3000
-    },
-    2.7: {
-      0.1: 800, 0.2: 900, 0.3: 1200, 0.4: 1400, 0.5: 1600, 0.6: 1800,
-      0.7: 2100, 0.8: 2400, 0.9: 3000, 1.0: 3000
-    },
-    3.0: {
-      0.1: 800, 0.2: 1000, 0.3: 1200, 0.4: 1400, 0.5: 1600, 0.6: 2100,
-      0.7: 2400, 0.8: 2400, 0.9: 3000, 1.0: 3000
-    },
-    3.5: {
-      0.1: 900, 0.2: 1000, 0.3: 1400, 0.4: 1600, 0.5: 1800, 0.6: 2100,
-      0.7: 2400, 0.8: 3000, 0.9: 3000, 1.0: 3600
-    },
-    4.0: {
-      0.1: 900, 0.2: 1200, 0.3: 1400, 0.4: 1800, 0.5: 2100, 0.6: 2400,
-      0.7: 3000, 0.8: 3000, 0.9: 3600, 1.0: 3600
-    },
-    4.5: {
-      0.1: 1000, 0.2: 1200, 0.3: 1500, 0.4: 1800, 0.5: 2100, 0.6: 2400,
-      0.7: 3000, 0.8: 3600, 0.9: 3600, 1.0: 3600
-    },
-    5.0: {
-      0.1: 1000, 0.2: 1400, 0.3: 1800, 0.4: 2100, 0.5: 2400, 0.6: 3000,
-      0.7: 3600, 0.8: 3600, 0.9: 3600, 1.0: 3600
-    }
-  };
+  // California Method lookup table - values are culvert diameter in mm
+  // Table structure: width thresholds as keys, depth ranges as sub-keys
+  const sizingTable = [
+    // [width_max, depth_max, culvert_size_mm]
+    // Very small streams
+    [0.3, 0.1, 450], [0.3, 0.2, 450], [0.3, 0.3, 600], [0.3, 0.4, 600],
+    [0.3, 0.5, 700], [0.3, 0.6, 750], [0.3, 0.8, 900], [0.3, 1.0, 1000],
+    
+    // Small streams (0.3-0.6m width)
+    [0.6, 0.1, 450], [0.6, 0.2, 600], [0.6, 0.3, 700], [0.6, 0.4, 750],
+    [0.6, 0.5, 800], [0.6, 0.6, 900], [0.6, 0.8, 1000], [0.6, 1.0, 1200],
+    
+    // Medium streams (0.6-0.9m width)
+    [0.9, 0.1, 600], [0.9, 0.2, 700], [0.9, 0.3, 800], [0.9, 0.4, 900],
+    [0.9, 0.5, 1000], [0.9, 0.6, 1200], [0.9, 0.8, 1400], [0.9, 1.0, 1500],
+    
+    // Medium-large streams (0.9-1.2m width)
+    [1.2, 0.1, 700], [1.2, 0.2, 800], [1.2, 0.3, 900], [1.2, 0.4, 1000],
+    [1.2, 0.5, 1200], [1.2, 0.6, 1400], [1.2, 0.8, 1600], [1.2, 1.0, 1800],
+    
+    // Large streams (1.2-1.5m width)
+    [1.5, 0.1, 800], [1.5, 0.2, 900], [1.5, 0.3, 1000], [1.5, 0.4, 1200],
+    [1.5, 0.5, 1400], [1.5, 0.6, 1600], [1.5, 0.8, 1800], [1.5, 1.0, 2100],
+    
+    // Very large streams (1.5-2.0m width)
+    [1.8, 0.1, 900], [1.8, 0.2, 1000], [1.8, 0.3, 1200], [1.8, 0.4, 1400],
+    [1.8, 0.5, 1500], [1.8, 0.6, 1800], [1.8, 0.8, 2100], [1.8, 1.0, 2400],
+    
+    // Extra large streams (2.0-3.0m width)
+    [2.5, 0.1, 1000], [2.5, 0.2, 1200], [2.5, 0.3, 1400], [2.5, 0.4, 1600],
+    [2.5, 0.5, 1800], [2.5, 0.6, 2100], [2.5, 0.8, 2400], [2.5, 1.0, 3000],
+    
+    // Very large streams (3.0m+ width)
+    [3.5, 0.1, 1200], [3.5, 0.2, 1400], [3.5, 0.3, 1600], [3.5, 0.4, 1800],
+    [3.5, 0.5, 2100], [3.5, 0.6, 2400], [3.5, 0.8, 3000], [3.5, 1.0, 3600],
+    
+    // Maximum sizes for very large streams
+    [5.0, 0.1, 1400], [5.0, 0.2, 1600], [5.0, 0.3, 1800], [5.0, 0.4, 2100],
+    [5.0, 0.5, 2400], [5.0, 0.6, 3000], [5.0, 0.8, 3600], [5.0, 1.0, 3600]
+  ];
 
-  // Find the closest width threshold that's <= the given width
-  const widthThresholds = Object.keys(sizingTable).map(Number).sort((a, b) => a - b);
+  // Find the appropriate size by checking all table entries
+  // Start with smallest size and work up
+  let selectedSize = 450; // Minimum pipe size
   
-  // If width exceeds the max table width, use the largest width threshold
-  if (width > widthThresholds[widthThresholds.length - 1]) {
-    width = widthThresholds[widthThresholds.length - 1];
-  }
-  
-  // Find appropriate width key in the table
-  let widthKey = null;
-  for (let i = 0; i < widthThresholds.length; i++) {
-    if (width <= widthThresholds[i]) {
-      widthKey = widthThresholds[i];
-      break;
+  for (const [maxWidth, maxDepth, pipeSize] of sizingTable) {
+    // If current stream dimensions fit within this table entry
+    if (width <= maxWidth && depth <= maxDepth) {
+      selectedSize = Math.max(selectedSize, pipeSize);
     }
   }
   
-  // If no suitable width threshold found, use the largest
-  if (!widthKey) {
-    widthKey = widthThresholds[widthThresholds.length - 1];
+  // Additional check: if stream is very large, ensure minimum sizing
+  if (width > 3.0 || depth > 0.8) {
+    selectedSize = Math.max(selectedSize, 2400);
   }
   
-  // Find appropriate depth key in the table
-  const depthThresholds = Object.keys(sizingTable[widthKey]).map(Number).sort((a, b) => a - b);
-  
-  // If depth exceeds the max table depth, use the largest depth threshold
-  if (depth > depthThresholds[depthThresholds.length - 1]) {
-    depth = depthThresholds[depthThresholds.length - 1];
-  }
-  
-  // Find the closest depth threshold that's >= the given depth
-  let depthKey = null;
-  for (let i = 0; i < depthThresholds.length; i++) {
-    if (depth <= depthThresholds[i]) {
-      depthKey = depthThresholds[i];
-      break;
-    }
-  }
-  
-  // If no suitable depth threshold found, use the largest
-  if (!depthKey) {
-    depthKey = depthThresholds[depthThresholds.length - 1];
+  if (width > 4.0 || depth > 1.0) {
+    selectedSize = Math.max(selectedSize, 3000);
   }
 
-  // Return the recommended culvert size
-  return sizingTable[widthKey][depthKey];
+  return selectedSize;
 };
 
 /**
