@@ -757,11 +757,11 @@ const CulvertSizingForm = () => {
             />
             <div className="option-content score-4">
               <div className="option-header">
-                <div className="option-label">Hydraulic Calculation</div>
-                <div className="score-badge">Advanced</div>
+                <div className="option-label">Alternative Hydraulic Calculation</div>
+                <div className="score-badge">Alternative</div>
               </div>
               <div className="option-description">
-                Advanced Manning's equation approach requiring slope and roughness parameters.
+                Alternative Manning's equation approach requiring slope and roughness parameters.
               </div>
             </div>
           </label>
@@ -780,7 +780,7 @@ const CulvertSizingForm = () => {
                 <div className="score-badge">Conservative</div>
               </div>
               <div className="option-description">
-                Conservative approach using the larger of both California and Hydraulic methods.
+                Conservative approach using the larger of both California and Alternative Hydraulic methods.
               </div>
             </div>
           </label>
@@ -1095,26 +1095,6 @@ const CulvertSizingForm = () => {
               return null;
             })()}
           </div>
-        )}
-      </div>
-
-      {/* Optional Assessments Toggle */}
-      <div className="factor-group">
-        <div className="feature-toggle">
-          <input
-            type="checkbox"
-            id="hydraulicCapacityEnabled"
-            checked={optionalAssessments.hydraulicCapacityEnabled}
-            onChange={() => toggleOptionalAssessment('hydraulicCapacityEnabled')}
-          />
-          <label htmlFor="hydraulicCapacityEnabled">
-            Enable Hydraulic Capacity Verification
-          </label>
-        </div>
-        {optionalAssessments.hydraulicCapacityEnabled && (
-          <p className="helper-text">
-            Verify the selected culvert size meets hydraulic capacity requirements using Manning's equation.
-          </p>
         )}
       </div>
     </div>
