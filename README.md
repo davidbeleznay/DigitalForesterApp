@@ -67,11 +67,25 @@ The application features a fully implemented Road Risk Assessment tool with offi
 - **GPS Integration**: Capture coordinates for assessment locations
 - **Photo Documentation**: Placeholder for field photo integration
 - **Responsive Design**: Works on desktop and mobile devices with optimized layouts
-- **Modern UI**: Professional design with gradients, shadows, and smooth animations
+- **Modern UI**: Professional design with gradgets, shadows, and smooth animations
 - **Edit Support**: Load and modify existing assessments from history
 - **Professional Validation**: Form validation ensures data quality and completeness
 
 ## Changelog
+
+### 2025-05-29 - CRITICAL FIX: Results Display Issue ✅
+- **MAJOR BUG FIX**: Fixed CulvertResults component not displaying calculation results
+- **FIXED**: Updated prop names from `calculationResults` to `results` to match CulvertSizingForm component
+- **FIXED**: Added error handling for missing results with clear error message
+- **FIXED**: Properly extract all calculation data from results object with appropriate defaults
+- **ENHANCED**: Added debug information display section showing calculation details
+- **ENHANCED**: Improved error handling and validation throughout results component
+- **ENHANCED**: Added proper fallback values for all calculation parameters
+- **TECHNICAL**: Fixed prop mismatch between CulvertSizingForm passing `results` and CulvertResults expecting `calculationResults`
+- **TECHNICAL**: Added comprehensive null/undefined checking for all result properties
+- **TECHNICAL**: Enhanced results parsing to handle all calculator output formats
+- **UI**: Results now properly display with all calculation details, climate comparisons, and method analysis
+- **VALIDATION**: Culvert sizing tool now fully functional from input through results display
 
 ### 2025-05-29 - CRITICAL FIX: Culvert Sizing Calculator Logic ✅
 - **MAJOR BUG FIX**: Fixed culvert calculator returning fixed 1200mm/2000mm results regardless of stream size
@@ -331,6 +345,14 @@ The application implements the official professional risk assessment system meth
 - **ENHANCED**: Table lookup debug showing exact width → depth → size mapping
 - **VALIDATED**: Calculator now provides realistic, scalable results based on actual stream dimensions
 
+### Results Display System ✅
+
+**Fixed Results Display:**
+- **RESOLVED**: CulvertResults component now properly receives and displays calculation results
+- **ENHANCED**: Comprehensive error handling for missing or invalid results data
+- **IMPROVED**: Professional results layout with all calculation details, climate comparisons, and method analysis
+- **VALIDATED**: Complete workflow from input through calculation to results display now fully functional
+
 ## Project Structure
 
 ```
@@ -338,7 +360,7 @@ AI-Forester-App/
 ├── src/
 │   ├── components/       # Reusable UI components
 │   │   └── culvert/      # Culvert-specific components
-│   │       ├── CulvertResults.jsx    # ENHANCED results with climate comparison ✅
+│   │       ├── CulvertResults.jsx    # FIXED results display with proper prop handling ✅
 │   │       └── CulvertResults.css    # Enhanced styling for climate display ✅
 │   ├── navigation/       # Router configuration
 │   │   └── AppRouter.js  # COMPLETE router with edit routes ✅
@@ -413,7 +435,11 @@ This application is designed for use by qualified forestry professionals, engine
 
 The Culvert Sizing Tool now includes professional climate change projections specifically calibrated for coastal British Columbia, based on recommendations from PCIC (Pacific Climate Impacts Consortium) and EGBC (Engineers and Geoscientists BC). The climate factor presets provide scientifically-backed multipliers for different planning horizons, helping professionals design resilient infrastructure for future climate conditions.
 
-**IMPORTANT**: Recent fixes to the culvert calculator ensure that sizing results now properly scale with stream dimensions. The tool now provides realistic pipe sizes ranging from 450mm for very small streams to 3600mm for large streams, replacing the previous fixed 1200mm/2000mm results that didn't respond to different stream characteristics.
+**IMPORTANT**: Recent fixes ensure that the culvert sizing tool now:
+- ✅ **Properly calculates results** that scale with stream dimensions (450mm to 3600mm range)
+- ✅ **Displays results correctly** with all calculation details and climate comparisons
+- ✅ **Functions end-to-end** from input through calculation to professional results display
+- ✅ **Provides realistic sizing** replacing previous fixed 1200mm/2000mm outputs
 
 ## Contributing
 
