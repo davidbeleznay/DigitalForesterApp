@@ -62,7 +62,7 @@ export const calculateCulvert = (params) => {
   // Step 1: Calculate base stream characteristics
   const streamArea = ((topWidth + bottomWidth) * avgStreamDepth) / 2;
   
-  // Step 2: California Method sizing - FIXED TO USE PROPER TABLE LOOKUP
+  // Step 2: California Method sizing - FIXED TABLE LOOKUP
   const californiaSize = lookupCulvertSizeFromTable(topWidth, avgStreamDepth);
   const californiaArea = (californiaSize / 1000) ** 2 * Math.PI / 4; // Area of recommended pipe
   
@@ -266,74 +266,78 @@ export const calculateCulvert = (params) => {
 
 /**
  * Look up recommended culvert size from the California Method table
- * FIXED: Proper interpolation and lookup logic
+ * COMPLETELY REWRITTEN - Proper California Method Implementation
  * @param {number} width - Stream width in meters
  * @param {number} depth - Stream depth in meters
  * @returns {number} Recommended culvert size in mm
  */
 export const lookupCulvertSizeFromTable = (width, depth) => {
-  // California Method lookup table - values are culvert diameter in mm
-  // Table structure: width thresholds as keys, depth ranges as sub-keys
-  const sizingTable = [
-    // [width_max, depth_max, culvert_size_mm]
-    // Very small streams
-    [0.3, 0.1, 450], [0.3, 0.2, 450], [0.3, 0.3, 600], [0.3, 0.4, 600],
-    [0.3, 0.5, 700], [0.3, 0.6, 750], [0.3, 0.8, 900], [0.3, 1.0, 1000],
-    
-    // Small streams (0.3-0.6m width)
-    [0.6, 0.1, 450], [0.6, 0.2, 600], [0.6, 0.3, 700], [0.6, 0.4, 750],
-    [0.6, 0.5, 800], [0.6, 0.6, 900], [0.6, 0.8, 1000], [0.6, 1.0, 1200],
-    
-    // Medium streams (0.6-0.9m width)
-    [0.9, 0.1, 600], [0.9, 0.2, 700], [0.9, 0.3, 800], [0.9, 0.4, 900],
-    [0.9, 0.5, 1000], [0.9, 0.6, 1200], [0.9, 0.8, 1400], [0.9, 1.0, 1500],
-    
-    // Medium-large streams (0.9-1.2m width)
-    [1.2, 0.1, 700], [1.2, 0.2, 800], [1.2, 0.3, 900], [1.2, 0.4, 1000],
-    [1.2, 0.5, 1200], [1.2, 0.6, 1400], [1.2, 0.8, 1600], [1.2, 1.0, 1800],
-    
-    // Large streams (1.2-1.5m width)
-    [1.5, 0.1, 800], [1.5, 0.2, 900], [1.5, 0.3, 1000], [1.5, 0.4, 1200],
-    [1.5, 0.5, 1400], [1.5, 0.6, 1600], [1.5, 0.8, 1800], [1.5, 1.0, 2100],
-    
-    // Very large streams (1.5-2.0m width)
-    [1.8, 0.1, 900], [1.8, 0.2, 1000], [1.8, 0.3, 1200], [1.8, 0.4, 1400],
-    [1.8, 0.5, 1500], [1.8, 0.6, 1800], [1.8, 0.8, 2100], [1.8, 1.0, 2400],
-    
-    // Extra large streams (2.0-3.0m width)
-    [2.5, 0.1, 1000], [2.5, 0.2, 1200], [2.5, 0.3, 1400], [2.5, 0.4, 1600],
-    [2.5, 0.5, 1800], [2.5, 0.6, 2100], [2.5, 0.8, 2400], [2.5, 1.0, 3000],
-    
-    // Very large streams (3.0m+ width)
-    [3.5, 0.1, 1200], [3.5, 0.2, 1400], [3.5, 0.3, 1600], [3.5, 0.4, 1800],
-    [3.5, 0.5, 2100], [3.5, 0.6, 2400], [3.5, 0.8, 3000], [3.5, 1.0, 3600],
-    
-    // Maximum sizes for very large streams
-    [5.0, 0.1, 1400], [5.0, 0.2, 1600], [5.0, 0.3, 1800], [5.0, 0.4, 2100],
-    [5.0, 0.5, 2400], [5.0, 0.6, 3000], [5.0, 0.8, 3600], [5.0, 1.0, 3600]
-  ];
-
-  // Find the appropriate size by checking all table entries
-  // Start with smallest size and work up
-  let selectedSize = 450; // Minimum pipe size
+  // FIXED: Proper California Method lookup table based on actual professional standards
+  // Table structure: For each width range, find appropriate depth range, return pipe size
   
-  for (const [maxWidth, maxDepth, pipeSize] of sizingTable) {
-    // If current stream dimensions fit within this table entry
-    if (width <= maxWidth && depth <= maxDepth) {
-      selectedSize = Math.max(selectedSize, pipeSize);
-    }
+  // Very small streams (0-0.6m width)
+  if (width <= 0.6) {
+    if (depth <= 0.1) return 450;
+    if (depth <= 0.2) return 600;
+    if (depth <= 0.3) return 700;
+    if (depth <= 0.4) return 750;
+    if (depth <= 0.6) return 900;
+    return 1000; // depth > 0.6m
   }
   
-  // Additional check: if stream is very large, ensure minimum sizing
-  if (width > 3.0 || depth > 0.8) {
-    selectedSize = Math.max(selectedSize, 2400);
+  // Small streams (0.6-1.2m width)
+  if (width <= 1.2) {
+    if (depth <= 0.1) return 600;
+    if (depth <= 0.2) return 700;
+    if (depth <= 0.3) return 900;
+    if (depth <= 0.4) return 1000;
+    if (depth <= 0.6) return 1200;
+    if (depth <= 0.8) return 1400;
+    return 1500; // depth > 0.8m
   }
   
-  if (width > 4.0 || depth > 1.0) {
-    selectedSize = Math.max(selectedSize, 3000);
+  // Medium streams (1.2-2.0m width)
+  if (width <= 2.0) {
+    if (depth <= 0.1) return 700;
+    if (depth <= 0.2) return 900;   // 2m width × 0.2m depth should be ~900mm, NOT 3600mm!
+    if (depth <= 0.3) return 1200;
+    if (depth <= 0.4) return 1400;
+    if (depth <= 0.6) return 1600;
+    if (depth <= 0.8) return 1800;
+    return 2100; // depth > 0.8m
   }
-
-  return selectedSize;
+  
+  // Large streams (2.0-3.0m width)
+  if (width <= 3.0) {
+    if (depth <= 0.1) return 900;
+    if (depth <= 0.2) return 1200;
+    if (depth <= 0.3) return 1500;
+    if (depth <= 0.4) return 1800;
+    if (depth <= 0.6) return 2100;
+    if (depth <= 0.8) return 2400;
+    if (depth <= 1.0) return 2400;
+    return 3000; // depth > 1.0m
+  }
+  
+  // Very large streams (3.0-4.0m width)
+  if (width <= 4.0) {
+    if (depth <= 0.1) return 1200;
+    if (depth <= 0.2) return 1500;
+    if (depth <= 0.3) return 1800;
+    if (depth <= 0.4) return 2100;
+    if (depth <= 0.6) return 2400;
+    if (depth <= 0.8) return 3000;
+    if (depth <= 1.0) return 3000;
+    return 3600; // depth > 1.0m
+  }
+  
+  // Extra large streams (4.0m+ width)
+  if (depth <= 0.2) return 1800;
+  if (depth <= 0.4) return 2400;
+  if (depth <= 0.6) return 3000;
+  if (depth <= 0.8) return 3000;
+  if (depth <= 1.0) return 3600;
+  return 3600; // Very large streams
 };
 
 /**
