@@ -65,6 +65,7 @@ const CulvertSizingForm = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isGettingLocation, setIsGettingLocation] = useState(false);
   const [locationError, setLocationError] = useState('');
+  const [debugInfo, setDebugInfo] = useState(''); // Add debug info state
 
   // Load existing assessment if editing
   useEffect(() => {
@@ -265,38 +266,46 @@ const CulvertSizingForm = () => {
     );
   };
 
-  // Form validation
+  // Enhanced form validation with better debugging
   const validateForm = () => {
     console.log('🔍 Starting form validation...');
+    setDebugInfo('Starting validation...');
+    
     const newErrors = {};
     const { avgTopWidth, avgBottomWidth, avgDepth } = calculateAverages();
     
     console.log('📏 Calculated averages:', { avgTopWidth, avgBottomWidth, avgDepth });
+    setDebugInfo(prev => prev + `\nAverages: Width=${avgTopWidth.toFixed(2)}m, Depth=${avgDepth.toFixed(2)}m`);
 
     // Basic site information validation
     if (!formValues.culvertId.trim()) {
       newErrors.culvertId = 'Culvert ID is required';
       console.log('❌ Missing culvert ID');
+      setDebugInfo(prev => prev + '\n❌ Missing culvert ID');
     }
     if (!formValues.roadName.trim()) {
       newErrors.roadName = 'Road name is required';
       console.log('❌ Missing road name');
+      setDebugInfo(prev => prev + '\n❌ Missing road name');
     }
 
     // Measurement validation
     if (avgTopWidth <= 0) {
       newErrors.topWidthMeasurements = 'At least one valid top width measurement is required';
       console.log('❌ Invalid top width measurements:', topWidthMeasurements);
+      setDebugInfo(prev => prev + '\n❌ Invalid top width measurements');
     }
     if (avgDepth <= 0) {
       newErrors.depthMeasurements = 'At least one valid depth measurement is required';
       console.log('❌ Invalid depth measurements:', depthMeasurements);
+      setDebugInfo(prev => prev + '\n❌ Invalid depth measurements');
     }
     
     // Validate bottom width if using it
     if (useBottomWidth && avgBottomWidth <= 0) {
       newErrors.bottomWidthMeasurements = 'Valid bottom width measurements are required when enabled';
       console.log('❌ Invalid bottom width measurements:', bottomWidthMeasurements);
+      setDebugInfo(prev => prev + '\n❌ Invalid bottom width measurements');
     }
 
     // Hydraulic parameters validation
@@ -304,10 +313,12 @@ const CulvertSizingForm = () => {
       if (!formValues.slopePercent || parseFloat(formValues.slopePercent) <= 0) {
         newErrors.slopePercent = 'Stream slope is required for hydraulic calculations';
         console.log('❌ Missing slope for hydraulic calculations');
+        setDebugInfo(prev => prev + '\n❌ Missing slope for hydraulic calculations');
       }
       if (!formValues.streamRoughness || parseFloat(formValues.streamRoughness) <= 0) {
         newErrors.streamRoughness = 'Stream roughness coefficient is required for hydraulic calculations';
         console.log('❌ Missing stream roughness');
+        setDebugInfo(prev => prev + '\n❌ Missing stream roughness');
       }
     }
 
@@ -316,12 +327,20 @@ const CulvertSizingForm = () => {
       errors: newErrors 
     });
     
+    setDebugInfo(prev => prev + `\n📋 Validation complete: ${Object.keys(newErrors).length} errors`);
+    
     return newErrors;
   };
 
-  // Calculate culvert size
+  // Enhanced calculate culvert size with better error handling
   const handleCalculate = () => {
     console.log('🚀 Calculate button clicked!');
+    setDebugInfo('🚀 Calculate button clicked!');
+    
+    // Clear previous debug info and errors
+    setErrors({});
+    setDebugInfo('Starting calculation process...');
+    
     console.log('📊 Current form state:', {
       formValues,
       topWidthMeasurements,
@@ -335,89 +354,113 @@ const CulvertSizingForm = () => {
     if (Object.keys(validationErrors).length > 0) {
       console.log('❌ Validation failed:', validationErrors);
       setErrors(validationErrors);
+      setDebugInfo(prev => prev + '\n❌ Validation failed! Check your inputs.');
       return;
     }
 
     console.log('✅ Validation passed, starting calculation...');
+    setDebugInfo(prev => prev + '\n✅ Validation passed!');
     setIsLoading(true);
-    setErrors({});
 
-    try {
-      const { avgTopWidth, avgBottomWidth, avgDepth } = calculateAverages();
-      console.log('📏 Using averages for calculation:', { avgTopWidth, avgBottomWidth, avgDepth });
+    // Add small delay to show loading state
+    setTimeout(() => {
+      try {
+        const { avgTopWidth, avgBottomWidth, avgDepth } = calculateAverages();
+        console.log('📏 Using averages for calculation:', { avgTopWidth, avgBottomWidth, avgDepth });
+        setDebugInfo(prev => prev + `\n📏 Using: ${avgTopWidth.toFixed(2)}m × ${avgDepth.toFixed(2)}m`);
 
-      const calculationParams = {
-        topWidth: avgTopWidth,
-        bottomWidth: useBottomWidth ? avgBottomWidth : avgTopWidth * 0.7,
-        avgStreamDepth: avgDepth,
-        slopePercent: parseFloat(formValues.slopePercent) || 2.0,
-        streamRoughness: parseFloat(formValues.streamRoughness) || 0.04,
-        pipeRoughness: parseFloat(formValues.pipeRoughness) || 0.024,
-        maxHwdRatio: parseFloat(formValues.maxHwdRatio) || 0.8,
-        fishPassage: formValues.fishPassage,
-        sizingMethod: formValues.sizingMethod,
-        hydraulicCapacityTest: optionalAssessments.hydraulicCapacityEnabled,
-        climateFactorsEnabled: optionalAssessments.climateFactorsEnabled,
-        climateFactors: optionalAssessments.climateFactorsEnabled ? climateFactors : null,
-        debrisAssessmentEnabled: optionalAssessments.debrisAssessmentEnabled,
-        debrisAssessment: optionalAssessments.debrisAssessmentEnabled ? debrisAssessment : null
-      };
+        const calculationParams = {
+          topWidth: avgTopWidth,
+          bottomWidth: useBottomWidth ? avgBottomWidth : avgTopWidth * 0.7,
+          avgStreamDepth: avgDepth,
+          slopePercent: parseFloat(formValues.slopePercent) || 2.0,
+          streamRoughness: parseFloat(formValues.streamRoughness) || 0.04,
+          pipeRoughness: parseFloat(formValues.pipeRoughness) || 0.024,
+          maxHwdRatio: parseFloat(formValues.maxHwdRatio) || 0.8,
+          fishPassage: formValues.fishPassage,
+          sizingMethod: formValues.sizingMethod,
+          hydraulicCapacityTest: optionalAssessments.hydraulicCapacityEnabled,
+          climateFactorsEnabled: optionalAssessments.climateFactorsEnabled,
+          climateFactors: optionalAssessments.climateFactorsEnabled ? climateFactors : null,
+          debrisAssessmentEnabled: optionalAssessments.debrisAssessmentEnabled,
+          debrisAssessment: optionalAssessments.debrisAssessmentEnabled ? debrisAssessment : null
+        };
 
-      console.log('🔧 Calculation parameters:', calculationParams);
-      console.log('📞 Calling calculateCulvert function...');
-      
-      const calculationResults = calculateCulvert(calculationParams);
-      
-      console.log('✅ Calculation completed successfully!');
-      console.log('📊 Results:', calculationResults);
-      
-      setResults(calculationResults);
-      setActiveSection(STAGES.RESULTS);
+        console.log('🔧 Calculation parameters:', calculationParams);
+        setDebugInfo(prev => prev + `\n🔧 Method: ${formValues.sizingMethod}`);
+        console.log('📞 Calling calculateCulvert function...');
+        
+        const calculationResults = calculateCulvert(calculationParams);
+        
+        console.log('✅ Calculation completed successfully!');
+        console.log('📊 Results:', calculationResults);
+        setDebugInfo(prev => prev + '\n✅ Calculation completed!');
+        
+        if (!calculationResults) {
+          throw new Error('Calculator returned null results');
+        }
+        
+        setResults(calculationResults);
+        setDebugInfo(prev => prev + `\n📊 Result: ${calculationResults.finalSize}mm culvert`);
+        
+        // Navigate to results
+        console.log('🎯 Navigating to results section...');
+        setDebugInfo(prev => prev + '\n🎯 Navigating to results...');
+        setActiveSection(STAGES.RESULTS);
 
-      // Save to assessment history
-      saveAssessment(calculationResults, calculationParams);
-      
-    } catch (error) {
-      console.error('💥 Calculation error:', error);
-      console.error('Error stack:', error.stack);
-      setErrors({ calculation: `Calculation error: ${error.message}. Please check your inputs and try again.` });
-    } finally {
-      console.log('🏁 Calculation process finished');
-      setIsLoading(false);
-    }
+        // Save to assessment history
+        saveAssessment(calculationResults, calculationParams);
+        
+      } catch (error) {
+        console.error('💥 Calculation error:', error);
+        console.error('Error stack:', error.stack);
+        setDebugInfo(prev => prev + `\n💥 ERROR: ${error.message}`);
+        setErrors({ calculation: `Calculation error: ${error.message}. Please check your inputs and try again.` });
+      } finally {
+        console.log('🏁 Calculation process finished');
+        setIsLoading(false);
+      }
+    }, 100); // Small delay to ensure loading state is visible
   };
 
   // Save assessment to history
   const saveAssessment = (calculationResults, calculationParams) => {
-    const assessmentData = {
-      id: id || `culvert-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
-      type: 'culvertSizing',
-      title: formValues.culvertId || 'Untitled Culvert Assessment',
-      location: formValues.roadName || 'Unknown Location',
-      dateCreated: new Date().toISOString(),
-      data: {
-        formValues,
-        optionalAssessments,
-        climateFactors,
-        debrisAssessment,
-        topWidthMeasurements,
-        bottomWidthMeasurements,
-        depthMeasurements,
-        useBottomWidth,
-        results: calculationResults,
-        calculationParams
+    try {
+      const assessmentData = {
+        id: id || `culvert-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
+        type: 'culvertSizing',
+        title: formValues.culvertId || 'Untitled Culvert Assessment',
+        location: formValues.roadName || 'Unknown Location',
+        dateCreated: new Date().toISOString(),
+        data: {
+          formValues,
+          optionalAssessments,
+          climateFactors,
+          debrisAssessment,
+          topWidthMeasurements,
+          bottomWidthMeasurements,
+          depthMeasurements,
+          useBottomWidth,
+          results: calculationResults,
+          calculationParams
+        }
+      };
+
+      const existingHistory = JSON.parse(localStorage.getItem('assessmentHistory') || '[]');
+      const existingIndex = existingHistory.findIndex(a => a.id === assessmentData.id);
+      if (existingIndex >= 0) {
+        existingHistory[existingIndex] = assessmentData;
+      } else {
+        existingHistory.unshift(assessmentData);
       }
-    };
 
-    const existingHistory = JSON.parse(localStorage.getItem('assessmentHistory') || '[]');
-    const existingIndex = existingHistory.findIndex(a => a.id === assessmentData.id);
-    if (existingIndex >= 0) {
-      existingHistory[existingIndex] = assessmentData;
-    } else {
-      existingHistory.unshift(assessmentData);
+      localStorage.setItem('assessmentHistory', JSON.stringify(existingHistory));
+      console.log('💾 Assessment saved to history');
+      setDebugInfo(prev => prev + '\n💾 Saved to history');
+    } catch (error) {
+      console.error('Error saving assessment:', error);
+      setDebugInfo(prev => prev + `\n⚠️ Save error: ${error.message}`);
     }
-
-    localStorage.setItem('assessmentHistory', JSON.stringify(existingHistory));
   };
 
   const navigateToSection = (sectionId) => {
@@ -548,6 +591,24 @@ const CulvertSizingForm = () => {
           <div className="status-message error">{locationError}</div>
         )}
       </div>
+
+      {/* Debug Info Display */}
+      {debugInfo && (
+        <div className="factor-group">
+          <h4>Debug Information</h4>
+          <div style={{
+            background: '#f5f5f5',
+            padding: '12px',
+            borderRadius: '6px',
+            fontFamily: 'monospace',
+            fontSize: '12px',
+            whiteSpace: 'pre-line',
+            border: '1px solid #ddd'
+          }}>
+            {debugInfo}
+          </div>
+        </div>
+      )}
     </div>
   );
 
@@ -1060,6 +1121,25 @@ const CulvertSizingForm = () => {
           )}
         </div>
       </div>
+
+      {/* Quick Test Button for debugging */}
+      <div className="factor-group">
+        <h4>Quick Test (Debug Mode)</h4>
+        <p className="helper-text">
+          Fill in test values to quickly test the calculator.
+        </p>
+        <button
+          type="button"
+          onClick={() => {
+            setTopWidthMeasurements(['2.0']);
+            setDepthMeasurements(['0.5']);
+            setDebugInfo('Test values loaded: 2.0m width × 0.5m depth');
+          }}
+          className="add-measurement-btn"
+        >
+          Load Test Values
+        </button>
+      </div>
     </div>
   );
 
@@ -1144,6 +1224,42 @@ const CulvertSizingForm = () => {
         {errors.calculation && (
           <div className="status-message error" style={{marginTop: '20px'}}>
             {errors.calculation}
+          </div>
+        )}
+
+        {/* Enhanced Debug Display */}
+        {debugInfo && activeSection !== STAGES.SITE_INFO && (
+          <div className="factor-group" style={{marginTop: '20px'}}>
+            <h4>Debug Information</h4>
+            <div style={{
+              background: '#f5f5f5',
+              padding: '12px',
+              borderRadius: '6px',
+              fontFamily: 'monospace',
+              fontSize: '12px',
+              whiteSpace: 'pre-line',
+              border: '1px solid #ddd',
+              maxHeight: '200px',
+              overflow: 'auto'
+            }}>
+              {debugInfo}
+            </div>
+            <button
+              type="button"
+              onClick={() => setDebugInfo('')}
+              style={{
+                background: '#666',
+                color: 'white',
+                border: 'none',
+                padding: '4px 8px',
+                borderRadius: '4px',
+                fontSize: '12px',
+                marginTop: '8px',
+                cursor: 'pointer'
+              }}
+            >
+              Clear Debug Info
+            </button>
           </div>
         )}
 
