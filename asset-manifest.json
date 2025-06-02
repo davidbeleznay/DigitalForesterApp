@@ -1,0 +1,13 @@
+{
+  "files": {
+    "main.css": "/DigitalForesterApp/static/css/main.41681e00.css",
+    "main.js": "/DigitalForesterApp/static/js/main.2543e7a2.js",
+    "index.html": "/DigitalForesterApp/index.html",
+    "main.41681e00.css.map": "/DigitalForesterApp/static/css/main.41681e00.css.map",
+    "main.2543e7a2.js.map": "/DigitalForesterApp/static/js/main.2543e7a2.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.41681e00.css",
+    "static/js/main.2543e7a2.js"
+  ]
+}
