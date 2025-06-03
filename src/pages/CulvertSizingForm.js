@@ -20,7 +20,7 @@ const CulvertSizingForm = () => {
   const [formValues, setFormValues] = useState({
     culvertId: '',
     roadName: '',
-    slopePercent: '2.0', // Moved to settings but kept default value
+    slopePercent: '2.0', // Keep default but will be conditionally shown
     streamRoughness: '0.04',
     pipeRoughness: '0.024',
     maxHwdRatio: '0.8',
@@ -258,6 +258,12 @@ const CulvertSizingForm = () => {
       newErrors.depthMeasurements = 'At least one valid depth measurement is required';
     }
 
+    // Validate slope for hydraulic methods
+    const needsSlope = formValues.sizingMethod === 'hydraulic' || formValues.sizingMethod === 'comparison';
+    if (needsSlope && (!formValues.slopePercent || parseFloat(formValues.slopePercent) <= 0)) {
+      newErrors.slopePercent = 'Channel slope is required for hydraulic calculations';
+    }
+
     return newErrors;
   }, [calculateAverages, formValues]);
 
@@ -390,6 +396,11 @@ const CulvertSizingForm = () => {
       default:
         break;
     }
+  };
+
+  // Helper function to determine if hydraulic parameters are needed
+  const needsHydraulicParams = () => {
+    return formValues.sizingMethod === 'hydraulic' || formValues.sizingMethod === 'comparison';
   };
 
   return (
@@ -671,23 +682,6 @@ const CulvertSizingForm = () => {
               Calculation Settings
             </h2>
             
-            {/* Channel Slope - MOVED HERE from Site Info */}
-            <div className="form-group">
-              <label htmlFor="slopePercent">Channel Slope (%)</label>
-              <input
-                type="number"
-                id="slopePercent"
-                name="slopePercent"
-                value={formValues.slopePercent}
-                onChange={handleInputChange}
-                step="0.1"
-                placeholder="e.g., 2.5"
-              />
-              <div className="helper-text">
-                Channel gradient in percent. Default is 2% for moderate terrain. Required for hydraulic calculations.
-              </div>
-            </div>
-            
             {/* Sizing Method Selection */}
             <div className="form-group">
               <label>Sizing Method</label>
@@ -735,6 +729,27 @@ const CulvertSizingForm = () => {
                 </div>
               </div>
             </div>
+
+            {/* Channel Slope - ONLY show when hydraulic calculations are needed */}
+            {needsHydraulicParams() && (
+              <div className="form-group">
+                <label htmlFor="slopePercent">Channel Slope (%) *</label>
+                <input
+                  type="number"
+                  id="slopePercent"
+                  name="slopePercent"
+                  value={formValues.slopePercent}
+                  onChange={handleInputChange}
+                  step="0.1"
+                  placeholder="e.g., 2.5"
+                  className={errors.slopePercent ? 'error' : ''}
+                />
+                <div className="helper-text">
+                  Channel gradient in percent. Required for Manning's equation hydraulic calculations.
+                </div>
+                {errors.slopePercent && <div className="status-message error">{errors.slopePercent}</div>}
+              </div>
+            )}
 
             {/* Fish Passage Toggle */}
             <div className="feature-toggle">
@@ -851,10 +866,10 @@ const CulvertSizingForm = () => {
               </div>
             )}
 
-            {/* Advanced Hydraulic Parameters */}
-            {(formValues.sizingMethod === 'hydraulic' || formValues.sizingMethod === 'comparison') && (
+            {/* Advanced Hydraulic Parameters - ONLY when hydraulic calculations are needed */}
+            {needsHydraulicParams() && (
               <div style={{marginTop: '24px'}}>
-                <h4>Hydraulic Parameters</h4>
+                <h4>Advanced Hydraulic Parameters</h4>
                 <div className="form-grid">
                   <div className="form-group">
                     <label htmlFor="streamRoughness">Stream Roughness (Manning's n)</label>
