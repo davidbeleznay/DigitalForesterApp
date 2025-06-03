@@ -167,7 +167,6 @@ export const calculateCulvert = (params) => {
   let hydraulicSize = californiaSize;
   let bankfullFlow = 0;
   let finalCapacity = 0;
-  let finalHeadwaterRatio = 0;
   
   // Run hydraulic calculations when:
   // 1. Method is hydraulic or comparison
@@ -217,7 +216,6 @@ export const calculateCulvert = (params) => {
       if (pipeCapacity >= bankfullFlow * 1.25 && hw_ratio <= maxHwdRatio) {
         hydraulicSize = pipeSize;
         finalCapacity = pipeCapacity;
-        finalHeadwaterRatio = hw_ratio;
         break;
       }
       
@@ -225,7 +223,6 @@ export const calculateCulvert = (params) => {
       if (pipeSize === STANDARD_PIPE_SIZES[STANDARD_PIPE_SIZES.length - 1]) {
         hydraulicSize = pipeSize;
         finalCapacity = pipeCapacity;
-        finalHeadwaterRatio = hw_ratio;
       }
     }
   }
