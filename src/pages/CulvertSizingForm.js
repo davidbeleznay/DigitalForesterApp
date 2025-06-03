@@ -20,7 +20,7 @@ const CulvertSizingForm = () => {
   const [formValues, setFormValues] = useState({
     culvertId: '',
     roadName: '',
-    slopePercent: '',
+    slopePercent: '2.0', // Moved to settings but kept default value
     streamRoughness: '0.04',
     pipeRoughness: '0.024',
     maxHwdRatio: '0.8',
@@ -298,9 +298,11 @@ const CulvertSizingForm = () => {
   }, [id, formValues, optionalAssessments, climateFactors, debrisAssessment, topWidthMeasurements, bottomWidthMeasurements, depthMeasurements, useBottomWidth]);
 
   const handleCalculate = useCallback(() => {
+    console.log('Calculate button clicked!'); // Debug
     setErrors({});
     
     const validationErrors = validateForm();
+    console.log('Validation errors:', validationErrors); // Debug
     
     if (Object.keys(validationErrors).length > 0) {
       setErrors(validationErrors);
@@ -308,10 +310,12 @@ const CulvertSizingForm = () => {
     }
 
     setIsLoading(true);
+    console.log('Starting calculation...'); // Debug
 
     setTimeout(() => {
       try {
         const { avgTopWidth, avgBottomWidth, avgDepth } = calculateAverages();
+        console.log(`Stream measurements: ${avgTopWidth}m × ${avgDepth}m`); // Debug
 
         const calculationParams = {
           topWidth: avgTopWidth,
@@ -330,7 +334,9 @@ const CulvertSizingForm = () => {
           debrisAssessment: optionalAssessments.debrisAssessmentEnabled ? debrisAssessment : null
         };
 
+        console.log('Calculation params:', calculationParams); // Debug
         const calculationResults = calculateCulvert(calculationParams);
+        console.log('Calculation results:', calculationResults); // Debug
         
         if (!calculationResults) {
           throw new Error('Calculator returned null results');
@@ -362,6 +368,7 @@ const CulvertSizingForm = () => {
         setActiveSection(STAGES.SETTINGS);
         break;
       case STAGES.SETTINGS:
+        console.log('Settings -> Calculate triggered'); // Debug
         handleCalculate();
         break;
       default:
@@ -469,22 +476,6 @@ const CulvertSizingForm = () => {
                   placeholder="e.g., Forest Service Road 123"
                 />
                 {errors.roadName && <div className="status-message error">{errors.roadName}</div>}
-              </div>
-              
-              <div className="form-group">
-                <label htmlFor="slopePercent">Channel Slope (%)</label>
-                <input
-                  type="number"
-                  id="slopePercent"
-                  name="slopePercent"
-                  value={formValues.slopePercent}
-                  onChange={handleInputChange}
-                  step="0.1"
-                  placeholder="e.g., 2.5"
-                />
-                <div className="helper-text">
-                  Channel gradient in percent. If unknown, 2% is used as default for moderate terrain.
-                </div>
               </div>
               
               <div className="form-group">
@@ -680,6 +671,23 @@ const CulvertSizingForm = () => {
               Calculation Settings
             </h2>
             
+            {/* Channel Slope - MOVED HERE from Site Info */}
+            <div className="form-group">
+              <label htmlFor="slopePercent">Channel Slope (%)</label>
+              <input
+                type="number"
+                id="slopePercent"
+                name="slopePercent"
+                value={formValues.slopePercent}
+                onChange={handleInputChange}
+                step="0.1"
+                placeholder="e.g., 2.5"
+              />
+              <div className="helper-text">
+                Channel gradient in percent. Default is 2% for moderate terrain. Required for hydraulic calculations.
+              </div>
+            </div>
+            
             {/* Sizing Method Selection */}
             <div className="form-group">
               <label>Sizing Method</label>
@@ -708,7 +716,7 @@ const CulvertSizingForm = () => {
                   />
                   <label>
                     <h5>Hydraulic Calculation <span className="method-badge alternative">Advanced</span></h5>
-                    <p>Manning's equation-based flow calculations considering channel slope and roughness. Requires additional slope information.</p>
+                    <p>Manning's equation-based flow calculations considering channel slope and roughness. Requires channel slope information.</p>
                   </label>
                 </div>
                 
