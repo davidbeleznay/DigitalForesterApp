@@ -266,6 +266,12 @@ export const calculateCulvert = (params) => {
         governingMethod += ` and ${debrisHazardInfo.hazardClass} Debris Hazard`;
       }
       break;
+      
+    default:
+      // Default case for ESLint
+      finalSize = debrisAdjustedCaliforniaSize;
+      governingMethod = "California Method (Default)";
+      break;
   }
   
   // Step 7: Apply fish passage adjustments
@@ -318,14 +324,11 @@ export const calculateCulvert = (params) => {
     
     // Final results
     finalSize: finalSize,
-    selectedPipeSizeM: (finalSize / 1000).toFixed(2),
     governingMethod,
     requiresProfessional,
     
     // Additional parameters
     pipeCapacity: finalCapacity.toFixed(2),
-    headwaterRatio: finalHeadwaterRatio.toFixed(2),
-    maxHwdRatio: maxHwdRatio.toFixed(2),
     fishPassage,
     
     // Method and climate information
@@ -333,9 +336,6 @@ export const calculateCulvert = (params) => {
     climateFactorsEnabled,
     appliedClimateFactor: climateChangeFactor,
     debrisAssessmentEnabled,
-    
-    // Required culvert area for display
-    requiredCulvertArea: (debrisAdjustedCaliforniaSize / 1000) ** 2 * Math.PI / 4,
     
     // Embed depth for fish passage
     embedDepth: fishPassage ? (0.2 * (finalSize / 1000)).toFixed(2) : "0.00",
@@ -473,23 +473,6 @@ export const getClimateFactorPresets = () => {
       label: 'End-of-century (2100)'
     }
   };
-};
-
-/**
- * Calculate pipe capacity using Manning's equation
- * @param {number} diameter - Pipe diameter in meters
- * @param {number} roughness - Manning's n for pipe
- * @param {number} slope - Channel slope as decimal
- * @returns {number} Flow capacity in cubic meters per second
- */
-const calculatePipeCapacity = (diameter, roughness, slope) => {
-  const area = Math.PI * Math.pow(diameter, 2) / 4;
-  const hydraulicRadius = diameter / 4;
-  
-  return (1 / roughness) * 
-         area * 
-         Math.pow(hydraulicRadius, 2/3) * 
-         Math.pow(slope, 0.5);
 };
 
 /**
