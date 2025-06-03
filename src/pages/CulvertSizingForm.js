@@ -65,7 +65,6 @@ const CulvertSizingForm = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isGettingLocation, setIsGettingLocation] = useState(false);
   const [locationError, setLocationError] = useState('');
-  const [debugInfo, setDebugInfo] = useState('');
 
   // Load existing assessment if editing
   useEffect(() => {
@@ -293,22 +292,18 @@ const CulvertSizingForm = () => {
       }
 
       localStorage.setItem('assessmentHistory', JSON.stringify(existingHistory));
-      setDebugInfo(prev => prev + '\n💾 Saved to history');
     } catch (error) {
       console.error('Error saving assessment:', error);
-      setDebugInfo(prev => prev + `\n⚠️ Save error: ${error.message}`);
     }
   }, [id, formValues, optionalAssessments, climateFactors, debrisAssessment, topWidthMeasurements, bottomWidthMeasurements, depthMeasurements, useBottomWidth]);
 
   const handleCalculate = useCallback(() => {
     setErrors({});
-    setDebugInfo('Starting calculation...');
     
     const validationErrors = validateForm();
     
     if (Object.keys(validationErrors).length > 0) {
       setErrors(validationErrors);
-      setDebugInfo(prev => prev + '\n❌ Validation failed!');
       return;
     }
 
@@ -438,180 +433,465 @@ const CulvertSizingForm = () => {
         </button>
       </div>
 
-      {/* Basic form content - simplified for build success */}
+      {/* Enhanced form content with proper styling */}
       <div className="form-content">
         {activeSection === STAGES.SITE_INFO && (
-          <div className="form-section">
-            <h3>Site Information</h3>
-            <div className="form-group">
-              <label>Culvert ID</label>
-              <input
-                type="text"
-                name="culvertId"
-                value={formValues.culvertId}
-                onChange={handleInputChange}
-                className={errors.culvertId ? 'error' : ''}
-              />
-              {errors.culvertId && <div className="status-message error">{errors.culvertId}</div>}
+          <div className="form-section" style={{ borderTop: '4px solid #2196f3' }}>
+            <h2 className="section-header" style={{ color: '#2196f3' }}>
+              <span className="section-accent" style={{ background: 'linear-gradient(to bottom, #2196f3, #64b5f6)' }}></span>
+              Site Information
+            </h2>
+            
+            <div className="form-grid">
+              <div className="form-group">
+                <label htmlFor="culvertId">Culvert ID *</label>
+                <input
+                  type="text"
+                  id="culvertId"
+                  name="culvertId"
+                  value={formValues.culvertId}
+                  onChange={handleInputChange}
+                  className={errors.culvertId ? 'error' : ''}
+                  placeholder="e.g., CU-01, Road-123-CU-1"
+                />
+                {errors.culvertId && <div className="status-message error">{errors.culvertId}</div>}
+              </div>
+              
+              <div className="form-group">
+                <label htmlFor="roadName">Road Name *</label>
+                <input
+                  type="text"
+                  id="roadName"
+                  name="roadName"
+                  value={formValues.roadName}
+                  onChange={handleInputChange}
+                  className={errors.roadName ? 'error' : ''}
+                  placeholder="e.g., Forest Service Road 123"
+                />
+                {errors.roadName && <div className="status-message error">{errors.roadName}</div>}
+              </div>
+              
+              <div className="form-group">
+                <label htmlFor="slopePercent">Channel Slope (%)</label>
+                <input
+                  type="number"
+                  id="slopePercent"
+                  name="slopePercent"
+                  value={formValues.slopePercent}
+                  onChange={handleInputChange}
+                  step="0.1"
+                  placeholder="e.g., 2.5"
+                />
+                <div className="helper-text">
+                  Channel gradient in percent. If unknown, 2% is used as default for moderate terrain.
+                </div>
+              </div>
+              
+              <div className="form-group">
+                <div className="gps-section">
+                  <button 
+                    type="button" 
+                    className={`gps-button ${isGettingLocation ? 'loading' : ''}`} 
+                    onClick={captureGPSLocation} 
+                    disabled={isGettingLocation}
+                  >
+                    📍 {isGettingLocation ? 'Getting GPS...' : 'Capture GPS Location'}
+                  </button>
+                  
+                  {(formValues.latitude && formValues.longitude) && (
+                    <div className="location-display">
+                      <span className="location-icon">🎯</span>
+                      <span className="location-text">
+                        {formValues.latitude}, {formValues.longitude}
+                      </span>
+                    </div>
+                  )}
+                  
+                  {locationError && <div className="status-message error">⚠️ {locationError}</div>}
+                </div>
+              </div>
             </div>
-            <div className="form-group">
-              <label>Road Name</label>
-              <input
-                type="text"
-                name="roadName"
-                value={formValues.roadName}
-                onChange={handleInputChange}
-                className={errors.roadName ? 'error' : ''}
-              />
-              {errors.roadName && <div className="status-message error">{errors.roadName}</div>}
-            </div>
-            <button onClick={captureGPSLocation} disabled={isGettingLocation}>
-              {isGettingLocation ? 'Getting Location...' : 'Capture GPS'}
-            </button>
-            {locationError && <div className="status-message error">{locationError}</div>}
           </div>
         )}
 
         {activeSection === STAGES.MEASUREMENTS && (
-          <div className="form-section">
-            <h3>Stream Measurements</h3>
+          <div className="form-section" style={{ borderTop: '4px solid #4caf50' }}>
+            <h2 className="section-header" style={{ color: '#4caf50' }}>
+              <span className="section-accent" style={{ background: 'linear-gradient(to bottom, #4caf50, #81c784)' }}></span>
+              Stream Measurements
+            </h2>
+            <p className="section-description">
+              Measure at the bankfull (high-water) mark indicated by debris deposits, scour lines, or vegetation changes.
+            </p>
+            
+            {/* Top Width Measurements */}
             <div className="form-group">
-              <label>Top Width (m)</label>
+              <label>Top Width at High Water Mark * (meters)</label>
+              <div className="helper-text">
+                Most critical measurement - measure from high-water mark to high-water mark across the stream channel
+              </div>
               {topWidthMeasurements.map((measurement, index) => (
-                <div key={index}>
+                <div key={index} className="measurement-input-row">
                   <input
                     type="number"
                     value={measurement}
                     onChange={(e) => handleMeasurementChange(index, e.target.value, setTopWidthMeasurements)}
                     step="0.1"
+                    placeholder={`Measurement ${index + 1}`}
                   />
+                  <span className="unit-label">meters</span>
                   {topWidthMeasurements.length > 1 && (
-                    <button onClick={() => removeMeasurement(index, setTopWidthMeasurements)}>Remove</button>
+                    <button 
+                      type="button"
+                      className="remove-measurement-btn"
+                      onClick={() => removeMeasurement(index, setTopWidthMeasurements)}
+                    >
+                      ×
+                    </button>
                   )}
                 </div>
               ))}
-              <button onClick={() => addMeasurement(setTopWidthMeasurements)}>Add Measurement</button>
+              <button 
+                type="button"
+                className="add-measurement-btn"
+                onClick={() => addMeasurement(setTopWidthMeasurements)}
+              >
+                + Add Another Top Width Measurement
+              </button>
               {errors.topWidthMeasurements && <div className="status-message error">{errors.topWidthMeasurements}</div>}
             </div>
 
-            <div className="form-group">
+            {/* Bottom Width Toggle */}
+            <div className="feature-toggle">
               <input
                 type="checkbox"
+                id="useBottomWidth"
                 checked={useBottomWidth}
                 onChange={toggleBottomWidth}
               />
-              <label>Include Bottom Width</label>
+              <label htmlFor="useBottomWidth">
+                Include Bottom Width Measurements (for trapezoidal channels)
+              </label>
             </div>
 
+            {/* Bottom Width Measurements */}
             {useBottomWidth && (
               <div className="form-group">
-                <label>Bottom Width (m)</label>
+                <label>Bottom Width (meters)</label>
+                <div className="helper-text">
+                  Width of stream channel at the bottom/thalweg level
+                </div>
                 {bottomWidthMeasurements.map((measurement, index) => (
-                  <div key={index}>
+                  <div key={index} className="measurement-input-row">
                     <input
                       type="number"
                       value={measurement}
                       onChange={(e) => handleMeasurementChange(index, e.target.value, setBottomWidthMeasurements)}
                       step="0.1"
+                      placeholder={`Bottom measurement ${index + 1}`}
                     />
+                    <span className="unit-label">meters</span>
                     {bottomWidthMeasurements.length > 1 && (
-                      <button onClick={() => removeMeasurement(index, setBottomWidthMeasurements)}>Remove</button>
+                      <button 
+                        type="button"
+                        className="remove-measurement-btn"
+                        onClick={() => removeMeasurement(index, setBottomWidthMeasurements)}
+                      >
+                        ×
+                      </button>
                     )}
                   </div>
                 ))}
-                <button onClick={() => addMeasurement(setBottomWidthMeasurements)}>Add Measurement</button>
+                <button 
+                  type="button"
+                  className="add-measurement-btn"
+                  onClick={() => addMeasurement(setBottomWidthMeasurements)}
+                >
+                  + Add Another Bottom Width Measurement
+                </button>
               </div>
             )}
 
+            {/* Depth Measurements */}
             <div className="form-group">
-              <label>Depth (m)</label>
+              <label>Stream Depth * (meters)</label>
+              <div className="helper-text">
+                Vertical depth from high-water mark to stream bottom at representative cross-sections
+              </div>
               {depthMeasurements.map((measurement, index) => (
-                <div key={index}>
+                <div key={index} className="measurement-input-row">
                   <input
                     type="number"
                     value={measurement}
                     onChange={(e) => handleMeasurementChange(index, e.target.value, setDepthMeasurements)}
                     step="0.1"
+                    placeholder={`Depth ${index + 1}`}
                   />
+                  <span className="unit-label">meters</span>
                   {depthMeasurements.length > 1 && (
-                    <button onClick={() => removeMeasurement(index, setDepthMeasurements)}>Remove</button>
+                    <button 
+                      type="button"
+                      className="remove-measurement-btn"
+                      onClick={() => removeMeasurement(index, setDepthMeasurements)}
+                    >
+                      ×
+                    </button>
                   )}
                 </div>
               ))}
-              <button onClick={() => addMeasurement(setDepthMeasurements)}>Add Measurement</button>
+              <button 
+                type="button"
+                className="add-measurement-btn"
+                onClick={() => addMeasurement(setDepthMeasurements)}
+              >
+                + Add Another Depth Measurement
+              </button>
               {errors.depthMeasurements && <div className="status-message error">{errors.depthMeasurements}</div>}
             </div>
+
+            {/* Measurement Summary */}
+            {(() => {
+              const { avgTopWidth, avgBottomWidth, avgDepth } = calculateAverages();
+              const streamArea = ((avgTopWidth + avgBottomWidth) * avgDepth) / 2;
+              
+              if (avgTopWidth > 0 && avgDepth > 0) {
+                return (
+                  <div className="total-score-display">
+                    <div className="total-score-label">Calculated Stream Characteristics:</div>
+                    <div style={{marginTop: '8px', fontSize: '14px'}}>
+                      <div><strong>Average Top Width:</strong> {avgTopWidth.toFixed(2)} m</div>
+                      {useBottomWidth && <div><strong>Average Bottom Width:</strong> {avgBottomWidth.toFixed(2)} m</div>}
+                      <div><strong>Average Depth:</strong> {avgDepth.toFixed(2)} m</div>
+                      <div><strong>Cross-sectional Area:</strong> {streamArea.toFixed(2)} m²</div>
+                      <div><strong>Required Culvert Area (3×):</strong> {(streamArea * 3).toFixed(2)} m²</div>
+                    </div>
+                  </div>
+                );
+              }
+              return null;
+            })()}
           </div>
         )}
 
         {activeSection === STAGES.SETTINGS && (
-          <div className="form-section">
-            <h3>Settings</h3>
+          <div className="form-section" style={{ borderTop: '4px solid #ff9800' }}>
+            <h2 className="section-header" style={{ color: '#ff9800' }}>
+              <span className="section-accent" style={{ background: 'linear-gradient(to bottom, #ff9800, #ffb74d)' }}></span>
+              Calculation Settings
+            </h2>
             
+            {/* Sizing Method Selection */}
             <div className="form-group">
               <label>Sizing Method</label>
-              <select name="sizingMethod" value={formValues.sizingMethod} onChange={handleInputChange}>
-                <option value="california">California Method</option>
-                <option value="hydraulic">Hydraulic Calculation</option>
-                <option value="comparison">Method Comparison</option>
-              </select>
+              <div className="method-selection">
+                <div className={`method-card ${formValues.sizingMethod === 'california' ? 'selected' : ''}`}>
+                  <input
+                    type="radio"
+                    name="sizingMethod"
+                    value="california"
+                    checked={formValues.sizingMethod === 'california'}
+                    onChange={handleInputChange}
+                  />
+                  <label>
+                    <h5>California Method <span className="method-badge default">Default</span></h5>
+                    <p>Industry standard using stream cross-section measurements and professional lookup tables. Most widely accepted approach for forest road culverts.</p>
+                  </label>
+                </div>
+                
+                <div className={`method-card ${formValues.sizingMethod === 'hydraulic' ? 'selected' : ''}`}>
+                  <input
+                    type="radio"
+                    name="sizingMethod"
+                    value="hydraulic"
+                    checked={formValues.sizingMethod === 'hydraulic'}
+                    onChange={handleInputChange}
+                  />
+                  <label>
+                    <h5>Hydraulic Calculation <span className="method-badge alternative">Advanced</span></h5>
+                    <p>Manning's equation-based flow calculations considering channel slope and roughness. Requires additional slope information.</p>
+                  </label>
+                </div>
+                
+                <div className={`method-card ${formValues.sizingMethod === 'comparison' ? 'selected' : ''}`}>
+                  <input
+                    type="radio"
+                    name="sizingMethod"
+                    value="comparison"
+                    checked={formValues.sizingMethod === 'comparison'}
+                    onChange={handleInputChange}
+                  />
+                  <label>
+                    <h5>Method Comparison <span className="method-badge conservative">Conservative</span></h5>
+                    <p>Calculate both California and Hydraulic methods, then recommend the larger size for maximum safety margin.</p>
+                  </label>
+                </div>
+              </div>
             </div>
 
-            <div className="form-group">
+            {/* Fish Passage Toggle */}
+            <div className="feature-toggle">
               <input
                 type="checkbox"
+                id="fishPassage"
                 checked={formValues.fishPassage}
                 onChange={toggleFishPassage}
               />
-              <label>Fish Passage Required</label>
+              <label htmlFor="fishPassage">
+                Fish Passage Required (20% embedded installation)
+              </label>
             </div>
 
-            <div className="form-group">
+            {/* Climate Factors */}
+            <div className="feature-toggle">
               <input
                 type="checkbox"
+                id="climateFactorsEnabled"
                 checked={optionalAssessments.climateFactorsEnabled}
                 onChange={() => toggleOptionalAssessment('climateFactorsEnabled')}
               />
-              <label>Climate Factors</label>
+              <label htmlFor="climateFactorsEnabled">
+                Apply Climate Change Factors (Coastal BC Projections)
+              </label>
             </div>
 
             {optionalAssessments.climateFactorsEnabled && (
-              <div>
-                <h4>Climate Presets</h4>
-                {Object.entries(climatePresets).map(([year, preset]) => (
-                  <button
-                    key={year}
-                    onClick={() => handleClimatePresetChange(year)}
-                    className={climateFactors.selectedPreset === year ? 'selected' : ''}
-                  >
-                    {preset.label}
-                  </button>
-                ))}
+              <div className="climate-factors-section">
+                <h4>Select Climate Planning Horizon</h4>
+                <div className="climate-presets">
+                  {Object.entries(climatePresets).map(([year, preset]) => (
+                    <div
+                      key={year}
+                      className={`climate-preset-card ${climateFactors.selectedPreset === year ? 'selected' : ''}`}
+                      onClick={() => handleClimatePresetChange(year)}
+                    >
+                      <div className="preset-header">
+                        <h5>{preset.label}</h5>
+                        <span className="climate-factor">+{((preset.factor - 1) * 100).toFixed(0)}%</span>
+                      </div>
+                      <p className="preset-description">{preset.description}</p>
+                    </div>
+                  ))}
+                </div>
               </div>
             )}
 
-            <div className="form-group">
+            {/* Debris Assessment */}
+            <div className="feature-toggle">
               <input
                 type="checkbox"
+                id="debrisAssessmentEnabled"
                 checked={optionalAssessments.debrisAssessmentEnabled}
                 onChange={() => toggleOptionalAssessment('debrisAssessmentEnabled')}
               />
-              <label>Debris Assessment</label>
+              <label htmlFor="debrisAssessmentEnabled">
+                Debris Transport Hazard Assessment
+              </label>
             </div>
 
             {optionalAssessments.debrisAssessmentEnabled && (
-              <div>
+              <div className="debris-assessment-section">
                 <h4>Debris Hazard Indicators</h4>
-                {Object.entries(debrisAssessment).filter(([key]) => key !== 'debrisMitigationStrategy').map(([key, value]) => (
-                  <div key={key}>
-                    <input
-                      type="checkbox"
-                      checked={value}
-                      onChange={(e) => handleDebrisAssessmentChange(key, e.target.checked)}
-                    />
-                    <label>{key.replace(/([A-Z])/g, ' $1').toLowerCase()}</label>
+                <p style={{fontSize: '14px', color: '#666', marginBottom: '16px'}}>
+                  Check all conditions that apply to the site. Each factor increases debris transport risk.
+                </p>
+                
+                <div className="debris-checklist">
+                  {[
+                    { key: 'steepUpslopeOrSlideScars', label: 'Steep upslope terrain or landslide scars visible' },
+                    { key: 'evidenceOfPastDebrisFlow', label: 'Evidence of past debris flows in the watershed' },
+                    { key: 'steepChannelReach', label: 'Steep channel reach upstream of crossing (>15% grade)' },
+                    { key: 'largeWoodyDebrisPresent', label: 'Large woody debris present in channel' },
+                    { key: 'gapHighRating', label: 'GAP analysis rates debris hazard as HIGH' }
+                  ].map(factor => (
+                    <div key={factor.key} className="debris-factor">
+                      <input
+                        type="checkbox"
+                        id={factor.key}
+                        checked={debrisAssessment[factor.key]}
+                        onChange={(e) => handleDebrisAssessmentChange(factor.key, e.target.checked)}
+                      />
+                      <label htmlFor={factor.key}>{factor.label}</label>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="debris-strategy">
+                  <h5>Mitigation Strategy</h5>
+                  <div className="strategy-options">
+                    <div className="strategy-option">
+                      <input
+                        type="radio"
+                        name="debrisMitigationStrategy"
+                        value="upsize"
+                        checked={debrisAssessment.debrisMitigationStrategy === 'upsize'}
+                        onChange={(e) => handleDebrisAssessmentChange('debrisMitigationStrategy', e.target.value)}
+                      />
+                      <label>Up-size culvert to handle debris (Recommended)</label>
+                    </div>
+                    <div className="strategy-option">
+                      <input
+                        type="radio"
+                        name="debrisMitigationStrategy"
+                        value="cleanout"
+                        checked={debrisAssessment.debrisMitigationStrategy === 'cleanout'}
+                        onChange={(e) => handleDebrisAssessmentChange('debrisMitigationStrategy', e.target.value)}
+                      />
+                      <label>Annual debris clean-out commitment</label>
+                    </div>
                   </div>
-                ))}
+                </div>
+              </div>
+            )}
+
+            {/* Advanced Hydraulic Parameters */}
+            {(formValues.sizingMethod === 'hydraulic' || formValues.sizingMethod === 'comparison') && (
+              <div style={{marginTop: '24px'}}>
+                <h4>Hydraulic Parameters</h4>
+                <div className="form-grid">
+                  <div className="form-group">
+                    <label htmlFor="streamRoughness">Stream Roughness (Manning's n)</label>
+                    <select
+                      id="streamRoughness"
+                      name="streamRoughness"
+                      value={formValues.streamRoughness}
+                      onChange={handleInputChange}
+                    >
+                      <option value="0.035">0.035 - Gravel bed, straight</option>
+                      <option value="0.04">0.040 - Mixed gravel/cobble (default)</option>
+                      <option value="0.045">0.045 - Cobble bed, some boulders</option>
+                      <option value="0.05">0.050 - Boulder/bedrock, irregular</option>
+                    </select>
+                  </div>
+                  
+                  <div className="form-group">
+                    <label htmlFor="pipeRoughness">Pipe Roughness (Manning's n)</label>
+                    <select
+                      id="pipeRoughness"
+                      name="pipeRoughness"
+                      value={formValues.pipeRoughness}
+                      onChange={handleInputChange}
+                    >
+                      <option value="0.024">0.024 - Corrugated steel (default)</option>
+                      <option value="0.012">0.012 - Smooth HDPE</option>
+                      <option value="0.013">0.013 - Concrete pipe</option>
+                    </select>
+                  </div>
+                  
+                  <div className="form-group">
+                    <label htmlFor="maxHwdRatio">Max Headwater/Diameter Ratio</label>
+                    <select
+                      id="maxHwdRatio"
+                      name="maxHwdRatio"
+                      value={formValues.maxHwdRatio}
+                      onChange={handleInputChange}
+                    >
+                      <option value="0.5">0.5 - Very conservative</option>
+                      <option value="0.8">0.8 - Conservative (default)</option>
+                      <option value="1.0">1.0 - Moderate risk</option>
+                      <option value="1.2">1.2 - Higher risk</option>
+                    </select>
+                  </div>
+                </div>
               </div>
             )}
           </div>
@@ -641,6 +921,7 @@ const CulvertSizingForm = () => {
             <button 
               onClick={handleNext}
               disabled={isLoading}
+              className="primary-button"
             >
               {isLoading ? '🔄 Calculating...' : 
                activeSection === STAGES.SETTINGS ? '🧮 Calculate' : 'Next →'}
