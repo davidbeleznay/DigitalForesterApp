@@ -8,7 +8,7 @@ import Dashboard from '../pages/Dashboard';
 
 const AppRouter = () => {
   return (
-    <Router>
+    <Router basename="/DigitalForesterApp">
       <Routes>
         <Route path="/" element={<HomeScreen />} />
         <Route path="/dashboard" element={<Dashboard />} />
